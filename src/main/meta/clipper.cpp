@@ -49,15 +49,8 @@ namespace lsp
 
             // Input controls
             BYPASS,
-            INT_CONTROL("d_in", "Delay in samples", U_SAMPLES, clipper::SAMPLES),
-            DRY_GAIN(0.0f),
-            WET_GAIN(1.0f),
+            IN_GAIN,
             OUT_GAIN,
-
-            // Output controls
-            METER_MINMAX("d_out", "Delay time in milliseconds", U_MSEC, 0.0f, clipper::DELAY_OUT_MAX_TIME),
-            METER_GAIN("min", "Input gain", GAIN_AMP_P_48_DB),
-            METER_GAIN("mout", "Output gain", GAIN_AMP_P_48_DB),
 
             PORTS_END
         };
@@ -70,45 +63,36 @@ namespace lsp
 
             // Input controls
             BYPASS,
-            INT_CONTROL("d_in", "Delay in samples", U_SAMPLES, clipper::SAMPLES),
-            DRY_GAIN(0.0f),
-            WET_GAIN(1.0f),
+            IN_GAIN,
             OUT_GAIN,
-
-            // Output controls
-            METER_MINMAX("d_out", "Delay time in milliseconds", U_MSEC, 0.0f, clipper::DELAY_OUT_MAX_TIME),
-            METER_GAIN("min_l", "Input gain left",  GAIN_AMP_P_48_DB),
-            METER_GAIN("mout_l", "Output gain left",  GAIN_AMP_P_48_DB),
-            METER_GAIN("min_r", "Input gain right",  GAIN_AMP_P_48_DB),
-            METER_GAIN("mout_r", "Output gain right", GAIN_AMP_P_48_DB),
 
             PORTS_END
         };
 
-        static const int plugin_classes[]       = { C_DELAY, -1 };
-        static const int clap_features_mono[]   = { CF_AUDIO_EFFECT, CF_UTILITY, CF_MONO, -1 };
-        static const int clap_features_stereo[] = { CF_AUDIO_EFFECT, CF_UTILITY, CF_STEREO, -1 };
+        static const int plugin_classes[]       = { C_DYNAMICS, -1 };
+        static const int clap_features_mono[]   = { CF_AUDIO_EFFECT, CF_MASTERING, CF_MONO, -1 };
+        static const int clap_features_stereo[] = { CF_AUDIO_EFFECT, CF_MASTERING, CF_STEREO, -1 };
 
         const meta::bundle_t clipper_bundle =
         {
             "clipper",
-            "Plugin Template",
-            B_UTILITIES,
+            "Clipper",
+            B_DYNAMICS,
             "", // TODO: provide ID of the video on YouTube
-            "" // TODO: write plugin description, should be the same to the english version in 'bundles.json'
+            "Advanced peak clipping tool to maximize output loudness"
         };
 
         const plugin_t clipper_mono =
         {
-            "Pluginschablone Mono",
-            "Plugin Template Mono",
-            "PS1M",
+            "Clipper Mono",
+            "Clipper Mono",
+            "CL1M",
             &developers::v_sadovnikov,
             "clipper_mono",
             LSP_LV2_URI("clipper_mono"),
             LSP_LV2UI_URI("clipper_mono"),
-            "xxxx",         // TODO: fill valid VST2 ID (4 letters/digits)
-            1,              // TODO: fill valid LADSPA identifier (positive decimal integer)
+            "cl1m",
+            LSP_LADSPA_CLIPPER_BASE + 0,
             LSP_LADSPA_URI("clipper_mono"),
             LSP_CLAP_URI("clipper_mono"),
             LSP_PLUGINS_CLIPPER_VERSION,
@@ -116,7 +100,7 @@ namespace lsp
             clap_features_mono,
             E_DUMP_STATE,
             clipper_mono_ports,
-            "template/plugin.xml",
+            "dynamics/clipper.xml",
             NULL,
             mono_plugin_port_groups,
             &clipper_bundle
@@ -131,8 +115,8 @@ namespace lsp
             "clipper_stereo",
             LSP_LV2_URI("clipper_stereo"),
             LSP_LV2UI_URI("clipper_stereo"),
-            "yyyy",         // TODO: fill valid VST2 ID (4 letters/digits)
-            2,              // TODO: fill valid LADSPA identifier (positive decimal integer)
+            "cl1s",
+            LSP_LADSPA_CLIPPER_BASE + 1,
             LSP_LADSPA_URI("clipper_stereo"),
             LSP_CLAP_URI("clipper_stereo"),
             LSP_PLUGINS_CLIPPER_VERSION,
@@ -140,7 +124,7 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE,
             clipper_stereo_ports,
-            "template/plugin.xml",
+            "dynamics/clipper.xml",
             NULL,
             stereo_plugin_port_groups,
             &clipper_bundle

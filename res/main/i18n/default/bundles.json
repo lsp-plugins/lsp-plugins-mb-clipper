@@ -1,7 +1,7 @@
 {
 	"clipper": {
-		"name": "Plugin Template",
-		"description": "TODO: write description"
+		"name": "Clipper",
+		"description": "Advanced peak clipping tool to maximize output loudness"
 	}
 }
 
