@@ -38,33 +38,72 @@ namespace lsp
 {
     namespace meta
     {
+        static const port_item_t clipper_xover_modes[] =
+        {
+            { "Classic",        "multiband.classic"         },
+            { "Linear Phase",   "multiband.linear_phase"    },
+            { NULL, NULL }
+        };
+
+        static const port_item_t clipper_xover_slopes[] =
+        {
+            { "LR4 (24 dB/oct)",    "filter.lr_mode.24dbo"          },
+            { "LR8 (48 dB/oct)",    "filter.lr_mode.48dbo"          },
+            { "LR12 (72 dB/oct)",   "filter.lr_mode.72dbo"          },
+            { "LR16 (96 dB/oct)",   "filter.lr_mode.96dbo"          },
+            { NULL, NULL }
+        };
+
+        static const port_item_t clipper_prefilter_slopes[] =
+        {
+            { "Off",                "filter.lr_mode.off"            },
+            { "LR4 (24 dB/oct)",    "filter.lr_mode.24dbo"          },
+            { "LR8 (48 dB/oct)",    "filter.lr_mode.48dbo"          },
+            { "LR12 (72 dB/oct)",   "filter.lr_mode.72dbo"          },
+            { "LR16 (96 dB/oct)",   "filter.lr_mode.96dbo"          },
+            { NULL, NULL }
+        };
+
+    #define CLIPPER_COMMON \
+        BYPASS, \
+        IN_GAIN, \
+        OUT_GAIN, \
+        CONTROL("thresh", "Clipping threshold", U_DB, clipper::THRESHOLD), \
+        SWITCH("boost", "Boosting mode", 1.0f), \
+        COMBO("mode", "Crossover operating mode", 1, clipper_xover_modes), \
+        COMBO("slope", "Crossover filter slope", 2, clipper_xover_slopes), \
+        LOG_CONTROL("react", "FFT reactivity", U_MSEC, clipper::REACT_TIME), \
+        AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
+        LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, clipper::ZOOM), \
+        COMBO("hpf_m", "High-pass pre-filter mode", 0, clipper_prefilter_slopes), \
+        LOG_CONTROL("hpf_f", "High-pass pre-filter frequency", U_HZ, clipper::HPF_FREQ), \
+        LOG_CONTROL("sf1", "Split frequency 1", U_HZ, clipper::SPLIT1), \
+        LOG_CONTROL("sf2", "Split frequency 2", U_HZ, clipper::SPLIT2), \
+        LOG_CONTROL("sf3", "Split frequency 3", U_HZ, clipper::SPLIT3), \
+        COMBO("lpf_m", "High-pass pre-filter mode", 0, clipper_prefilter_slopes), \
+        LOG_CONTROL("lpf_f", "Low-pass pre-filter frequency", U_HZ, clipper::LPF_FREQ), \
+        SWITCH("ebe", "Enable extra band", 0), \
+        SWITCH("flt", "Band filter curves", 1.0f)
+
+    #define CLIPPER_STEREO_COMMON \
+        CONTROL("slink", "Stereo link", U_PERCENT, clipper::STEREO_LINK)
+
         //-------------------------------------------------------------------------
         // Plugin metadata
 
-        // NOTE: Port identifiers should not be longer than 7 characters as it will overflow VST2 parameter name buffers
         static const port_t clipper_mono_ports[] =
         {
-            // Input and output audio ports
             PORTS_MONO_PLUGIN,
-
-            // Input controls
-            BYPASS,
-            IN_GAIN,
-            OUT_GAIN,
+            CLIPPER_COMMON,
 
             PORTS_END
         };
 
-        // NOTE: Port identifiers should not be longer than 7 characters as it will overflow VST2 parameter name buffers
         static const port_t clipper_stereo_ports[] =
         {
-            // Input and output audio ports
             PORTS_STEREO_PLUGIN,
-
-            // Input controls
-            BYPASS,
-            IN_GAIN,
-            OUT_GAIN,
+            CLIPPER_COMMON,
+            CLIPPER_STEREO_COMMON,
 
             PORTS_END
         };
