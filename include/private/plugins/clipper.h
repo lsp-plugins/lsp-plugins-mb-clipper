@@ -50,17 +50,33 @@ namespace lsp
                     XOVER_FFT
                 };
 
+                enum band_flags_t
+                {
+                    BF_ENABLED          = 1 << 0,           // Band is enabled
+                    BF_DIRTY_BAND       = 1 << 1,           // Update band filter curve
+                    BF_SYNC_BAND        = 1 << 2,           // Sync band filter curve
+
+                    BF_SYNC_ALL         = BF_SYNC_BAND
+                };
+
                 typedef struct band_t
                 {
                     dspu::Sidechain     sSidechain;         // Sidechain
                     dspu::Delay         sScDelay;           // Sidechain delay
                     dspu::Delay         sDelay;             // Signal delay
 
+                    uint32_t            nFlags;             // Band flags;
+
                     float               fInLevel;           // Input level
                     float               fOutLevel;          // Output level
 
                     float              *vData;              // Data buffer
                     float              *vSc;                // Sidechain buffer
+                    float              *vTr;                // Transfer function
+
+                    plug::IPort        *pSolo;              // Solo button
+                    plug::IPort        *pMute;              // Mute button
+                    plug::IPort        *pFreqChart;         // Frequency chart
                 } band_t;
 
                 typedef struct split_t
@@ -81,6 +97,7 @@ namespace lsp
 
                     uint32_t            nAnInChannel;       // Analyzer input channel
                     uint32_t            nAnOutChannel;      // Analyzer output channel
+                    uint32_t            nFlags;             // Flags
                     float               fInGain;            // Input level meter
                     float               fOutGain;           // Output level meter
 
@@ -107,6 +124,11 @@ namespace lsp
                 float               fInGain;            // Input gain
                 float               fThresh;            // Threshold
                 float               fOutGain;           // Output gain
+
+                float              *vBuffer;            // Temporary buffer
+                float              *vFreqs;             // FFT frequencies
+                uint32_t           *vIndexes;           // Analyzer FFT indexes
+                float              *vTrEq;              // Equalizer transfer function (real values)
 
                 plug::IPort        *pBypass;            // Bypass
                 plug::IPort        *pGainIn;            // Input gain
@@ -139,6 +161,7 @@ namespace lsp
                 void                    bind_input_buffers();
                 void                    perform_analysis(size_t samples);
                 void                    advance_buffers(size_t samples);
+                void                    output_mesh_curves();
 
             public:
                 explicit clipper(const meta::plugin_t *meta);
@@ -156,6 +179,7 @@ namespace lsp
                 virtual void            update_sample_rate(long sr) override;
                 virtual void            update_settings() override;
                 virtual void            process(size_t samples) override;
+                virtual void            ui_activated() override;
                 virtual bool            inline_display(plug::ICanvas *cv, size_t width, size_t height) override;
                 virtual void            dump(dspu::IStateDumper *v) const override;
         };

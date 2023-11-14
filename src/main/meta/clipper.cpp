@@ -85,6 +85,11 @@ namespace lsp
         SWITCH("ebe", "Enable extra band", 0), \
         SWITCH("flt", "Band filter curves", 1.0f)
 
+    #define CLIPPER_BAND(id, label) \
+        SWITCH("bs" id, "Solo band" label, 0.0f), \
+        SWITCH("bm" id, "Mute band" label, 0.0f), \
+        MESH("bfc" id, "Band frequency chart" label, 2, clipper::FFT_MESH_POINTS + 2)
+
     #define CLIPPER_STEREO_COMMON \
         CONTROL("slink", "Stereo link", U_PERCENT, clipper::STEREO_LINK)
 
@@ -96,6 +101,11 @@ namespace lsp
             PORTS_MONO_PLUGIN,
             CLIPPER_COMMON,
 
+            CLIPPER_BAND("_1", ""),
+            CLIPPER_BAND("_2", ""),
+            CLIPPER_BAND("_3", ""),
+            CLIPPER_BAND("_4", ""),
+
             PORTS_END
         };
 
@@ -104,6 +114,11 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
             CLIPPER_COMMON,
             CLIPPER_STEREO_COMMON,
+
+            CLIPPER_BAND("_1", ""),
+            CLIPPER_BAND("_2", ""),
+            CLIPPER_BAND("_3", ""),
+            CLIPPER_BAND("_4", ""),
 
             PORTS_END
         };

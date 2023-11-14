@@ -36,12 +36,11 @@ namespace lsp
         typedef struct clipper
         {
             static constexpr size_t BANDS_MAX               = 4;
+            static constexpr size_t FFT_MESH_POINTS         = 640;
             static constexpr size_t FFT_XOVER_RANK_MIN      = 12;
             static constexpr size_t FFT_XOVER_FREQ_MIN      = 44100;
-
             static constexpr size_t FFT_RANK                = 13;
             static constexpr size_t FFT_ITEMS               = 1 << FFT_RANK;
-            static constexpr size_t FFT_MESH_POINTS         = 640;
             static constexpr size_t FFT_WINDOW              = dspu::windows::HANN;
             static constexpr size_t REFRESH_RATE            = 20;
 
