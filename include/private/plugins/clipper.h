@@ -71,7 +71,8 @@ namespace lsp
                     dspu::Delay         sScDelay;           // Sidechain delay
                     dspu::Delay         sDelay;             // Signal delay
 
-                    uint32_t            nFlags;             // Band flags;
+                    uint32_t            nFlags;             // Band flags
+                    uint32_t            nLatency;           // Band latency
 
                     float               fInLevel;           // Input level
                     float               fOutLevel;          // Output level
@@ -171,6 +172,7 @@ namespace lsp
                 void                    bind_input_buffers();
                 void                    split_bands(size_t samples);
                 void                    perform_analysis(size_t samples);
+                void                    output_signal(size_t samples);
                 void                    advance_buffers(size_t samples);
                 void                    merge_bands(size_t samples);
                 void                    output_mesh_curves(size_t samples);

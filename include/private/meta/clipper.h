@@ -89,6 +89,11 @@ namespace lsp
             static constexpr float  STEREO_LINK_DFL         = 50.0f;
             static constexpr float  STEREO_LINK_STEP        = 0.05f;
 
+            static constexpr float  RMS_TIME_MIN            = 0.01f;
+            static constexpr float  RMS_TIME_MAX            = 50.0f;
+            static constexpr float  RMS_TIME_DFL            = 10.0f;
+            static constexpr float  RMS_TIME_STEP           = 0.01f;
+
         } clipper;
 
         // Plugin type metadata

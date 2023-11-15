@@ -139,15 +139,6 @@ namespace lsp
 
             // Initialize analyzer
             size_t an_id            = 0;
-            if (!sAnalyzer.init(nChannels * 2, meta::clipper::FFT_RANK,
-                MAX_SAMPLE_RATE, meta::clipper::REFRESH_RATE))
-                return;
-            sAnalyzer.set_rank(meta::clipper::FFT_RANK);
-            sAnalyzer.set_activity(false);
-            sAnalyzer.set_envelope(dspu::envelope::WHITE_NOISE);
-            sAnalyzer.set_window(meta::clipper::FFT_WINDOW);
-            sAnalyzer.set_rate(meta::clipper::REFRESH_RATE);
-
             sCounter.set_frequency(meta::clipper::REFRESH_RATE, true);
 
             // Allocate memory-aligned data
@@ -351,6 +342,10 @@ namespace lsp
                 vChannels   = NULL;
             }
 
+            // Destroy analyzer
+            sAnalyzer.destroy();
+            sCounter.destroy();
+
             // Free previously allocated data block
             free_aligned(pData);
         }
@@ -366,6 +361,7 @@ namespace lsp
         {
             const size_t fft_rank       = select_fft_rank(sr);
             const size_t max_delay_fft  = (1 << fft_rank);
+            const size_t max_delay_lat  = dspu::millis_to_samples(sr, meta::clipper::RMS_TIME_MAX);
 
             sCounter.set_sample_rate(sr, true);
 
@@ -374,7 +370,7 @@ namespace lsp
                 channel_t *c            = &vChannels[i];
 
                 c->sBypass.init(sr);
-                c->sDryDelay.init(max_delay_fft);
+                c->sDryDelay.init(max_delay_fft + max_delay_lat);
                 c->sEqualizer.set_sample_rate(sr);
                 c->sIIRXOver.set_sample_rate(sr);
 
@@ -387,10 +383,28 @@ namespace lsp
                     c->sFFTXOver.set_phase(float(i) / float(nChannels));
                 }
                 c->sFFTXOver.set_sample_rate(sr);
+
+                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                {
+                    band_t *b               = &c->vBands[i];
+                    b->sDelay.init(max_delay_lat);
+                    b->sScDelay.init(max_delay_lat);
+                }
             }
 
             // Commit sample rate to analyzer
+            sAnalyzer.init(
+                nChannels * 2,
+                meta::clipper::FFT_RANK,
+                MAX_SAMPLE_RATE,
+                meta::clipper::REFRESH_RATE,
+                max_delay_fft);
+            sAnalyzer.set_rank(meta::clipper::FFT_RANK);
+            sAnalyzer.set_envelope(dspu::envelope::WHITE_NOISE);
+            sAnalyzer.set_window(meta::clipper::FFT_WINDOW);
+            sAnalyzer.set_rate(meta::clipper::REFRESH_RATE);
             sAnalyzer.set_sample_rate(sr);
+
             if (sAnalyzer.needs_reconfiguration())
             {
                 for (size_t i=0; i<nChannels; ++i)
@@ -464,6 +478,8 @@ namespace lsp
             {
                 channel_t *c            = &vChannels[i];
 
+                c->sBypass.set_bypass(bypass);
+
                 // Configure split points for crossover
                 for (size_t j=0; j<=num_splits; ++j)
                 {
@@ -473,32 +489,13 @@ namespace lsp
                 }
             }
 
-            // Configure analyzer
-            sAnalyzer.set_reactivity(pFftReactivity->value());
-            sAnalyzer.set_shift(pFftShift->value() * 100.0f);
-            for (size_t i=0; i<nChannels; ++i)
-            {
-                channel_t *c            = &vChannels[i];
-
-                sAnalyzer.enable_channel(c->nAnInChannel, c->nFlags & CF_IN_FFT);
-                sAnalyzer.enable_channel(c->nAnOutChannel, c->nFlags & CF_OUT_FFT);
-                if (c->nFlags & (CF_IN_FFT | CF_OUT_FFT))
-                    ++active_channels;
-            }
-            sAnalyzer.set_activity(active_channels > 0);
-
-            if (sAnalyzer.needs_reconfiguration())
-            {
-                sAnalyzer.reconfigure();
-                sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, meta::clipper::FFT_MESH_POINTS);
-            }
-
             // Configure crossover
+            size_t xover_latency    = 0;
+            size_t max_band_latency = 0;
+
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c            = &vChannels[i];
-
-                c->sBypass.set_bypass(bypass);
 
                 if (enXOverMode == XOVER_IIR)
                 {
@@ -601,7 +598,31 @@ namespace lsp
                     // Check if we need to synchronize state of bands
                     if (xf->needs_update())
                         sync_band_curves        = true;
+
+                    xover_latency     = lsp_max(xover_latency, xf->latency());
                 }
+            }
+
+            // Configure analyzer
+            sAnalyzer.set_reactivity(pFftReactivity->value());
+            sAnalyzer.set_shift(pFftShift->value() * 100.0f);
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
+
+                sAnalyzer.enable_channel(c->nAnInChannel, c->nFlags & CF_IN_FFT);
+                sAnalyzer.enable_channel(c->nAnOutChannel, c->nFlags & CF_OUT_FFT);
+                if (c->nFlags & (CF_IN_FFT | CF_OUT_FFT))
+                    ++active_channels;
+
+                sAnalyzer.set_channel_delay(c->nAnInChannel, xover_latency);
+            }
+            sAnalyzer.set_activity(active_channels > 0);
+
+            if (sAnalyzer.needs_reconfiguration())
+            {
+                sAnalyzer.reconfigure();
+                sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, meta::clipper::FFT_MESH_POINTS);
             }
 
             // Mark crossover bands out of sync
@@ -617,6 +638,25 @@ namespace lsp
                     }
                 }
             }
+
+            // Adjust the compensation delays
+            size_t latency = xover_latency + max_band_latency;
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
+
+                // Adjust RMS compensation delay for each band
+                for (size_t j=0; j < meta::clipper::BANDS_MAX; ++j)
+                {
+                    band_t *b       = &c->vBands[i];
+
+                    b->sDelay.set_delay(max_band_latency);
+                    b->sScDelay.set_delay(max_band_latency - b->nLatency);
+                }
+
+                c->sDryDelay.set_delay(latency);
+            }
+            set_latency(latency);
         }
 
         void clipper::process_band(void *object, void *subject, size_t band, const float *data, size_t sample, size_t count)
@@ -839,6 +879,18 @@ namespace lsp
             sCounter.submit(samples);
         }
 
+        void clipper::output_signal(size_t samples)
+        {
+            // Process the signal
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c        = &vChannels[i];
+
+                c->sDryDelay.process(vBuffer, c->vIn, samples);
+                c->sBypass.process(c->vOut, vBuffer, c->vData, samples);
+            }
+        }
+
         void clipper::process(size_t samples)
         {
             bind_input_buffers();
@@ -851,6 +903,7 @@ namespace lsp
                 // TODO: do main processing stuff
                 merge_bands(to_do);
                 perform_analysis(to_do);
+                output_signal(to_do);
 
                 advance_buffers(to_do);
                 offset         += to_do;
