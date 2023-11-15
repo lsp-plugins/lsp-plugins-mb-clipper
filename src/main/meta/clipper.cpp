@@ -93,6 +93,12 @@ namespace lsp
     #define CLIPPER_STEREO_COMMON \
         CONTROL("slink", "Stereo link", U_PERCENT, clipper::STEREO_LINK)
 
+    #define CLIPPER_ANALYSIS(id, label) \
+        SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
+        SWITCH("ofe" id, "Output FFT graph enable" label, 1.0f), \
+        MESH("ifg" id, "Input FFT graph" label, 2, clipper::FFT_MESH_POINTS + 2), \
+        MESH("ofg" id, "Output FFT graph" label, 2, clipper::FFT_MESH_POINTS)
+
         //-------------------------------------------------------------------------
         // Plugin metadata
 
@@ -105,6 +111,8 @@ namespace lsp
             CLIPPER_BAND("_2", ""),
             CLIPPER_BAND("_3", ""),
             CLIPPER_BAND("_4", ""),
+
+            CLIPPER_ANALYSIS("", ""),
 
             PORTS_END
         };
@@ -119,6 +127,9 @@ namespace lsp
             CLIPPER_BAND("_2", ""),
             CLIPPER_BAND("_3", ""),
             CLIPPER_BAND("_4", ""),
+
+            CLIPPER_ANALYSIS("_l", " Left"),
+            CLIPPER_ANALYSIS("_r", " Right"),
 
             PORTS_END
         };

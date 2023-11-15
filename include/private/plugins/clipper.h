@@ -59,6 +59,12 @@ namespace lsp
                     BF_SYNC_ALL         = BF_SYNC_BAND
                 };
 
+                enum channel_flags_t
+                {
+                    CF_IN_FFT           = 1 << 0,           // Input FFT analysis is enabled
+                    CF_OUT_FFT          = 1 << 1,           // Output FFT analysis is enabled
+                };
+
                 typedef struct band_t
                 {
                     dspu::Sidechain     sSidechain;         // Sidechain
@@ -110,6 +116,10 @@ namespace lsp
                     // Input ports
                     plug::IPort        *pIn;                // Input port
                     plug::IPort        *pOut;               // Output port
+                    plug::IPort        *pFftInSwitch;       // Input FFT enable switch
+                    plug::IPort        *pFftOutSwitch;      // Output FFT enable switch
+                    plug::IPort        *pFftInMesh;         // Input FFT mesh
+                    plug::IPort        *pFftOutMesh;        // Output FFT mesh
                 } channel_t;
 
             protected:
@@ -159,9 +169,11 @@ namespace lsp
             protected:
                 void                    do_destroy();
                 void                    bind_input_buffers();
+                void                    split_bands(size_t samples);
                 void                    perform_analysis(size_t samples);
                 void                    advance_buffers(size_t samples);
-                void                    output_mesh_curves();
+                void                    merge_bands(size_t samples);
+                void                    output_mesh_curves(size_t samples);
 
             public:
                 explicit clipper(const meta::plugin_t *meta);

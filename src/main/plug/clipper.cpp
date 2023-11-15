@@ -210,6 +210,7 @@ namespace lsp
                 // Initialize fields
                 c->nAnInChannel         = an_id++;
                 c->nAnOutChannel        = an_id++;
+                c->nFlags               = 0;
                 c->fInGain              = GAIN_AMP_0_DB;
                 c->fOutGain             = GAIN_AMP_0_DB;
 
@@ -220,6 +221,10 @@ namespace lsp
 
                 c->pIn                  = NULL;
                 c->pOut                 = NULL;
+                c->pFftInSwitch         = NULL;
+                c->pFftOutSwitch        = NULL;
+                c->pFftInMesh           = NULL;
+                c->pFftOutMesh          = NULL;
             }
             lsp_assert( ptr <= tail );
 
@@ -286,6 +291,17 @@ namespace lsp
                         b->pFreqChart           = sb->pFreqChart;
                     }
                 }
+            }
+
+            lsp_trace("Binding analysis ports");
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
+
+                c->pFftInSwitch         = trace_port(ports[port_id++]);
+                c->pFftOutSwitch        = trace_port(ports[port_id++]);
+                c->pFftInMesh           = trace_port(ports[port_id++]);
+                c->pFftOutMesh          = trace_port(ports[port_id++]);
             }
 
             // Bind ports for audio processing channels
@@ -417,18 +433,6 @@ namespace lsp
                 sync_band_curves        = true;
             }
 
-            // Update analyzer parameters
-            sAnalyzer.set_reactivity(pFftReactivity->value());
-            sAnalyzer.set_shift(pFftShift->value() * 100.0f);
-            sAnalyzer.set_activity(active_channels > 0);
-
-            // Update analyzer
-            if (sAnalyzer.needs_reconfiguration())
-            {
-                sAnalyzer.reconfigure();
-                sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, meta::clipper::FFT_MESH_POINTS);
-            }
-
             // Configure split frequencies
             const size_t num_splits = (pExtraBandOn->value() >= 0.5f) ? meta::clipper::BANDS_MAX-1 : meta::clipper::BANDS_MAX-2;
             for (size_t i=0; i<meta::clipper::BANDS_MAX-1; ++i)
@@ -437,6 +441,59 @@ namespace lsp
                 sp->fFreq               = sp->pFreq->value();
             }
 
+            // Check if we have solo option for bands and ansysis optios for channels
+            bool has_solo   = false;
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
+
+                c->nFlags               = lsp_setflag(c->nFlags, CF_IN_FFT, c->pFftInSwitch->value() >= 0.5f);
+                c->nFlags               = lsp_setflag(c->nFlags, CF_OUT_FFT, c->pFftOutSwitch->value() >= 0.5f);
+
+                // Configure split points for crossover
+                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                {
+                    band_t *b               = &c->vBands[j];
+                    b->nFlags              &= uint32_t(~BF_ENABLED);
+                    if ((b->pSolo->value() >= 0.5f) && (j<=num_splits))
+                        has_solo                = true;
+                }
+            }
+
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
+
+                // Configure split points for crossover
+                for (size_t j=0; j<=num_splits; ++j)
+                {
+                    band_t *b               = &c->vBands[j];
+                    bool mute               = (b->pMute->value() >= 0.5f) || ((has_solo) && (b->pSolo->value() < 0.5f));
+                    b->nFlags               = lsp_setflag(b->nFlags, BF_ENABLED, !mute);
+                }
+            }
+
+            // Configure analyzer
+            sAnalyzer.set_reactivity(pFftReactivity->value());
+            sAnalyzer.set_shift(pFftShift->value() * 100.0f);
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
+
+                sAnalyzer.enable_channel(c->nAnInChannel, c->nFlags & CF_IN_FFT);
+                sAnalyzer.enable_channel(c->nAnOutChannel, c->nFlags & CF_OUT_FFT);
+                if (c->nFlags & (CF_IN_FFT | CF_OUT_FFT))
+                    ++active_channels;
+            }
+            sAnalyzer.set_activity(active_channels > 0);
+
+            if (sAnalyzer.needs_reconfiguration())
+            {
+                sAnalyzer.reconfigure();
+                sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, meta::clipper::FFT_MESH_POINTS);
+            }
+
+            // Configure crossover
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c            = &vChannels[i];
@@ -567,9 +624,11 @@ namespace lsp
             channel_t *c            = static_cast<channel_t *>(subject);
             band_t *b               = &c->vBands[band];
 
+            // Copy data to the data buffer
+            dsp::copy(&b->vData[sample], data, count);
             // Apply delay compensation and store to band's data buffer.
-            b->sDelay.process(&b->vData[sample], data, count);
-            b->sScDelay.process(&b->vSc[sample], data, count);
+//            b->sDelay.process(&b->vData[sample], data, count);
+//            b->sScDelay.process(&b->vSc[sample], data, count);
 
             // Measure the input level
 //            b->fInLevel             = lsp_max(dsp::abs_max(&b->vInData[sample], count), b->fInLevel);
@@ -600,6 +659,58 @@ namespace lsp
             }
         }
 
+        void clipper::split_bands(size_t samples)
+        {
+            if (enXOverMode == XOVER_IIR)
+            {
+                for (size_t i=0; i<nChannels; ++i)
+                {
+                    channel_t *c            = &vChannels[i];
+
+                    // Apply input gain and split signal into multiple bands
+                    dsp::mul_k3(c->vInAnalyze, c->vIn, fInGain, samples);
+                    c->sIIRXOver.process(c->vInAnalyze, samples);
+                }
+            }
+            else // (enXOverMode == XOVER_FFT)
+            {
+                for (size_t i=0; i<nChannels; ++i)
+                {
+                    channel_t *c            = &vChannels[i];
+
+                    // Apply input gain and split signal into multiple bands
+                    dsp::mul_k3(c->vInAnalyze, c->vIn, fInGain, samples);
+                    c->sFFTXOver.process(c->vInAnalyze, samples);
+                }
+            }
+        }
+
+        void clipper::merge_bands(size_t samples)
+        {
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
+                size_t merged = 0;
+
+                // Mix all bands together
+                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                {
+                    band_t *b               = &c->vBands[j];
+                    if (!(b->nFlags & BF_ENABLED))
+                        continue;
+
+                    if (merged++)
+                        dsp::add2(c->vData, b->vData, samples);
+                    else
+                        dsp::copy(c->vData, b->vData, samples);
+                }
+
+                // Fill output with zero if there is no data at output
+                if (!merged)
+                    dsp::fill_zero(c->vData, samples);
+            }
+        }
+
         void clipper::perform_analysis(size_t samples)
         {
             // Prepare processing
@@ -618,16 +729,15 @@ namespace lsp
             sAnalyzer.process(bufs, samples);
         }
 
-        void clipper::output_mesh_curves()
+        void clipper::output_mesh_curves(size_t samples)
         {
             plug::mesh_t *mesh  = NULL;
 
-            // Output filter curve for each band
+            // Update band curves if needed
             for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
             {
                 channel_t *c        = &vChannels[0];
-                band_t *b           = &c->vBands[j];
-
+                band_t *b           = &vChannels[0].vBands[j];
                 if (b->nFlags & BF_DIRTY_BAND)
                 {
                     if (enXOverMode == XOVER_IIR)
@@ -656,7 +766,7 @@ namespace lsp
                     b->nFlags      &= uint32_t(~BF_DIRTY_BAND);
                 }
 
-                // FFT curve
+                // Sync band filter curve
                 if (b->nFlags & BF_SYNC_BAND)
                 {
                     mesh                = (b->pFreqChart != NULL) ? b->pFreqChart->buffer<plug::mesh_t>() : NULL;
@@ -678,6 +788,55 @@ namespace lsp
                     }
                 }
             }
+
+            // Output FFT mesh data for each channel
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c        = &vChannels[i];
+
+                // Output FFT curve for input
+                mesh            = (c->pFftInMesh != NULL) ? c->pFftInMesh->buffer<plug::mesh_t>() : NULL;
+                if ((mesh != NULL) && (mesh->isEmpty()))
+                {
+                    if (c->nFlags & CF_IN_FFT)
+                    {
+                        // Add extra points
+                        mesh->pvData[0][0] = SPEC_FREQ_MIN * 0.5f;
+                        mesh->pvData[0][meta::clipper::FFT_MESH_POINTS+1] = SPEC_FREQ_MAX * 2.0f;
+                        mesh->pvData[1][0] = 0.0f;
+                        mesh->pvData[1][meta::clipper::FFT_MESH_POINTS+1] = 0.0f;
+
+                        // Copy frequency points
+                        dsp::copy(&mesh->pvData[0][1], vFreqs, meta::clipper::FFT_MESH_POINTS);
+                        sAnalyzer.get_spectrum(c->nAnInChannel, &mesh->pvData[1][1], vIndexes, meta::clipper::FFT_MESH_POINTS);
+
+                        // Mark mesh containing data
+                        mesh->data(2, meta::clipper::FFT_MESH_POINTS + 2);
+                    }
+                    else
+                        mesh->data(2, 0);
+                }
+
+                // Output FFT curve for output
+                mesh            = (c->pFftOutMesh != NULL) ? c->pFftOutMesh->buffer<plug::mesh_t>() : NULL;
+                if ((mesh != NULL) && (mesh->isEmpty()))
+                {
+                    if (sAnalyzer.channel_active(c->nAnOutChannel))
+                    {
+                        // Copy frequency points
+                        dsp::copy(mesh->pvData[0], vFreqs, meta::clipper::FFT_MESH_POINTS);
+                        sAnalyzer.get_spectrum(c->nAnOutChannel, mesh->pvData[1], vIndexes, meta::clipper::FFT_MESH_POINTS);
+
+                        // Mark mesh containing data
+                        mesh->data(2, meta::clipper::FFT_MESH_POINTS);
+                    }
+                    else
+                        mesh->data(2, 0);
+                }
+            }
+
+            // Update counter
+            sCounter.submit(samples);
         }
 
         void clipper::process(size_t samples)
@@ -688,13 +847,16 @@ namespace lsp
             {
                 size_t to_do    = lsp_min(samples - offset, BUFFER_SIZE);
 
+                split_bands(to_do);
+                // TODO: do main processing stuff
+                merge_bands(to_do);
                 perform_analysis(to_do);
 
                 advance_buffers(to_do);
                 offset         += to_do;
             }
 
-            output_mesh_curves();
+            output_mesh_curves(samples);
         }
 
         void clipper::ui_activated()
