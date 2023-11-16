@@ -188,8 +188,8 @@ namespace lsp
                     // Initialize fields
                     b->nFlags               = BF_DIRTY_BAND | BF_SYNC_ALL;
 
-                    b->fInLevel             = GAIN_AMP_M_INF_DB;
-                    b->fOutLevel            = GAIN_AMP_M_INF_DB;
+                    b->fOdpIn               = GAIN_AMP_M_INF_DB;
+                    b->fOdpOut              = GAIN_AMP_M_INF_DB;
 
                     b->vData                = advance_ptr_bytes<float>(ptr, szof_buffer);
                     b->vSc                  = advance_ptr_bytes<float>(ptr, szof_buffer);
@@ -197,7 +197,14 @@ namespace lsp
 
                     b->pSolo                = NULL;
                     b->pMute                = NULL;
+                    b->pOdpKnee             = NULL;
+                    b->pOdpResonance        = NULL;
+                    b->pOdpMakeup           = NULL;
+                    b->pOdpIn               = NULL;
+                    b->pOdpOut              = NULL;
+                    b->pOdpReduction        = NULL;
                     b->pFreqChart           = NULL;
+                    b->pOdpCurve            = NULL;
                 }
 
                 // Initialize fields
@@ -274,7 +281,11 @@ namespace lsp
                     {
                         b->pSolo                = trace_port(ports[port_id++]);
                         b->pMute                = trace_port(ports[port_id++]);
+                        b->pOdpKnee             = trace_port(ports[port_id++]);
+                        b->pOdpResonance        = trace_port(ports[port_id++]);
+                        b->pOdpMakeup           = trace_port(ports[port_id++]);
                         b->pFreqChart           = trace_port(ports[port_id++]);
+                        b->pOdpCurve            = trace_port(ports[port_id++]);
                     }
                     else
                     {
@@ -298,17 +309,20 @@ namespace lsp
                 c->pFftOutMesh          = trace_port(ports[port_id++]);
             }
 
-            // Bind ports for audio processing channels
-//            for (size_t i=0; i<nChannels; ++i)
-//            {
-//                channel_t *c            = &vChannels[i];
-//            }
+            lsp_trace("Binding band metering ports");
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
 
-            // Bind output meters
-//            for (size_t i=0; i<nChannels; ++i)
-//            {
-//                channel_t *c            = &vChannels[i];
-//            }
+                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                {
+                    band_t *b               = &c->vBands[j];
+
+                    b->pOdpIn               = trace_port(ports[port_id++]);
+                    b->pOdpOut              = trace_port(ports[port_id++]);
+                    b->pOdpReduction        = trace_port(ports[port_id++]);
+                }
+            }
         }
 
         void clipper::destroy()

@@ -95,10 +95,19 @@ namespace lsp
         COMBO("bsel", "Band selector", 0, clipper_band_selectors), \
         SWITCH("flt", "Band filter curves", 1.0f)
 
-    #define CLIPPER_BAND(id, label) \
+    #define CLIPPER_BAND(id, label, resonance) \
         SWITCH("bs" id, "Solo band" label, 0.0f), \
         SWITCH("bm" id, "Mute band" label, 0.0f), \
-        MESH("bfc" id, "Band frequency chart" label, 2, clipper::FFT_MESH_POINTS + 2)
+        CONTROL("kn" id, "Overdrive protection knee" label, U_DB, clipper::ODP_KNEE), \
+        LOG_CONTROL("rs" id, "Overdrive protection resonance" label, U_HZ, clipper::resonance), \
+        CONTROL("mk" id, "Overdrive protection makeup gain" label, U_DB, clipper::ODP_MAKEUP), \
+        MESH("bfc" id, "Band frequency chart" label, 2, clipper::FFT_MESH_POINTS + 2), \
+        MESH("odp" id, "Overdrive protection chart" label, 2, clipper::CURVE_MESH_POINTS)
+
+    #define CLIPPER_BAND_METERS(id, label) \
+        METER_OUT_GAIN("odx" id, "Overdrive protection input meter" label, GAIN_AMP_P_36_DB), \
+        METER_OUT_GAIN("ody" id, "Overdrive protection output meter" label, GAIN_AMP_P_36_DB), \
+        METER_GAIN_DFL("rlm" id, "Reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB)
 
     #define CLIPPER_STEREO_COMMON \
         CONTROL("slink", "Stereo link", U_PERCENT, clipper::STEREO_LINK)
@@ -117,12 +126,17 @@ namespace lsp
             PORTS_MONO_PLUGIN,
             CLIPPER_COMMON,
 
-            CLIPPER_BAND("_1", ""),
-            CLIPPER_BAND("_2", ""),
-            CLIPPER_BAND("_3", ""),
-            CLIPPER_BAND("_4", ""),
+            CLIPPER_BAND("_1", "", ODP_REACT1),
+            CLIPPER_BAND("_2", "", ODP_REACT2),
+            CLIPPER_BAND("_3", "", ODP_REACT3),
+            CLIPPER_BAND("_4", "", ODP_REACT4),
 
             CLIPPER_ANALYSIS("", ""),
+
+            CLIPPER_BAND_METERS("_1", ""),
+            CLIPPER_BAND_METERS("_2", ""),
+            CLIPPER_BAND_METERS("_3", ""),
+            CLIPPER_BAND_METERS("_4", ""),
 
             PORTS_END
         };
@@ -133,13 +147,22 @@ namespace lsp
             CLIPPER_COMMON,
             CLIPPER_STEREO_COMMON,
 
-            CLIPPER_BAND("_1", ""),
-            CLIPPER_BAND("_2", ""),
-            CLIPPER_BAND("_3", ""),
-            CLIPPER_BAND("_4", ""),
+            CLIPPER_BAND("_1", "", ODP_REACT1),
+            CLIPPER_BAND("_2", "", ODP_REACT2),
+            CLIPPER_BAND("_3", "", ODP_REACT3),
+            CLIPPER_BAND("_4", "", ODP_REACT4),
 
             CLIPPER_ANALYSIS("_l", " Left"),
             CLIPPER_ANALYSIS("_r", " Right"),
+
+            CLIPPER_BAND_METERS("_1l", " Left"),
+            CLIPPER_BAND_METERS("_2l", " Left"),
+            CLIPPER_BAND_METERS("_3l", " Left"),
+            CLIPPER_BAND_METERS("_4l", " Left"),
+            CLIPPER_BAND_METERS("_1r", " Right"),
+            CLIPPER_BAND_METERS("_2r", " Right"),
+            CLIPPER_BAND_METERS("_3r", " Right"),
+            CLIPPER_BAND_METERS("_4r", " Right"),
 
             PORTS_END
         };

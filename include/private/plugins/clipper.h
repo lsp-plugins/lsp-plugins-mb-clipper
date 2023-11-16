@@ -74,8 +74,9 @@ namespace lsp
                     uint32_t            nFlags;             // Band flags
                     uint32_t            nLatency;           // Band latency
 
-                    float               fInLevel;           // Input level
-                    float               fOutLevel;          // Output level
+                    float               fOdpIn;             // Overdrive protection input level
+                    float               fOdpOut;            // Overdrive protection out level
+                    float               fOdpReduction;      // Overdrive protection reduction level
 
                     float              *vData;              // Data buffer
                     float              *vSc;                // Sidechain buffer
@@ -83,7 +84,14 @@ namespace lsp
 
                     plug::IPort        *pSolo;              // Solo button
                     plug::IPort        *pMute;              // Mute button
+                    plug::IPort        *pOdpKnee;           // Overdrive protection knee
+                    plug::IPort        *pOdpResonance;      // Overdrive protection resonance
+                    plug::IPort        *pOdpMakeup;         // Overdrive protection makeup
+                    plug::IPort        *pOdpIn;             // Overdrive protection input level
+                    plug::IPort        *pOdpOut;            // Overdrive protection output level
+                    plug::IPort        *pOdpReduction;      // Overdrive protection reduction level
                     plug::IPort        *pFreqChart;         // Frequency chart
+                    plug::IPort        *pOdpCurve;          // Overdrive protection curve
                 } band_t;
 
                 typedef struct split_t
