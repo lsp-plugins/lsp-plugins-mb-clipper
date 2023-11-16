@@ -198,19 +198,55 @@
 
 			<!-- bottom line -->
 			<hbox vreduce="true">
-				<align halign="-1" vreduce="true">
-					<hbox spacing="4" vreduce="true" bg.color="bg_schema" pad.h="6">
-						<label text="labels.mode:"/>
-						<combo id="mode" pad.r="8" pad.v="4"/>
-						<button id="flt" text="labels.filters" size="22" ui:inject="Button_cyan"/>
-					</hbox>
-				</align>
-				<vsep pad.h="2" bg.color="bg" reduce="true" />
-				<hbox bg.color="bg_schema" hreduce="true" pad.h="6">
-					<button id="ssplit" text="labels.stereo_split" size="22" ui:inject="Button_blue"/>
+				<hbox spacing="4" vreduce="true" bg.color="bg_schema" pad.h="6">
+					<label text="labels.mode:"/>
+					<combo id="mode" pad.r="8" pad.v="4"/>
+					<button id="flt" text="labels.filters" size="22" ui:inject="Button_cyan"/>
+					<label text="labels.slope" />
+					<combo id="slope" pad.r="8" pad.v="4"/>
 				</hbox>
+				<vsep pad.h="2" bg.color="bg" reduce="true" />
+				<void hexpand="true" bg.color="bg_schema" />
 			</hbox>
 		</grid>
-
+		<grid rows="2" cols="2" spacing="4" transpose="true">
+			<group text="Crossover">
+				<grid rows="3" cols="7">
+					<!-- Row 1 -->
+					<label text="labels.input" />
+					<combo id="hpf_m" />
+					<label text="Split 1" />
+					<label text="Split 2" />
+					<button id="ebe" text="Split 3" ui:inject="Button_cyan" />
+					<combo id="lpf_m" />
+					<label text="labels.output" />
+					
+					<!-- Row 2 -->
+					<knob id="g_in" />
+					<knob id="hpf_f" />
+					<knob id="sf1" />
+					<knob id="sf2" />
+					<knob id="sf3" />
+					<knob id="lpf_f" />
+					<knob id="g_out" />
+					
+					<!-- Row 3 -->
+					<value id="g_in" />
+					<value id="hpf_f" />
+					<value id="sf1" />
+					<value id="sf2" />
+					<value id="sf3" />
+					<value id="lpf_f" />
+					<value id="g_out" />
+				</grid>
+			</group>
+			<group text="Clipper">
+			</group>
+			
+			<cell cols="2">
+				<tabs id="bsel">
+				</tabs>
+			</cell>
+		</grid>
 	</vbox>
 </plugin>

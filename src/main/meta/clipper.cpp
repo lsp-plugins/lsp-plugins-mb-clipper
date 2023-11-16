@@ -40,8 +40,8 @@ namespace lsp
     {
         static const port_item_t clipper_xover_modes[] =
         {
-            { "Classic",        "multiband.classic"         },
-            { "Linear Phase",   "multiband.linear_phase"    },
+            { "Classic",            "multiband.classic"             },
+            { "Linear Phase",       "multiband.linear_phase"        },
             { NULL, NULL }
         };
 
@@ -64,6 +64,15 @@ namespace lsp
             { NULL, NULL }
         };
 
+        static const port_item_t clipper_band_selectors[] =
+        {
+            { "Band 1",             "clipper.band.1"                },
+            { "Band 2",             "clipper.band.2"                },
+            { "Band 3",             "clipper.band.3"                },
+            { "Band 4",             "clipper.band.4"                },
+            { NULL, NULL }
+        };
+
     #define CLIPPER_COMMON \
         BYPASS, \
         IN_GAIN, \
@@ -71,7 +80,7 @@ namespace lsp
         CONTROL("thresh", "Clipping threshold", U_DB, clipper::THRESHOLD), \
         SWITCH("boost", "Boosting mode", 1.0f), \
         COMBO("mode", "Crossover operating mode", 1, clipper_xover_modes), \
-        COMBO("slope", "Crossover filter slope", 2, clipper_xover_slopes), \
+        COMBO("slope", "Crossover filter slope", 1, clipper_xover_slopes), \
         LOG_CONTROL("react", "FFT reactivity", U_MSEC, clipper::REACT_TIME), \
         AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
         LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, clipper::ZOOM), \
@@ -83,6 +92,7 @@ namespace lsp
         COMBO("lpf_m", "High-pass pre-filter mode", 0, clipper_prefilter_slopes), \
         LOG_CONTROL("lpf_f", "Low-pass pre-filter frequency", U_HZ, clipper::LPF_FREQ), \
         SWITCH("ebe", "Enable extra band", 0), \
+        COMBO("bsel", "Band selector", 0, clipper_band_selectors), \
         SWITCH("flt", "Band filter curves", 1.0f)
 
     #define CLIPPER_BAND(id, label) \

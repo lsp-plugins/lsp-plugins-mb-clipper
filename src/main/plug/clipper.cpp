@@ -168,6 +168,8 @@ namespace lsp
                 // Initialize equalizer
                 if (!c->sEqualizer.init(2, 0))
                     return;
+                c->sEqualizer.set_mode(dspu::EQM_IIR);
+
                 if (!c->sIIRXOver.init(meta::clipper::BANDS_MAX, BUFFER_SIZE))
                     return;
 
@@ -250,6 +252,7 @@ namespace lsp
             pLpfSlope           = trace_port(ports[port_id++]);
             pLpfFreq            = trace_port(ports[port_id++]);
             pExtraBandOn        = trace_port(ports[port_id++]);
+            trace_port(ports[port_id++]); // Skip band selector
             pFilterCurves       = trace_port(ports[port_id++]);
 
             if (nChannels > 1)
@@ -500,7 +503,7 @@ namespace lsp
                 if (enXOverMode == XOVER_IIR)
                 {
                     dspu::Crossover *xc     = &c->sIIRXOver;
-                    const size_t iir_slope  = filter_slope(pXOverSlope->value());
+                    const size_t iir_slope  = filter_slope(pXOverSlope->value() + 1);
                     const size_t hpf_slope  = filter_slope(pHpfSlope->value());
                     const size_t lpf_slope  = filter_slope(pLpfSlope->value());
 
@@ -553,7 +556,7 @@ namespace lsp
                 else // (enXOverMode == XOVER_FFT)
                 {
                     dspu::FFTCrossover *xf  = &c->sFFTXOver;
-                    const float fft_slope   = fft_filter_slope(pXOverSlope->value());
+                    const float fft_slope   = fft_filter_slope(pXOverSlope->value() + 1);
                     const float hpf_slope   = fft_filter_slope(pHpfSlope->value());
                     const float lpf_slope   = fft_filter_slope(pLpfSlope->value());
 
@@ -709,7 +712,8 @@ namespace lsp
 
                     // Apply input gain and split signal into multiple bands
                     dsp::mul_k3(c->vInAnalyze, c->vIn, fInGain, samples);
-                    c->sIIRXOver.process(c->vInAnalyze, samples);
+                    c->sEqualizer.process(vBuffer, c->vInAnalyze, samples);
+                    c->sIIRXOver.process(vBuffer, samples);
                 }
             }
             else // (enXOverMode == XOVER_FFT)
