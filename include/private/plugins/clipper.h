@@ -53,10 +53,12 @@ namespace lsp
                 enum band_flags_t
                 {
                     BF_ENABLED          = 1 << 0,           // Band is enabled
-                    BF_DIRTY_BAND       = 1 << 1,           // Update band filter curve
-                    BF_SYNC_BAND        = 1 << 2,           // Sync band filter curve
+                    BF_ODP_ENABLED      = 1 << 1,           // Overdrive protection enabled
+                    BF_DIRTY_BAND       = 1 << 2,           // Update band filter curve
+                    BF_SYNC_BAND        = 1 << 3,           // Sync band filter curve
+                    BF_SYNC_ODP         = 1 << 4,           // Sync overdrive protection curve
 
-                    BF_SYNC_ALL         = BF_SYNC_BAND
+                    BF_SYNC_ALL         = BF_SYNC_BAND | BF_SYNC_ODP
                 };
 
                 enum channel_flags_t
@@ -65,11 +67,41 @@ namespace lsp
                     CF_OUT_FFT          = 1 << 1,           // Output FFT analysis is enabled
                 };
 
+                typedef struct compressor_t
+                {
+                    float       x0, x1, x2;
+                    float       t, g;
+                    float       a, b, c;
+                } compressor_t;
+
+                // Overdrive protection module
+                typedef struct odp_params_t
+                {
+                    float               fThreshold;         // Threshold
+                    float               fKnee;              // Knee
+                    float               fMakeup;            // Makeup gain
+
+                    float               fIn;                // Input level measured
+                    float               fOut;               // Output level measured
+
+                    plug::IPort        *pOn;                // Enable overdrive protection
+                    plug::IPort        *pThreshold;         // Threshold
+                    plug::IPort        *pKnee;              // Knee
+                    plug::IPort        *pMakeup;            // Makeup gain
+                    plug::IPort        *pResonance;         // Resonance frequency
+                    plug::IPort        *pIn;                // Input level meter
+                    plug::IPort        *pOut;               // Output level meter
+                    plug::IPort        *pReduction;         // Reduction level meter
+                    plug::IPort        *pCurveMesh;         // Curve chart mesh
+                } odp_params_t;
+
                 typedef struct band_t
                 {
                     dspu::Sidechain     sSidechain;         // Sidechain
                     dspu::Delay         sScDelay;           // Sidechain delay
                     dspu::Delay         sDelay;             // Signal delay
+                    compressor_t        sComp;              // Simple compressor
+                    odp_params_t        sOdp;               // Overdrive protection params
 
                     uint32_t            nFlags;             // Band flags
                     uint32_t            nLatency;           // Band latency
@@ -84,14 +116,7 @@ namespace lsp
 
                     plug::IPort        *pSolo;              // Solo button
                     plug::IPort        *pMute;              // Mute button
-                    plug::IPort        *pOdpKnee;           // Overdrive protection knee
-                    plug::IPort        *pOdpResonance;      // Overdrive protection resonance
-                    plug::IPort        *pOdpMakeup;         // Overdrive protection makeup
-                    plug::IPort        *pOdpIn;             // Overdrive protection input level
-                    plug::IPort        *pOdpOut;            // Overdrive protection output level
-                    plug::IPort        *pOdpReduction;      // Overdrive protection reduction level
                     plug::IPort        *pFreqChart;         // Frequency chart
-                    plug::IPort        *pOdpCurve;          // Overdrive protection curve
                 } band_t;
 
                 typedef struct split_t
@@ -148,6 +173,7 @@ namespace lsp
                 float              *vFreqs;             // FFT frequencies
                 uint32_t           *vIndexes;           // Analyzer FFT indexes
                 float              *vTrEq;              // Equalizer transfer function (real values)
+                float              *vOdp;               // Overdrive protection curve input gain values
 
                 plug::IPort        *pBypass;            // Bypass
                 plug::IPort        *pGainIn;            // Input gain
@@ -174,6 +200,13 @@ namespace lsp
                 static void             process_band(void *object, void *subject, size_t band, const float *data, size_t sample, size_t count);
                 static inline size_t    filter_slope(size_t slope);
                 static inline float     fft_filter_slope(size_t slope);
+
+                static bool             update_odp_params(odp_params_t *params);
+                static void             calc_odp_compressor(compressor_t *c, const odp_params_t *params);
+                static inline float     odp_curve(const compressor_t *c, float x);
+                static inline float     odp_gain(const compressor_t *c, float x);
+                static void             odp_curve(float *dst, const float *x, const compressor_t *c, size_t count);
+                static void             odp_gain(float *dst, const float *x, const compressor_t *c, size_t count);
 
             protected:
                 void                    do_destroy();

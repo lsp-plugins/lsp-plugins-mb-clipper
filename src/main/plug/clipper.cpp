@@ -84,6 +84,7 @@ namespace lsp
             vFreqs          = NULL;
             vIndexes        = NULL;
             vTrEq           = NULL;
+            vOdp            = NULL;
 
             pBypass         = NULL;
             pGainIn         = NULL;
@@ -121,12 +122,14 @@ namespace lsp
             size_t szof_buffer      = align_size(sizeof(float) * BUFFER_SIZE, OPTIMAL_ALIGN);
             size_t szof_fft_buffer  = align_size(sizeof(float) * meta::clipper::FFT_MESH_POINTS, OPTIMAL_ALIGN);
             size_t szof_idx_buffer  = align_size(sizeof(uint32_t) * meta::clipper::FFT_MESH_POINTS, OPTIMAL_ALIGN);
+            size_t szof_curve_buffer= align_size(sizeof(float) * meta::clipper::CURVE_MESH_POINTS, OPTIMAL_ALIGN);
             size_t to_alloc         =
                 szof_channels +
                 szof_buffer +           // vBuffer
                 szof_fft_buffer +       // vFreqs
                 szof_idx_buffer +       // vIndexes
                 szof_fft_buffer +       // vTrEq
+                szof_curve_buffer +     // vOdp
                 meta::clipper::BANDS_MAX * szof_fft_buffer +    // band_t::vTr
                 nChannels * (
                     szof_buffer +       // vData
@@ -153,6 +156,7 @@ namespace lsp
             vFreqs                  = advance_ptr_bytes<float>(ptr, szof_fft_buffer);
             vIndexes                = advance_ptr_bytes<uint32_t>(ptr, szof_idx_buffer);
             vTrEq                   = advance_ptr_bytes<float>(ptr, szof_fft_buffer);
+            vOdp                    = advance_ptr_bytes<float>(ptr, szof_curve_buffer);
 
             for (size_t i=0; i < nChannels; ++i)
             {
@@ -186,6 +190,30 @@ namespace lsp
                     c->sIIRXOver.set_handler(j, process_band, this, c);
 
                     // Initialize fields
+                    b->sComp.x0             = 0.0f;
+                    b->sComp.x1             = 0.0f;
+                    b->sComp.x2             = 0.0f;
+                    b->sComp.t              = 0.0f;
+                    b->sComp.g              = 0.0f;
+                    b->sComp.a              = 0.0f;
+                    b->sComp.b              = 0.0f;
+                    b->sComp.c              = 0.0f;
+
+                    b->sOdp.fThreshold      = 0.0f;
+                    b->sOdp.fKnee           = 0.0f;
+                    b->sOdp.fMakeup         = 0.0f;
+                    b->sOdp.fIn             = 0.0f;
+                    b->sOdp.fOut            = 0.0f;
+
+                    b->sOdp.pThreshold      = NULL;
+                    b->sOdp.pKnee           = NULL;
+                    b->sOdp.pMakeup         = NULL;
+                    b->sOdp.pResonance      = NULL;
+                    b->sOdp.pIn             = NULL;
+                    b->sOdp.pOut            = NULL;
+                    b->sOdp.pReduction      = NULL;
+                    b->sOdp.pCurveMesh      = NULL;
+
                     b->nFlags               = BF_DIRTY_BAND | BF_SYNC_ALL;
 
                     b->fOdpIn               = GAIN_AMP_M_INF_DB;
@@ -197,14 +225,7 @@ namespace lsp
 
                     b->pSolo                = NULL;
                     b->pMute                = NULL;
-                    b->pOdpKnee             = NULL;
-                    b->pOdpResonance        = NULL;
-                    b->pOdpMakeup           = NULL;
-                    b->pOdpIn               = NULL;
-                    b->pOdpOut              = NULL;
-                    b->pOdpReduction        = NULL;
                     b->pFreqChart           = NULL;
-                    b->pOdpCurve            = NULL;
                 }
 
                 // Initialize fields
@@ -281,11 +302,13 @@ namespace lsp
                     {
                         b->pSolo                = trace_port(ports[port_id++]);
                         b->pMute                = trace_port(ports[port_id++]);
-                        b->pOdpKnee             = trace_port(ports[port_id++]);
-                        b->pOdpResonance        = trace_port(ports[port_id++]);
-                        b->pOdpMakeup           = trace_port(ports[port_id++]);
+                        b->sOdp.pOn             = trace_port(ports[port_id++]);
+                        b->sOdp.pThreshold      = trace_port(ports[port_id++]);
+                        b->sOdp.pKnee           = trace_port(ports[port_id++]);
+                        b->sOdp.pMakeup         = trace_port(ports[port_id++]);
+                        b->sOdp.pResonance      = trace_port(ports[port_id++]);
+                        b->sOdp.pCurveMesh      = trace_port(ports[port_id++]);
                         b->pFreqChart           = trace_port(ports[port_id++]);
-                        b->pOdpCurve            = trace_port(ports[port_id++]);
                     }
                     else
                     {
@@ -293,6 +316,11 @@ namespace lsp
 
                         b->pSolo                = sb->pSolo;
                         b->pMute                = sb->pMute;
+                        b->sOdp.pOn             = sb->sOdp.pOn;
+                        b->sOdp.pThreshold      = sb->sOdp.pThreshold;
+                        b->sOdp.pKnee           = sb->sOdp.pKnee;
+                        b->sOdp.pMakeup         = sb->sOdp.pMakeup;
+                        b->sOdp.pCurveMesh      = sb->sOdp.pCurveMesh;
                         b->pFreqChart           = sb->pFreqChart;
                     }
                 }
@@ -318,11 +346,16 @@ namespace lsp
                 {
                     band_t *b               = &c->vBands[j];
 
-                    b->pOdpIn               = trace_port(ports[port_id++]);
-                    b->pOdpOut              = trace_port(ports[port_id++]);
-                    b->pOdpReduction        = trace_port(ports[port_id++]);
+                    b->sOdp.pIn             = trace_port(ports[port_id++]);
+                    b->sOdp.pOut            = trace_port(ports[port_id++]);
+                    b->sOdp.pReduction      = trace_port(ports[port_id++]);
                 }
             }
+
+            // Initialize curve (logarithmic) in range of -72 .. +24 db
+            float delta = (meta::clipper::ODP_CURVE_DB_MAX - meta::clipper::ODP_CURVE_DB_MIN) / (meta::clipper::CURVE_MESH_POINTS-1);
+            for (size_t i=0; i<meta::clipper::CURVE_MESH_POINTS; ++i)
+                vOdp[i]     = dspu::db_to_gain(meta::clipper::ODP_CURVE_DB_MIN + delta * i);
         }
 
         void clipper::destroy()
@@ -446,6 +479,90 @@ namespace lsp
             return -24.0f * slope;
         }
 
+        bool clipper::update_odp_params(odp_params_t *params)
+        {
+            const float threshold   = dspu::db_to_gain(params->pThreshold->value());
+            const float knee        = dspu::db_to_gain(params->pKnee->value());
+            const float makeup      = dspu::db_to_gain(params->pMakeup->value());
+
+            if ((threshold == params->fThreshold) &&
+                (knee == params->fKnee) &&
+                (makeup == params->fMakeup))
+                return false;
+
+            params->fThreshold      = threshold;
+            params->fKnee           = knee;
+            params->fMakeup         = makeup;
+
+            return true;
+        }
+
+        void clipper::calc_odp_compressor(compressor_t *c, const odp_params_t *params)
+        {
+//            constexpr float k   = 1.0f;
+//
+//            c->x0               = 1.0f / params->fThreshold;
+//            c->x1               = params->fThreshold / params->fKnee;
+//            c->x2               = params->fThreshold * params->fKnee;
+//
+//            float dy            = params->fThreshold - c->x1;
+//            float dx1           = 1.0f/(c->x2 - c->x1);
+//            float dx2           = dx1*dx1;
+//
+//            c->c                = k;
+//            c->b                = (3.0f * dy) * dx2 - (2.0f * k)*dx1;
+//            c->a                = (k - (2.0*dy)*dx1)*dx2;
+//            c->g                = params->fMakeup;
+
+            float th        = params->fThreshold;
+            float kn        = params->fKnee;
+
+            c->x0           = th;
+            c->x1           = th / kn;
+            c->x2           = th * kn;
+
+            float y1        = c->x1;
+            float y2        = th;
+            float dy        = y2 - y1;
+            float dx1       = 1.0f/(c->x2 - c->x1);
+            float dx2       = dx1*dx1;
+
+            float k         = 1.0f;
+
+            c->c            = k;
+            c->b            = (3.0 * dy) * dx2 - (2.0 * k)*dx1;
+            c->a            = (k - (2.0*dy)*dx1)*dx2;
+        }
+
+        float clipper::odp_curve(const compressor_t *c, float x)
+        {
+            if (x >= c->x2)
+                return c->x0;
+            if (x <= c->x1)
+                return x;
+
+            float v    = x - c->x1;
+            return ((v * c->a + c->b) * v + c->c)*v + c->x1;
+        }
+
+        float clipper::odp_gain(const compressor_t *c, float x)
+        {
+            float s = x * c->x0;
+            return c->g * odp_curve(c, s) / s;
+        }
+
+        void clipper::odp_curve(float *dst, const float *x, const compressor_t *c, size_t count)
+        {
+            for (size_t i=0; i<count; ++i)
+                dst[i]      = odp_curve(c, x[i]);
+        }
+
+        void clipper::odp_gain(float *dst, const float *x, const compressor_t *c, size_t count)
+        {
+            for (size_t i=0; i<count; ++i)
+                dst[i]      = odp_gain(c, x[i]);
+        }
+
         void clipper::update_settings()
         {
             bool bypass             = pBypass->value() >= 0.5f;
@@ -481,7 +598,7 @@ namespace lsp
                 c->nFlags               = lsp_setflag(c->nFlags, CF_IN_FFT, c->pFftInSwitch->value() >= 0.5f);
                 c->nFlags               = lsp_setflag(c->nFlags, CF_OUT_FFT, c->pFftOutSwitch->value() >= 0.5f);
 
-                // Configure split points for crossover
+                // Configure band solo/mute option
                 for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
                 {
                     band_t *b               = &c->vBands[j];
@@ -497,7 +614,7 @@ namespace lsp
 
                 c->sBypass.set_bypass(bypass);
 
-                // Configure split points for crossover
+                // Configure band solo/mute option
                 for (size_t j=0; j<=num_splits; ++j)
                 {
                     band_t *b               = &c->vBands[j];
@@ -617,6 +734,25 @@ namespace lsp
                         sync_band_curves        = true;
 
                     xover_latency     = lsp_max(xover_latency, xf->latency());
+                }
+            }
+
+            // Configure clipping
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
+
+                // Configure overdrive protection and sigmoid
+                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                {
+                    band_t *b               = &c->vBands[j];
+
+                    b->nFlags               = lsp_setflag(b->nFlags, BF_ODP_ENABLED, b->sOdp.pOn->value() >= 0.5f);
+                    if (update_odp_params(&b->sOdp))
+                    {
+                        calc_odp_compressor(&b->sComp, &b->sOdp);
+                        b->nFlags              |= BF_SYNC_ODP;
+                    }
                 }
             }
 
@@ -843,6 +979,21 @@ namespace lsp
 
                         // Mark mesh as synchronized
                         b->nFlags      &= uint32_t(~BF_SYNC_BAND);
+                    }
+                }
+
+                // Sync ODP curve
+                if (b->nFlags & BF_SYNC_ODP)
+                {
+                    mesh                = (b->sOdp.pCurveMesh != NULL) ? b->sOdp.pCurveMesh->buffer<plug::mesh_t>() : NULL;
+                    if ((mesh != NULL) && (mesh->isEmpty()))
+                    {
+                        dsp::copy(mesh->pvData[0], vOdp, meta::clipper::CURVE_MESH_POINTS);
+                        odp_curve(mesh->pvData[1], vOdp, &b->sComp, meta::clipper::CURVE_MESH_POINTS);
+                        mesh->data(2, meta::clipper::CURVE_MESH_POINTS);
+
+                        // Mark mesh as synchronized
+                        b->nFlags      &= uint32_t(~BF_SYNC_ODP);
                     }
                 }
             }

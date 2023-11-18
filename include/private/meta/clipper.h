@@ -42,6 +42,8 @@ namespace lsp
             static constexpr size_t FFT_RANK                = 13;
             static constexpr size_t FFT_ITEMS               = 1 << FFT_RANK;
             static constexpr size_t FFT_WINDOW              = dspu::windows::HANN;
+            static constexpr float  ODP_CURVE_DB_MIN        = -18.0f;
+            static constexpr float  ODP_CURVE_DB_MAX        = 6.0f;
             static constexpr size_t CURVE_MESH_POINTS       = 256;
             static constexpr size_t REFRESH_RATE            = 20;
 
@@ -96,9 +98,14 @@ namespace lsp
             static constexpr float  RMS_TIME_STEP           = 0.01f;
 
             static constexpr float  ODP_KNEE_MIN            = 0.0f;
-            static constexpr float  ODP_KNEE_MAX            = 24.0f;
+            static constexpr float  ODP_KNEE_MAX            = 6.0f;
             static constexpr float  ODP_KNEE_DFL            = 3.0f;
-            static constexpr float  ODP_KNEE_STEP           = 0.01f;
+            static constexpr float  ODP_KNEE_STEP           = 0.005f;
+
+            static constexpr float  ODP_THRESHOLD_MIN       = -12.0f;
+            static constexpr float  ODP_THRESHOLD_MAX       = 0.0f;
+            static constexpr float  ODP_THRESHOLD_DFL       = 0.0f;
+            static constexpr float  ODP_THRESHOLD_STEP      = 0.005f;
 
             static constexpr float  ODP_MAKEUP_MIN          = -24.0f;
             static constexpr float  ODP_MAKEUP_MAX          = 24.0f;
@@ -108,22 +115,22 @@ namespace lsp
             static constexpr float  ODP_REACT1_MIN          = SPEC_FREQ_MIN;
             static constexpr float  ODP_REACT1_MAX          = SPLIT1_MAX;
             static constexpr float  ODP_REACT1_DFL          = 50.0f;
-            static constexpr float  ODP_REACT1_STEP         = 0.01f;
+            static constexpr float  ODP_REACT1_STEP         = 0.00025f;
 
             static constexpr float  ODP_REACT2_MIN          = SPLIT1_MIN;
             static constexpr float  ODP_REACT2_MAX          = SPLIT2_MAX;
             static constexpr float  ODP_REACT2_DFL          = 220.0f;
-            static constexpr float  ODP_REACT2_STEP         = 0.01f;
+            static constexpr float  ODP_REACT2_STEP         = 0.00025f;
 
             static constexpr float  ODP_REACT3_MIN          = SPLIT2_MIN;
             static constexpr float  ODP_REACT3_MAX          = SPLIT3_MAX;
             static constexpr float  ODP_REACT3_DFL          = 5000.0f;
-            static constexpr float  ODP_REACT3_STEP         = 0.01f;
+            static constexpr float  ODP_REACT3_STEP         = 0.00025f;
 
             static constexpr float  ODP_REACT4_MIN          = SPLIT3_MIN;
             static constexpr float  ODP_REACT4_MAX          = SPEC_FREQ_MAX;
             static constexpr float  ODP_REACT4_DFL          = 8000.0f;
-            static constexpr float  ODP_REACT4_STEP         = 0.01f;
+            static constexpr float  ODP_REACT4_STEP         = 0.00025f;
         } clipper;
 
         // Plugin type metadata
