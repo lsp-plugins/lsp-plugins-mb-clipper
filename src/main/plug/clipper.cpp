@@ -54,6 +54,22 @@ namespace lsp
 
         //---------------------------------------------------------------------
         // Implementation
+
+        dspu::sigmoid::function_t clipper::vSigmoidFunctions[] =
+        {
+            dspu::sigmoid::hard_clip,
+            dspu::sigmoid::quadratic,
+            dspu::sigmoid::sine,
+            dspu::sigmoid::logistic,
+            dspu::sigmoid::arctangent,
+            dspu::sigmoid::hyperbolic_tangent,
+            dspu::sigmoid::guidermannian,
+            dspu::sigmoid::error,
+            dspu::sigmoid::smoothstep,
+            dspu::sigmoid::smootherstep,
+            dspu::sigmoid::circle
+        };
+
         clipper::clipper(const meta::plugin_t *meta):
             Module(meta)
         {
@@ -85,6 +101,8 @@ namespace lsp
             vIndexes        = NULL;
             vTrEq           = NULL;
             vOdp            = NULL;
+            vLinSigmoid     = NULL;
+            vLogSigmoid     = NULL;
 
             pBypass         = NULL;
             pGainIn         = NULL;
@@ -130,6 +148,8 @@ namespace lsp
                 szof_idx_buffer +       // vIndexes
                 szof_fft_buffer +       // vTrEq
                 szof_curve_buffer +     // vOdp
+                szof_curve_buffer +     // vLinSigmoid
+                szof_curve_buffer +     // vLogSigmoid
                 meta::clipper::BANDS_MAX * szof_fft_buffer +    // band_t::vTr
                 nChannels * (
                     szof_buffer +       // vData
@@ -157,6 +177,8 @@ namespace lsp
             vIndexes                = advance_ptr_bytes<uint32_t>(ptr, szof_idx_buffer);
             vTrEq                   = advance_ptr_bytes<float>(ptr, szof_fft_buffer);
             vOdp                    = advance_ptr_bytes<float>(ptr, szof_curve_buffer);
+            vLinSigmoid             = advance_ptr_bytes<float>(ptr, szof_curve_buffer);
+            vLogSigmoid             = advance_ptr_bytes<float>(ptr, szof_curve_buffer);
 
             for (size_t i=0; i < nChannels; ++i)
             {
@@ -213,6 +235,24 @@ namespace lsp
                     b->sOdp.pOut            = NULL;
                     b->sOdp.pReduction      = NULL;
                     b->sOdp.pCurveMesh      = NULL;
+
+                    b->sSigmoid.pFunc       = NULL;
+                    b->sSigmoid.fThreshold  = 0.0f;
+                    b->sSigmoid.fPumping    = 1.0f;
+                    b->sSigmoid.fScaling    = 0.0f;
+                    b->sSigmoid.fKnee       = 0.0f;
+                    b->sSigmoid.fIn         = 0.0f;
+                    b->sSigmoid.fOut        = 0.0f;
+                    b->sSigmoid.fReduction  = 0.0f;
+
+                    b->sSigmoid.pOn         = NULL;
+                    b->sSigmoid.pFunction   = NULL;
+                    b->sSigmoid.pThreshold  = NULL;
+                    b->sSigmoid.pPumping    = NULL;
+                    b->sSigmoid.pIn         = NULL;
+                    b->sSigmoid.pOut        = NULL;
+                    b->sSigmoid.pReduction  = NULL;
+                    b->sSigmoid.pCurveMesh  = NULL;
 
                     b->nFlags               = BF_DIRTY_BAND | BF_SYNC_ALL;
 
@@ -308,6 +348,12 @@ namespace lsp
                         b->sOdp.pMakeup         = trace_port(ports[port_id++]);
                         b->sOdp.pResonance      = trace_port(ports[port_id++]);
                         b->sOdp.pCurveMesh      = trace_port(ports[port_id++]);
+                        b->sSigmoid.pOn         = trace_port(ports[port_id++]);
+                        trace_port(ports[port_id++]); // Skip sigmoid linear/logarithmic view
+                        b->sSigmoid.pFunction   = trace_port(ports[port_id++]);
+                        b->sSigmoid.pThreshold  = trace_port(ports[port_id++]);
+                        b->sSigmoid.pPumping    = trace_port(ports[port_id++]);
+                        b->sSigmoid.pCurveMesh  = trace_port(ports[port_id++]);
                         b->pFreqChart           = trace_port(ports[port_id++]);
                     }
                     else
@@ -321,6 +367,11 @@ namespace lsp
                         b->sOdp.pKnee           = sb->sOdp.pKnee;
                         b->sOdp.pMakeup         = sb->sOdp.pMakeup;
                         b->sOdp.pCurveMesh      = sb->sOdp.pCurveMesh;
+                        b->sSigmoid.pOn         = sb->sSigmoid.pOn;
+                        b->sSigmoid.pFunction   = sb->sSigmoid.pFunction;
+                        b->sSigmoid.pThreshold  = sb->sSigmoid.pThreshold;
+                        b->sSigmoid.pPumping    = sb->sSigmoid.pPumping;
+                        b->sSigmoid.pCurveMesh  = sb->sSigmoid.pCurveMesh;
                         b->pFreqChart           = sb->pFreqChart;
                     }
                 }
@@ -349,13 +400,25 @@ namespace lsp
                     b->sOdp.pIn             = trace_port(ports[port_id++]);
                     b->sOdp.pOut            = trace_port(ports[port_id++]);
                     b->sOdp.pReduction      = trace_port(ports[port_id++]);
+
+                    b->sSigmoid.pIn         = trace_port(ports[port_id++]);
+                    b->sSigmoid.pOut        = trace_port(ports[port_id++]);
+                    b->sSigmoid.pReduction  = trace_port(ports[port_id++]);
                 }
             }
 
             // Initialize curve (logarithmic) in range of -72 .. +24 db
             float delta = (meta::clipper::ODP_CURVE_DB_MAX - meta::clipper::ODP_CURVE_DB_MIN) / (meta::clipper::CURVE_MESH_POINTS-1);
             for (size_t i=0; i<meta::clipper::CURVE_MESH_POINTS; ++i)
-                vOdp[i]     = dspu::db_to_gain(meta::clipper::ODP_CURVE_DB_MIN + delta * i);
+                vOdp[i]         = dspu::db_to_gain(meta::clipper::ODP_CURVE_DB_MIN + delta * i);
+
+            delta       = (meta::clipper::CLIP_CURVE_DB_MAX - meta::clipper::CLIP_CURVE_DB_MIN) / (meta::clipper::CURVE_MESH_POINTS-1);
+            for (size_t i=0; i<meta::clipper::CURVE_MESH_POINTS; ++i)
+                vLogSigmoid[i]  = dspu::db_to_gain(meta::clipper::CLIP_CURVE_DB_MIN + delta * i);
+
+            delta       = (meta::clipper::CLIP_CURVE_X_MAX - meta::clipper::CLIP_CURVE_X_MIN) / (meta::clipper::CURVE_MESH_POINTS-1);
+            for (size_t i=0; i<meta::clipper::CURVE_MESH_POINTS; ++i)
+                vLinSigmoid[i]  = meta::clipper::CLIP_CURVE_X_MIN + delta * i;
         }
 
         void clipper::destroy()
@@ -497,25 +560,30 @@ namespace lsp
             return true;
         }
 
+        bool clipper::update_sigmoid_params(sigmoid_params_t *params)
+        {
+            dspu::sigmoid::function_t func = vSigmoidFunctions[size_t(params->pFunction->value())];
+            const float threshold   = lsp_min(params->pThreshold->value(), 0.99f);
+            const float pumping     = params->pPumping->value() * 0.01f;
+
+            if ((func == params->pFunc) &&
+                (threshold == params->fThreshold) &&
+                (pumping == params->fPumping))
+                return false;
+
+            params->pFunc           = func;
+            params->fThreshold      = threshold;
+            params->fPumping        = pumping;
+            params->fKnee           = 1.0f - threshold;
+            params->fScaling        = 1.0f / params->fKnee;
+
+            return true;
+        }
+
         void clipper::calc_odp_compressor(compressor_t *c, const odp_params_t *params)
         {
-//            constexpr float k   = 1.0f;
-//
-//            c->x0               = 1.0f / params->fThreshold;
-//            c->x1               = params->fThreshold / params->fKnee;
-//            c->x2               = params->fThreshold * params->fKnee;
-//
-//            float dy            = params->fThreshold - c->x1;
-//            float dx1           = 1.0f/(c->x2 - c->x1);
-//            float dx2           = dx1*dx1;
-//
-//            c->c                = k;
-//            c->b                = (3.0f * dy) * dx2 - (2.0f * k)*dx1;
-//            c->a                = (k - (2.0*dy)*dx1)*dx2;
-//            c->g                = params->fMakeup;
-
-            float th        = params->fThreshold;
-            float kn        = params->fKnee;
+            const float th  = params->fThreshold;
+            const float kn  = params->fKnee;
 
             c->x0           = th;
             c->x1           = th / kn;
@@ -547,6 +615,11 @@ namespace lsp
 
         float clipper::odp_gain(const compressor_t *c, float x)
         {
+            if (x >= c->x2)
+                return c->x0 / x;
+            if (x <= c->x1)
+                return 1.0f;
+
             float s = x * c->x0;
             return c->g * odp_curve(c, s) / s;
         }
@@ -561,6 +634,47 @@ namespace lsp
         {
             for (size_t i=0; i<count; ++i)
                 dst[i]      = odp_gain(c, x[i]);
+        }
+
+        float clipper::sigmoid_curve(const sigmoid_params_t *p, float x)
+        {
+            float s = x * p->fPumping;
+            if (s > p->fThreshold)
+            {
+                s               = (s - p->fThreshold) * p->fScaling;
+                return p->pFunc(s) * p->fKnee + p->fThreshold;
+            }
+            else if (s < -p->fThreshold)
+            {
+                s               = (s + p->fThreshold) * p->fScaling;
+                return p->pFunc(s) * p->fKnee - p->fThreshold;
+            }
+
+            return s;
+        }
+
+        float clipper::sigmoid_gain(const sigmoid_params_t *p, float x)
+        {
+            float s = fabsf(x * p->fPumping);
+            if (s > p->fThreshold)
+            {
+                s               = (s + p->fThreshold) * p->fScaling;
+                return (p->pFunc(s) * p->fScaling - p->fThreshold) / s;
+            }
+
+            return p->fPumping;
+        }
+
+        void clipper::sigmoid_curve(float *dst, const float *x, const sigmoid_params_t *p, size_t count)
+        {
+            for (size_t i=0; i<count; ++i)
+                dst[i]      = sigmoid_curve(p, x[i]);
+        }
+
+        void clipper::sigmoid_gain(float *dst, const float *x, const sigmoid_params_t *p, size_t count)
+        {
+            for (size_t i=0; i<count; ++i)
+                dst[i]      = sigmoid_gain(p, x[i]);
         }
 
         void clipper::update_settings()
@@ -753,6 +867,9 @@ namespace lsp
                         calc_odp_compressor(&b->sComp, &b->sOdp);
                         b->nFlags              |= BF_SYNC_ODP;
                     }
+                    b->nFlags               = lsp_setflag(b->nFlags, BF_SIGMOID_ENABLED, b->sSigmoid.pOn->value() >= 0.5f);
+                    if (update_sigmoid_params(&b->sSigmoid))
+                        b->nFlags              |= BF_SYNC_SIGMOID;
                 }
             }
 
@@ -994,6 +1111,23 @@ namespace lsp
 
                         // Mark mesh as synchronized
                         b->nFlags      &= uint32_t(~BF_SYNC_ODP);
+                    }
+                }
+
+                // Sync sigmoid curve
+                if (b->nFlags & BF_SYNC_SIGMOID)
+                {
+                    mesh                = (b->sSigmoid.pCurveMesh != NULL) ? b->sSigmoid.pCurveMesh->buffer<plug::mesh_t>() : NULL;
+                    if ((mesh != NULL) && (mesh->isEmpty()))
+                    {
+                        dsp::copy(mesh->pvData[0], vLinSigmoid, meta::clipper::CURVE_MESH_POINTS);
+                        sigmoid_curve(mesh->pvData[1], vLinSigmoid, &b->sSigmoid, meta::clipper::CURVE_MESH_POINTS);
+                        dsp::copy(mesh->pvData[2], vLogSigmoid, meta::clipper::CURVE_MESH_POINTS);
+                        sigmoid_curve(mesh->pvData[3], vLogSigmoid, &b->sSigmoid, meta::clipper::CURVE_MESH_POINTS);
+                        mesh->data(4, meta::clipper::CURVE_MESH_POINTS);
+
+                        // Mark mesh as synchronized
+                        b->nFlags      &= uint32_t(~BF_SYNC_SIGMOID);
                     }
                 }
             }

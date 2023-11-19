@@ -40,36 +40,53 @@ namespace lsp
     {
         static const port_item_t clipper_xover_modes[] =
         {
-            { "Classic",            "multiband.classic"             },
-            { "Linear Phase",       "multiband.linear_phase"        },
+            { "Classic",            "multiband.classic"                     },
+            { "Linear Phase",       "multiband.linear_phase"                },
             { NULL, NULL }
         };
 
         static const port_item_t clipper_xover_slopes[] =
         {
-            { "LR4 (24 dB/oct)",    "filter.lr_mode.24dbo"          },
-            { "LR8 (48 dB/oct)",    "filter.lr_mode.48dbo"          },
-            { "LR12 (72 dB/oct)",   "filter.lr_mode.72dbo"          },
-            { "LR16 (96 dB/oct)",   "filter.lr_mode.96dbo"          },
+            { "LR4 (24 dB/oct)",    "filter.lr_mode.24dbo"                  },
+            { "LR8 (48 dB/oct)",    "filter.lr_mode.48dbo"                  },
+            { "LR12 (72 dB/oct)",   "filter.lr_mode.72dbo"                  },
+            { "LR16 (96 dB/oct)",   "filter.lr_mode.96dbo"                  },
             { NULL, NULL }
         };
 
         static const port_item_t clipper_prefilter_slopes[] =
         {
-            { "Off",                "filter.lr_mode.off"            },
-            { "LR4 (24 dB/oct)",    "filter.lr_mode.24dbo"          },
-            { "LR8 (48 dB/oct)",    "filter.lr_mode.48dbo"          },
-            { "LR12 (72 dB/oct)",   "filter.lr_mode.72dbo"          },
-            { "LR16 (96 dB/oct)",   "filter.lr_mode.96dbo"          },
+            { "Off",                "filter.lr_mode.off"                    },
+            { "LR4 (24 dB/oct)",    "filter.lr_mode.24dbo"                  },
+            { "LR8 (48 dB/oct)",    "filter.lr_mode.48dbo"                  },
+            { "LR12 (72 dB/oct)",   "filter.lr_mode.72dbo"                  },
+            { "LR16 (96 dB/oct)",   "filter.lr_mode.96dbo"                  },
             { NULL, NULL }
         };
 
         static const port_item_t clipper_band_selectors[] =
         {
-            { "Band 1",             "clipper.band.1"                },
-            { "Band 2",             "clipper.band.2"                },
-            { "Band 3",             "clipper.band.3"                },
-            { "Band 4",             "clipper.band.4"                },
+            { "Band 1",             "clipper.band.1"                        },
+            { "Band 2",             "clipper.band.2"                        },
+            { "Band 3",             "clipper.band.3"                        },
+            { "Band 4",             "clipper.band.4"                        },
+            { NULL, NULL }
+        };
+
+        static const port_item_t sigmoid_functions[] =
+        {
+            { "Hard clip",          "clipper.sigmoid.hardclip"              },
+            { "Quadratic",          "clipper.sigmoid.quadratic"             },
+            { "Sine",               "clipper.sigmoid.sine"                  },
+            { "Logistic",           "clipper.sigmoid.logistic"              },
+            { "Arctangent",         "clipper.sigmoid.arctangent"            },
+            { "Hyperbolic tangent", "clipper.sigmoid.hyperbolic_tangent"    },
+            { "Guidermannian",      "clipper.sigmoid.guidermannian"         },
+            { "Error function",     "clipper.sigmoid.error_function"        },
+            { "Smoothstep",         "clipper.sigmoid.smoothstep"            },
+            { "Smootherstep",       "clipper.sigmoid.smootherstep"          },
+            { "Circle",             "clipper.sigmoid.circle"                },
+
             { NULL, NULL }
         };
 
@@ -104,12 +121,21 @@ namespace lsp
         CONTROL("mk" id, "Overdrive protection makeup gain" label, U_DB, clipper::ODP_MAKEUP), \
         LOG_CONTROL("rs" id, "Overdrive protection resonance" label, U_HZ, clipper::resonance), \
         MESH("opc" id, "Overdrive protection chart" label, 2, clipper::CURVE_MESH_POINTS), \
+        SWITCH("se" id, "Clipper sigmoid function enable" label, 1.0f), \
+        SWITCH("sl" id, "Clipper sigmoid function display logarithmic" label, 1.0f), \
+        COMBO("sf" id, "Clipper sigmoid function" label, 1.0f, sigmoid_functions), \
+        LOG_CONTROL("st" id, "Clipper sigmoid threshold" label, U_GAIN_AMP, clipper::CLIP_THRESHOLD), \
+        CONTROL("sp" id, "Clipper sigmoid pumping" label, U_PERCENT, clipper::CLIP_PUMPING), \
+        MESH("sfc" id, "Sigmoid function chart" label, 4, clipper::CURVE_MESH_POINTS), \
         MESH("bfc" id, "Band frequency chart" label, 2, clipper::FFT_MESH_POINTS + 2)
 
     #define CLIPPER_BAND_METERS(id, label) \
         METER_OUT_GAIN("odx" id, "Overdrive protection input meter" label, GAIN_AMP_P_36_DB), \
         METER_OUT_GAIN("ody" id, "Overdrive protection output meter" label, GAIN_AMP_P_36_DB), \
-        METER_GAIN_DFL("orm" id, "Overdrive protection reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB)
+        METER_GAIN_DFL("orm" id, "Overdrive protection reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB), \
+        METER_OUT_GAIN("sfx" id, "Sigmoid function input meter" label, GAIN_AMP_P_36_DB), \
+        METER_OUT_GAIN("sfy" id, "Sigmoid function output meter" label, GAIN_AMP_P_36_DB), \
+        METER_GAIN_DFL("srm" id, "Sigmoid function reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB)
 
     #define CLIPPER_STEREO_COMMON \
         CONTROL("slink", "Stereo link", U_PERCENT, clipper::STEREO_LINK)

@@ -5,6 +5,19 @@
 			"2": "Band 2",
 			"3": "Band 3",
 			"4": "Band 4"
+		},
+		"sigmoid": {
+			"arctangent": "Arctangent",
+			"circle": "Circle",
+			"error_function": "Error function",
+			"guidermannian": "Guidermannian",
+			"hardclip": "Hard clip",
+			"hyperbolic_tangent": "Hyperbolic tangent",
+			"logistic": "Logistic",
+			"quadratic": "Quadratic",
+			"sine": "Sine",
+			"smootherstep": "Smootherstep",
+			"smoothstep": "Smoothstep"
 		}
 	}
 }
