@@ -44,8 +44,8 @@ namespace lsp
             static constexpr size_t FFT_WINDOW              = dspu::windows::HANN;
             static constexpr float  ODP_CURVE_DB_MIN        = -18.0f;
             static constexpr float  ODP_CURVE_DB_MAX        = 6.0f;
-            static constexpr float  CLIP_CURVE_DB_MIN       = -72.0f;
-            static constexpr float  CLIP_CURVE_DB_MAX       = 24.0f;
+            static constexpr float  CLIP_CURVE_DB_MIN       = -36.0f;
+            static constexpr float  CLIP_CURVE_DB_MAX       = 12.0f;
             static constexpr float  CLIP_CURVE_X_MIN        = -2.0f;
             static constexpr float  CLIP_CURVE_X_MAX        = 2.0f;
             static constexpr size_t CURVE_MESH_POINTS       = 256;
@@ -138,7 +138,7 @@ namespace lsp
 
             static constexpr float  CLIP_THRESHOLD_MIN      = GAIN_AMP_M_INF_DB;
             static constexpr float  CLIP_THRESHOLD_MAX      = GAIN_AMP_0_DB;
-            static constexpr float  CLIP_THRESHOLD_DFL      = GAIN_AMP_M_INF_DB;
+            static constexpr float  CLIP_THRESHOLD_DFL      = GAIN_AMP_M_6_DB;
             static constexpr float  CLIP_THRESHOLD_STEP     = 0.025f;
 
             static constexpr float  CLIP_PUMPING_MIN        = 25.0f;
