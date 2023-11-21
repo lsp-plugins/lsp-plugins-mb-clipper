@@ -150,13 +150,14 @@ namespace lsp
                 szof_curve_buffer +     // vOdp
                 szof_curve_buffer +     // vLinSigmoid
                 szof_curve_buffer +     // vLogSigmoid
-                meta::clipper::BANDS_MAX * szof_fft_buffer +    // band_t::vTr
+                meta::clipper::BANDS_MAX * (
+                    szof_fft_buffer     // vTr
+                ) +
                 nChannels * (
                     szof_buffer +       // vData
                     szof_buffer +       // vInAnalyze
                     meta::clipper::BANDS_MAX * (
-                        szof_buffer +       // vData
-                        szof_buffer         // vSc
+                        szof_buffer         // vData
                     )
                 );
 
@@ -204,68 +205,30 @@ namespace lsp
                     band_t *b               = &c->vBands[j];
 
                     // Initialize DSP units
-                    b->sSidechain.construct();
+                    b->sSc.construct();
                     b->sScDelay.construct();
-                    b->sDelay.construct();
+                    b->sPreDelay.construct();
+                    b->sPostDelay.construct();
 
                     // Bind handler to crossover
                     c->sIIRXOver.set_handler(j, process_band, this, c);
 
-                    // Initialize fields
-                    b->sComp.x0             = 0.0f;
-                    b->sComp.x1             = 0.0f;
-                    b->sComp.x2             = 0.0f;
-                    b->sComp.t              = 0.0f;
-                    b->sComp.g              = 0.0f;
-                    b->sComp.a              = 0.0f;
-                    b->sComp.b              = 0.0f;
-                    b->sComp.c              = 0.0f;
-
-                    b->sOdp.fThreshold      = 0.0f;
-                    b->sOdp.fKnee           = 0.0f;
-                    b->sOdp.fMakeup         = 0.0f;
-                    b->sOdp.fIn             = 0.0f;
-                    b->sOdp.fOut            = 0.0f;
-
-                    b->sOdp.pThreshold      = NULL;
-                    b->sOdp.pKnee           = NULL;
-                    b->sOdp.pMakeup         = NULL;
-                    b->sOdp.pResonance      = NULL;
-                    b->sOdp.pIn             = NULL;
-                    b->sOdp.pOut            = NULL;
-                    b->sOdp.pReduction      = NULL;
-                    b->sOdp.pCurveMesh      = NULL;
-
-                    b->sSigmoid.pFunc       = NULL;
-                    b->sSigmoid.fThreshold  = 0.0f;
-                    b->sSigmoid.fPumping    = 1.0f;
-                    b->sSigmoid.fScaling    = 0.0f;
-                    b->sSigmoid.fKnee       = 0.0f;
-                    b->sSigmoid.fIn         = 0.0f;
-                    b->sSigmoid.fOut        = 0.0f;
-                    b->sSigmoid.fReduction  = 0.0f;
-
-                    b->sSigmoid.pOn         = NULL;
-                    b->sSigmoid.pFunction   = NULL;
-                    b->sSigmoid.pThreshold  = NULL;
-                    b->sSigmoid.pPumping    = NULL;
-                    b->sSigmoid.pIn         = NULL;
-                    b->sSigmoid.pOut        = NULL;
-                    b->sSigmoid.pReduction  = NULL;
-                    b->sSigmoid.pCurveMesh  = NULL;
-
-                    b->nFlags               = BF_DIRTY_BAND | BF_SYNC_ALL;
-
                     b->fOdpIn               = GAIN_AMP_M_INF_DB;
                     b->fOdpOut              = GAIN_AMP_M_INF_DB;
+                    b->fOdpRed              = GAIN_AMP_M_INF_DB;
+
+                    b->fSigmoidIn           = GAIN_AMP_M_INF_DB;
+                    b->fSigmoidOut          = GAIN_AMP_M_INF_DB;
+                    b->fSigmoidRed          = GAIN_AMP_M_INF_DB;
 
                     b->vData                = advance_ptr_bytes<float>(ptr, szof_buffer);
-                    b->vSc                  = advance_ptr_bytes<float>(ptr, szof_buffer);
-                    b->vTr                  = (i == 0) ? advance_ptr_bytes<float>(ptr, szof_fft_buffer) : NULL;
 
-                    b->pSolo                = NULL;
-                    b->pMute                = NULL;
-                    b->pFreqChart           = NULL;
+                    b->pOdpIn               = NULL;
+                    b->pOdpOut              = NULL;
+                    b->pOdpRed              = NULL;
+                    b->pClipIn              = NULL;
+                    b->pClipOut             = NULL;
+                    b->pClipRed             = NULL;
                 }
 
                 // Initialize fields
@@ -287,6 +250,52 @@ namespace lsp
                 c->pFftInMesh           = NULL;
                 c->pFftOutMesh          = NULL;
             }
+
+            for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+            {
+                processor_t *p          = &vProc[j];
+
+                // Initialize fields
+                p->sComp.x0             = 0.0f;
+                p->sComp.x1             = 0.0f;
+                p->sComp.x2             = 0.0f;
+                p->sComp.t              = 0.0f;
+                p->sComp.g              = 0.0f;
+                p->sComp.a              = 0.0f;
+                p->sComp.b              = 0.0f;
+                p->sComp.c              = 0.0f;
+
+                p->sOdp.fThreshold      = 0.0f;
+                p->sOdp.fKnee           = 0.0f;
+                p->sOdp.fMakeup         = 0.0f;
+
+                p->sOdp.pThreshold      = NULL;
+                p->sOdp.pKnee           = NULL;
+                p->sOdp.pMakeup         = NULL;
+                p->sOdp.pResonance      = NULL;
+                p->sOdp.pCurveMesh      = NULL;
+
+                p->sClip.pFunc          = NULL;
+                p->sClip.fThreshold     = 0.0f;
+                p->sClip.fPumping       = 1.0f;
+                p->sClip.fScaling       = 0.0f;
+                p->sClip.fKnee          = 0.0f;
+
+                p->sClip.pOn            = NULL;
+                p->sClip.pFunction      = NULL;
+                p->sClip.pThreshold     = NULL;
+                p->sClip.pPumping       = NULL;
+                p->sClip.pCurveMesh     = NULL;
+
+                p->nFlags               = PF_DIRTY_BAND | PF_SYNC_ALL;
+
+                p->vTr                  = advance_ptr_bytes<float>(ptr, szof_fft_buffer);
+
+                p->pSolo                = NULL;
+                p->pMute                = NULL;
+                p->pFreqChart           = NULL;
+            }
+
             lsp_assert( ptr <= tail );
 
             // Bind ports
@@ -329,52 +338,26 @@ namespace lsp
             }
 
             // Bind frequency band ports
-            lsp_trace("Binding band ports");
-            for (size_t i=0; i<nChannels; ++i)
+            lsp_trace("Binding processor ports");
+            for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
             {
-                channel_t *c            = &vChannels[i];
+                processor_t *p          = &vProc[j];
 
-                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
-                {
-                    band_t *b               = &c->vBands[j];
-
-                    if (i == 0)
-                    {
-                        b->pSolo                = trace_port(ports[port_id++]);
-                        b->pMute                = trace_port(ports[port_id++]);
-                        b->sOdp.pOn             = trace_port(ports[port_id++]);
-                        b->sOdp.pThreshold      = trace_port(ports[port_id++]);
-                        b->sOdp.pKnee           = trace_port(ports[port_id++]);
-                        b->sOdp.pMakeup         = trace_port(ports[port_id++]);
-                        b->sOdp.pResonance      = trace_port(ports[port_id++]);
-                        b->sOdp.pCurveMesh      = trace_port(ports[port_id++]);
-                        b->sSigmoid.pOn         = trace_port(ports[port_id++]);
-                        trace_port(ports[port_id++]); // Skip sigmoid linear/logarithmic view
-                        b->sSigmoid.pFunction   = trace_port(ports[port_id++]);
-                        b->sSigmoid.pThreshold  = trace_port(ports[port_id++]);
-                        b->sSigmoid.pPumping    = trace_port(ports[port_id++]);
-                        b->sSigmoid.pCurveMesh  = trace_port(ports[port_id++]);
-                        b->pFreqChart           = trace_port(ports[port_id++]);
-                    }
-                    else
-                    {
-                        band_t *sb              = &vChannels[0].vBands[j];
-
-                        b->pSolo                = sb->pSolo;
-                        b->pMute                = sb->pMute;
-                        b->sOdp.pOn             = sb->sOdp.pOn;
-                        b->sOdp.pThreshold      = sb->sOdp.pThreshold;
-                        b->sOdp.pKnee           = sb->sOdp.pKnee;
-                        b->sOdp.pMakeup         = sb->sOdp.pMakeup;
-                        b->sOdp.pCurveMesh      = sb->sOdp.pCurveMesh;
-                        b->sSigmoid.pOn         = sb->sSigmoid.pOn;
-                        b->sSigmoid.pFunction   = sb->sSigmoid.pFunction;
-                        b->sSigmoid.pThreshold  = sb->sSigmoid.pThreshold;
-                        b->sSigmoid.pPumping    = sb->sSigmoid.pPumping;
-                        b->sSigmoid.pCurveMesh  = sb->sSigmoid.pCurveMesh;
-                        b->pFreqChart           = sb->pFreqChart;
-                    }
-                }
+                p->pSolo                = trace_port(ports[port_id++]);
+                p->pMute                = trace_port(ports[port_id++]);
+                p->sOdp.pOn             = trace_port(ports[port_id++]);
+                p->sOdp.pThreshold      = trace_port(ports[port_id++]);
+                p->sOdp.pKnee           = trace_port(ports[port_id++]);
+                p->sOdp.pMakeup         = trace_port(ports[port_id++]);
+                p->sOdp.pResonance      = trace_port(ports[port_id++]);
+                p->sOdp.pCurveMesh      = trace_port(ports[port_id++]);
+                p->sClip.pOn            = trace_port(ports[port_id++]);
+                trace_port(ports[port_id++]); // Skip sigmoid linear/logarithmic view
+                p->sClip.pFunction      = trace_port(ports[port_id++]);
+                p->sClip.pThreshold     = trace_port(ports[port_id++]);
+                p->sClip.pPumping       = trace_port(ports[port_id++]);
+                p->sClip.pCurveMesh     = trace_port(ports[port_id++]);
+                p->pFreqChart           = trace_port(ports[port_id++]);
             }
 
             lsp_trace("Binding analysis ports");
@@ -397,13 +380,12 @@ namespace lsp
                 {
                     band_t *b               = &c->vBands[j];
 
-                    b->sOdp.pIn             = trace_port(ports[port_id++]);
-                    b->sOdp.pOut            = trace_port(ports[port_id++]);
-                    b->sOdp.pReduction      = trace_port(ports[port_id++]);
-
-                    b->sSigmoid.pIn         = trace_port(ports[port_id++]);
-                    b->sSigmoid.pOut        = trace_port(ports[port_id++]);
-                    b->sSigmoid.pReduction  = trace_port(ports[port_id++]);
+                    b->pOdpIn               = trace_port(ports[port_id++]);
+                    b->pOdpOut              = trace_port(ports[port_id++]);
+                    b->pOdpRed              = trace_port(ports[port_id++]);
+                    b->pClipIn              = trace_port(ports[port_id++]);
+                    b->pClipOut             = trace_port(ports[port_id++]);
+                    b->pClipRed             = trace_port(ports[port_id++]);
                 }
             }
 
@@ -447,9 +429,10 @@ namespace lsp
                     {
                         band_t *b       = &c->vBands[j];
 
-                        b->sSidechain.destroy();
+                        b->sSc.destroy();
                         b->sScDelay.destroy();
-                        b->sDelay.destroy();
+                        b->sPreDelay.destroy();
+                        b->sPostDelay.destroy();
                     }
                 }
                 vChannels   = NULL;
@@ -474,7 +457,11 @@ namespace lsp
         {
             const size_t fft_rank       = select_fft_rank(sr);
             const size_t max_delay_fft  = (1 << fft_rank);
-            const size_t max_delay_lat  = dspu::millis_to_samples(sr, meta::clipper::RMS_TIME_MAX);
+            const size_t max_odp_delay  = (
+                dspu::hz_to_samples(sr, meta::clipper::ODP_REACT1_MAX) +
+                dspu::hz_to_samples(sr, meta::clipper::ODP_REACT2_MAX) +
+                dspu::hz_to_samples(sr, meta::clipper::ODP_REACT3_MAX) +
+                dspu::hz_to_samples(sr, meta::clipper::ODP_REACT4_MAX)) * 2;
 
             sCounter.set_sample_rate(sr, true);
 
@@ -483,7 +470,7 @@ namespace lsp
                 channel_t *c            = &vChannels[i];
 
                 c->sBypass.init(sr);
-                c->sDryDelay.init(max_delay_fft + max_delay_lat);
+                c->sDryDelay.init(max_delay_fft + max_odp_delay);
                 c->sEqualizer.set_sample_rate(sr);
                 c->sIIRXOver.set_sample_rate(sr);
 
@@ -499,9 +486,10 @@ namespace lsp
 
                 for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
                 {
-                    band_t *b               = &c->vBands[i];
-                    b->sDelay.init(max_delay_lat);
-                    b->sScDelay.init(max_delay_lat);
+                    band_t *b               = &c->vBands[j];
+                    b->sPreDelay.init(max_odp_delay);
+                    b->sPostDelay.init(max_odp_delay);
+                    b->sScDelay.init(max_odp_delay);
                 }
             }
 
@@ -511,7 +499,7 @@ namespace lsp
                 meta::clipper::FFT_RANK,
                 MAX_SAMPLE_RATE,
                 meta::clipper::REFRESH_RATE,
-                max_delay_fft);
+                max_delay_fft + max_odp_delay);
             sAnalyzer.set_rank(meta::clipper::FFT_RANK);
             sAnalyzer.set_envelope(dspu::envelope::WHITE_NOISE);
             sAnalyzer.set_window(meta::clipper::FFT_WINDOW);
@@ -520,14 +508,10 @@ namespace lsp
 
             if (sAnalyzer.needs_reconfiguration())
             {
-                for (size_t i=0; i<nChannels; ++i)
+                for (size_t i=0; i < meta::clipper::BANDS_MAX; ++i)
                 {
-                    channel_t *c            = &vChannels[i];
-                    for (size_t i=0; i < meta::clipper::BANDS_MAX; ++i)
-                    {
-                        band_t *b               = &c->vBands[i];
-                        b->nFlags              |= BF_DIRTY_BAND | BF_SYNC_BAND;
-                    }
+                    processor_t *p          = &vProc[i];
+                    p->nFlags              |= PF_DIRTY_BAND | PF_SYNC_BAND;
                 }
             }
         }
@@ -560,7 +544,7 @@ namespace lsp
             return true;
         }
 
-        bool clipper::update_sigmoid_params(sigmoid_params_t *params)
+        bool clipper::update_clip_params(clip_params_t *params)
         {
             dspu::sigmoid::function_t func = vSigmoidFunctions[size_t(params->pFunction->value())];
             const float threshold   = lsp_min(params->pThreshold->value(), 0.99f);
@@ -636,7 +620,7 @@ namespace lsp
                 dst[i]      = odp_gain(c, x[i]);
         }
 
-        float clipper::sigmoid_curve(const sigmoid_params_t *p, float x)
+        float clipper::clip_curve(const clip_params_t *p, float x)
         {
             float s = x * p->fPumping;
             if (s > p->fThreshold)
@@ -653,7 +637,7 @@ namespace lsp
             return s;
         }
 
-        float clipper::sigmoid_gain(const sigmoid_params_t *p, float x)
+        float clipper::clip_gain(const clip_params_t *p, float x)
         {
             float s = fabsf(x * p->fPumping);
             if (s > p->fThreshold)
@@ -665,16 +649,16 @@ namespace lsp
             return p->fPumping;
         }
 
-        void clipper::sigmoid_curve(float *dst, const float *x, const sigmoid_params_t *p, size_t count)
+        void clipper::clip_curve(float *dst, const float *x, const clip_params_t *p, size_t count)
         {
             for (size_t i=0; i<count; ++i)
-                dst[i]      = sigmoid_curve(p, x[i]);
+                dst[i]      = clip_curve(p, x[i]);
         }
 
-        void clipper::sigmoid_gain(float *dst, const float *x, const sigmoid_params_t *p, size_t count)
+        void clipper::clip_gain(float *dst, const float *x, const clip_params_t *p, size_t count)
         {
             for (size_t i=0; i<count; ++i)
-                dst[i]      = sigmoid_gain(p, x[i]);
+                dst[i]      = clip_gain(p, x[i]);
         }
 
         void clipper::update_settings()
@@ -705,45 +689,28 @@ namespace lsp
 
             // Check if we have solo option for bands and ansysis optios for channels
             bool has_solo   = false;
-            for (size_t i=0; i<nChannels; ++i)
+            for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
             {
-                channel_t *c            = &vChannels[i];
-
-                c->nFlags               = lsp_setflag(c->nFlags, CF_IN_FFT, c->pFftInSwitch->value() >= 0.5f);
-                c->nFlags               = lsp_setflag(c->nFlags, CF_OUT_FFT, c->pFftOutSwitch->value() >= 0.5f);
-
-                // Configure band solo/mute option
-                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
-                {
-                    band_t *b               = &c->vBands[j];
-                    b->nFlags              &= uint32_t(~BF_ENABLED);
-                    if ((b->pSolo->value() >= 0.5f) && (j<=num_splits))
-                        has_solo                = true;
-                }
+                processor_t *p          = &vProc[j];
+                p->nFlags              &= uint32_t(~PF_ENABLED);
+                if ((p->pSolo->value() >= 0.5f) && (j<=num_splits))
+                    has_solo                = true;
             }
 
-            for (size_t i=0; i<nChannels; ++i)
+            for (size_t j=0; j<=num_splits; ++j)
             {
-                channel_t *c            = &vChannels[i];
-
-                c->sBypass.set_bypass(bypass);
-
-                // Configure band solo/mute option
-                for (size_t j=0; j<=num_splits; ++j)
-                {
-                    band_t *b               = &c->vBands[j];
-                    bool mute               = (b->pMute->value() >= 0.5f) || ((has_solo) && (b->pSolo->value() < 0.5f));
-                    b->nFlags               = lsp_setflag(b->nFlags, BF_ENABLED, !mute);
-                }
+                processor_t *p          = &vProc[j];
+                bool mute               = (p->pMute->value() >= 0.5f) || ((has_solo) && (p->pSolo->value() < 0.5f));
+                p->nFlags               = lsp_setflag(p->nFlags, PF_ENABLED, !mute);
             }
 
             // Configure crossover
             size_t xover_latency    = 0;
-            size_t max_band_latency = 0;
 
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c            = &vChannels[i];
+                c->sBypass.set_bypass(bypass);
 
                 if (enXOverMode == XOVER_IIR)
                 {
@@ -852,28 +819,30 @@ namespace lsp
             }
 
             // Configure clipping
+            for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+            {
+                processor_t *p          = &vProc[j];
+
+                p->nFlags               = lsp_setflag(p->nFlags, PF_ODP_ENABLED, p->sOdp.pOn->value() >= 0.5f);
+                if (update_odp_params(&p->sOdp))
+                {
+                    calc_odp_compressor(&p->sComp, &p->sOdp);
+                    p->nFlags              |= PF_SYNC_ODP;
+                }
+                p->nFlags               = lsp_setflag(p->nFlags, PF_SIGMOID_ENABLED, p->sClip.pOn->value() >= 0.5f);
+                if (update_clip_params(&p->sClip))
+                    p->nFlags              |= PF_SYNC_CLIP;
+            }
+
+            // Configure analyzer
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c            = &vChannels[i];
 
-                // Configure overdrive protection and sigmoid
-                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
-                {
-                    band_t *b               = &c->vBands[j];
-
-                    b->nFlags               = lsp_setflag(b->nFlags, BF_ODP_ENABLED, b->sOdp.pOn->value() >= 0.5f);
-                    if (update_odp_params(&b->sOdp))
-                    {
-                        calc_odp_compressor(&b->sComp, &b->sOdp);
-                        b->nFlags              |= BF_SYNC_ODP;
-                    }
-                    b->nFlags               = lsp_setflag(b->nFlags, BF_SIGMOID_ENABLED, b->sSigmoid.pOn->value() >= 0.5f);
-                    if (update_sigmoid_params(&b->sSigmoid))
-                        b->nFlags              |= BF_SYNC_SIGMOID;
-                }
+                c->nFlags               = lsp_setflag(c->nFlags, CF_IN_FFT, c->pFftInSwitch->value() >= 0.5f);
+                c->nFlags               = lsp_setflag(c->nFlags, CF_OUT_FFT, c->pFftOutSwitch->value() >= 0.5f);
             }
 
-            // Configure analyzer
             sAnalyzer.set_reactivity(pFftReactivity->value());
             sAnalyzer.set_shift(pFftShift->value() * 100.0f);
             for (size_t i=0; i<nChannels; ++i)
@@ -898,32 +867,50 @@ namespace lsp
             // Mark crossover bands out of sync
             if (sync_band_curves)
             {
-                for (size_t i=0; i<nChannels; ++i)
+                for (size_t i=0; i < meta::clipper::BANDS_MAX; ++i)
                 {
-                    channel_t *c            = &vChannels[i];
-                    for (size_t i=0; i < meta::clipper::BANDS_MAX; ++i)
-                    {
-                        band_t *b               = &c->vBands[i];
-                        b->nFlags              |= BF_DIRTY_BAND | BF_SYNC_BAND;
-                    }
+                    processor_t *b          = &vProc[i];
+                    b->nFlags              |= PF_DIRTY_BAND | PF_SYNC_BAND;
                 }
             }
 
             // Adjust the compensation delays
-            size_t latency = xover_latency + max_band_latency;
+            size_t max_band_latency = 0;
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c            = &vChannels[i];
 
                 // Adjust RMS compensation delay for each band
+                size_t band_latency     = 0;
+                for (size_t j=0; j < meta::clipper::BANDS_MAX; ++j)
+                {
+                    band_t *b               = &c->vBands[j];
+                    processor_t *p          = &vProc[j];
+                    size_t sc_latency       = dspu::hz_to_samples(fSampleRate, p->sOdp.pResonance->value()) * 0.5f;
+
+                    b->sSc.set_reactivity(1000.0f / p->sOdp.pResonance->value());
+                    b->sSc.set_mode(dspu::SCM_RMS);
+                    b->sSc.set_stereo_mode(dspu::SCSM_STEREO);
+
+                    b->sPreDelay.set_delay(band_latency);
+                    b->sScDelay.set_delay(sc_latency);
+
+                    band_latency        = b->sPreDelay.delay();
+                }
+
+                max_band_latency        = lsp_max(max_band_latency, band_latency);
+            }
+
+            // Compute the final latency
+            size_t latency = xover_latency + max_band_latency;
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
                 for (size_t j=0; j < meta::clipper::BANDS_MAX; ++j)
                 {
                     band_t *b       = &c->vBands[i];
-
-                    b->sDelay.set_delay(max_band_latency);
-                    b->sScDelay.set_delay(max_band_latency - b->nLatency);
+                    b->sPostDelay.set_delay(max_band_latency - b->sPreDelay.delay());
                 }
-
                 c->sDryDelay.set_delay(latency);
             }
             set_latency(latency);
@@ -1007,7 +994,8 @@ namespace lsp
                 for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
                 {
                     band_t *b               = &c->vBands[j];
-                    if (!(b->nFlags & BF_ENABLED))
+                    processor_t *p          = &vProc[j];
+                    if (!(p->nFlags & PF_ENABLED))
                         continue;
 
                     if (merged++)
@@ -1044,12 +1032,12 @@ namespace lsp
         {
             plug::mesh_t *mesh  = NULL;
 
-            // Update band curves if needed
+            // Update processor curves if needed
             for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
             {
                 channel_t *c        = &vChannels[0];
-                band_t *b           = &vChannels[0].vBands[j];
-                if (b->nFlags & BF_DIRTY_BAND)
+                processor_t *p      = &vProc[j];
+                if (p->nFlags & PF_DIRTY_BAND)
                 {
                     if (enXOverMode == XOVER_IIR)
                     {
@@ -1059,7 +1047,7 @@ namespace lsp
 
                             c->sIIRXOver.freq_chart(j, vBuffer, &vFreqs[offset], count);
                             dsp::pcomplex_mod(vBuffer, vBuffer, count);
-                            dsp::mul3(&b->vTr[offset], &vTrEq[offset], vBuffer, count);
+                            dsp::mul3(&p->vTr[offset], &vTrEq[offset], vBuffer, count);
 
                             offset         += count;
                         }
@@ -1069,18 +1057,18 @@ namespace lsp
                         for (size_t offset=0; offset<meta::clipper::FFT_MESH_POINTS; )
                         {
                             size_t count    = lsp_min(BUFFER_SIZE, meta::clipper::FFT_MESH_POINTS - offset);
-                            c->sFFTXOver.freq_chart(j, &b->vTr[offset], &vFreqs[offset], count);
+                            c->sFFTXOver.freq_chart(j, &p->vTr[offset], &vFreqs[offset], count);
                             offset         += count;
                         }
                     }
 
-                    b->nFlags      &= uint32_t(~BF_DIRTY_BAND);
+                    p->nFlags      &= uint32_t(~PF_DIRTY_BAND);
                 }
 
                 // Sync band filter curve
-                if (b->nFlags & BF_SYNC_BAND)
+                if (p->nFlags & PF_SYNC_BAND)
                 {
-                    mesh                = (b->pFreqChart != NULL) ? b->pFreqChart->buffer<plug::mesh_t>() : NULL;
+                    mesh                = (p->pFreqChart != NULL) ? p->pFreqChart->buffer<plug::mesh_t>() : NULL;
                     if ((mesh != NULL) && (mesh->isEmpty()))
                     {
                         // Add extra points
@@ -1091,43 +1079,43 @@ namespace lsp
 
                         // Fill mesh
                         dsp::copy(&mesh->pvData[0][1], vFreqs, meta::clipper::FFT_MESH_POINTS);
-                        dsp::copy(&mesh->pvData[1][1], b->vTr, meta::clipper::FFT_MESH_POINTS);
+                        dsp::copy(&mesh->pvData[1][1], p->vTr, meta::clipper::FFT_MESH_POINTS);
                         mesh->data(2, meta::clipper::FFT_MESH_POINTS + 2);
 
                         // Mark mesh as synchronized
-                        b->nFlags      &= uint32_t(~BF_SYNC_BAND);
+                        p->nFlags      &= uint32_t(~PF_SYNC_BAND);
                     }
                 }
 
                 // Sync ODP curve
-                if (b->nFlags & BF_SYNC_ODP)
+                if (p->nFlags & PF_SYNC_ODP)
                 {
-                    mesh                = (b->sOdp.pCurveMesh != NULL) ? b->sOdp.pCurveMesh->buffer<plug::mesh_t>() : NULL;
+                    mesh                = (p->sOdp.pCurveMesh != NULL) ? p->sOdp.pCurveMesh->buffer<plug::mesh_t>() : NULL;
                     if ((mesh != NULL) && (mesh->isEmpty()))
                     {
                         dsp::copy(mesh->pvData[0], vOdp, meta::clipper::CURVE_MESH_POINTS);
-                        odp_curve(mesh->pvData[1], vOdp, &b->sComp, meta::clipper::CURVE_MESH_POINTS);
+                        odp_curve(mesh->pvData[1], vOdp, &p->sComp, meta::clipper::CURVE_MESH_POINTS);
                         mesh->data(2, meta::clipper::CURVE_MESH_POINTS);
 
                         // Mark mesh as synchronized
-                        b->nFlags      &= uint32_t(~BF_SYNC_ODP);
+                        p->nFlags      &= uint32_t(~PF_SYNC_ODP);
                     }
                 }
 
                 // Sync sigmoid curve
-                if (b->nFlags & BF_SYNC_SIGMOID)
+                if (p->nFlags & PF_SYNC_CLIP)
                 {
-                    mesh                = (b->sSigmoid.pCurveMesh != NULL) ? b->sSigmoid.pCurveMesh->buffer<plug::mesh_t>() : NULL;
+                    mesh                = (p->sClip.pCurveMesh != NULL) ? p->sClip.pCurveMesh->buffer<plug::mesh_t>() : NULL;
                     if ((mesh != NULL) && (mesh->isEmpty()))
                     {
                         dsp::copy(mesh->pvData[0], vLinSigmoid, meta::clipper::CURVE_MESH_POINTS);
-                        sigmoid_curve(mesh->pvData[1], vLinSigmoid, &b->sSigmoid, meta::clipper::CURVE_MESH_POINTS);
+                        clip_curve(mesh->pvData[1], vLinSigmoid, &p->sClip, meta::clipper::CURVE_MESH_POINTS);
                         dsp::copy(mesh->pvData[2], vLogSigmoid, meta::clipper::CURVE_MESH_POINTS);
-                        sigmoid_curve(mesh->pvData[3], vLogSigmoid, &b->sSigmoid, meta::clipper::CURVE_MESH_POINTS);
+                        clip_curve(mesh->pvData[3], vLogSigmoid, &p->sClip, meta::clipper::CURVE_MESH_POINTS);
                         mesh->data(4, meta::clipper::CURVE_MESH_POINTS);
 
                         // Mark mesh as synchronized
-                        b->nFlags      &= uint32_t(~BF_SYNC_SIGMOID);
+                        p->nFlags      &= uint32_t(~PF_SYNC_CLIP);
                     }
                 }
             }
@@ -1218,15 +1206,10 @@ namespace lsp
         void clipper::ui_activated()
         {
             // Force meshes to become synchronized with UI
-            for (size_t i=0; i<nChannels; ++i)
+            for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
             {
-                channel_t *c        = &vChannels[i];
-
-                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
-                {
-                    band_t *b           = &c->vBands[j];
-                    b->nFlags          |= BF_SYNC_ALL;
-                }
+                processor_t *p      = &vProc[j];
+                p->nFlags          |= PF_SYNC_ALL;
             }
         }
 

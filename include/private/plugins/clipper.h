@@ -53,15 +53,15 @@ namespace lsp
 
                 enum band_flags_t
                 {
-                    BF_ENABLED          = 1 << 0,           // Band is enabled
-                    BF_ODP_ENABLED      = 1 << 1,           // Overdrive protection enabled
-                    BF_SIGMOID_ENABLED  = 1 << 2,           // Sigmoid processing enabled
-                    BF_DIRTY_BAND       = 1 << 3,           // Update band filter curve
-                    BF_SYNC_BAND        = 1 << 4,           // Sync band filter curve
-                    BF_SYNC_ODP         = 1 << 5,           // Sync overdrive protection curve
-                    BF_SYNC_SIGMOID     = 1 << 6,           // Sync sigmoid function curve
+                    PF_ENABLED          = 1 << 0,           // Band is enabled
+                    PF_ODP_ENABLED      = 1 << 1,           // Overdrive protection enabled
+                    PF_SIGMOID_ENABLED  = 1 << 2,           // Sigmoid processing enabled
+                    PF_DIRTY_BAND       = 1 << 3,           // Update band filter curve
+                    PF_SYNC_BAND        = 1 << 4,           // Sync band filter curve
+                    PF_SYNC_ODP         = 1 << 5,           // Sync overdrive protection curve
+                    PF_SYNC_CLIP        = 1 << 6,           // Sync sigmoid clipping curve
 
-                    BF_SYNC_ALL         = BF_SYNC_BAND | BF_SYNC_ODP | BF_SYNC_SIGMOID
+                    PF_SYNC_ALL         = PF_SYNC_BAND | PF_SYNC_ODP | PF_SYNC_CLIP
                 };
 
                 enum channel_flags_t
@@ -84,22 +84,15 @@ namespace lsp
                     float               fKnee;              // Knee
                     float               fMakeup;            // Makeup gain
 
-                    float               fIn;                // Input level measured
-                    float               fOut;               // Output level measured
-                    float               fReduction;         // Reduction level measured
-
                     plug::IPort        *pOn;                // Enable overdrive protection
                     plug::IPort        *pThreshold;         // Threshold
                     plug::IPort        *pKnee;              // Knee
                     plug::IPort        *pMakeup;            // Makeup gain
                     plug::IPort        *pResonance;         // Resonance frequency
-                    plug::IPort        *pIn;                // Input level meter
-                    plug::IPort        *pOut;               // Output level meter
-                    plug::IPort        *pReduction;         // Reduction level meter
                     plug::IPort        *pCurveMesh;         // Curve chart mesh
                 } odp_params_t;
 
-                typedef struct sigmoid_params_t
+                typedef struct clip_params_t
                 {
                     dspu::sigmoid::function_t   pFunc;      // Sigmoid function
                     float               fThreshold;         // Threshold
@@ -107,44 +100,53 @@ namespace lsp
                     float               fScaling;           // Sigmoid scaling
                     float               fKnee;              // Knee
 
-                    float               fIn;                // Input level measured
-                    float               fOut;               // Output level measured
-                    float               fReduction;         // Reduction level measured
-
                     plug::IPort        *pOn;                // Enable sigmoid function
                     plug::IPort        *pFunction;          // Sigmoid function
                     plug::IPort        *pThreshold;         // Sigmoid threshold
                     plug::IPort        *pPumping;           // Sigmoid pumping
-                    plug::IPort        *pIn;                // Input level meter
-                    plug::IPort        *pOut;               // Output level meter
-                    plug::IPort        *pReduction;         // Reduction level meter
                     plug::IPort        *pCurveMesh;         // Curve chart mesh
-                } sigmoid_params_t;
+                } clip_params_t;
 
                 typedef struct band_t
                 {
-                    dspu::Sidechain     sSidechain;         // Sidechain
-                    dspu::Delay         sScDelay;           // Sidechain delay
-                    dspu::Delay         sDelay;             // Signal delay
-                    compressor_t        sComp;              // Simple compressor
-                    odp_params_t        sOdp;               // Overdrive protection params
-                    sigmoid_params_t    sSigmoid;           // Sigmoid parameters
+                    dspu::Sidechain     sSc;                // Sidechain
+                    dspu::Delay         sScDelay;           // Sidechain latency compensation delay
+                    dspu::Delay         sPreDelay;          // Signal pre-delay
+                    dspu::Delay         sPostDelay;         // Signal post-delay
 
-                    uint32_t            nFlags;             // Band flags
-                    uint32_t            nLatency;           // Band latency
+                    float              *vData;              // Data buffer
 
                     float               fOdpIn;             // Overdrive protection input level
                     float               fOdpOut;            // Overdrive protection out level
-                    float               fOdpReduction;      // Overdrive protection reduction level
+                    float               fOdpRed;            // Overdrive protection reduction level
 
-                    float              *vData;              // Data buffer
-                    float              *vSc;                // Sidechain buffer
+                    float               fSigmoidIn;         // Sigmoid input level measured
+                    float               fSigmoidOut;        // Sigmoid output level measured
+                    float               fSigmoidRed;        // Sigmoid reduction level measured
+
+                    plug::IPort        *pOdpIn;             // Input level meter
+                    plug::IPort        *pOdpOut;            // Output level meter
+                    plug::IPort        *pOdpRed;            // Reduction level meter
+
+                    plug::IPort        *pClipIn;            // Clipping input level meter
+                    plug::IPort        *pClipOut;           // Clipping output level meter
+                    plug::IPort        *pClipRed;           // Clipping reduction level meter
+                } band_t;
+
+                typedef struct processor_t
+                {
+                    compressor_t        sComp;              // Simple compressor
+                    odp_params_t        sOdp;               // Overdrive protection params
+                    clip_params_t       sClip;              // Clipping parameters
+
+                    uint32_t            nFlags;             // Processor flags
+
                     float              *vTr;                // Transfer function
 
                     plug::IPort        *pSolo;              // Solo button
                     plug::IPort        *pMute;              // Mute button
                     plug::IPort        *pFreqChart;         // Frequency chart
-                } band_t;
+                } processor_t;
 
                 typedef struct split_t
                 {
@@ -192,6 +194,7 @@ namespace lsp
                 dspu::Analyzer      sAnalyzer;          // FFT analyzer
                 dspu::Counter       sCounter;           // Counter
                 split_t             vSplits[meta::clipper::BANDS_MAX-1];
+                processor_t         vProc[meta::clipper::BANDS_MAX];      // Processor
 
                 xover_mode_t        enXOverMode;        // Crossover mode
                 float               fInGain;            // Input gain
@@ -233,7 +236,7 @@ namespace lsp
                 static inline float     fft_filter_slope(size_t slope);
 
                 static bool             update_odp_params(odp_params_t *params);
-                static bool             update_sigmoid_params(sigmoid_params_t *params);
+                static bool             update_clip_params(clip_params_t *params);
 
                 static void             calc_odp_compressor(compressor_t *c, const odp_params_t *params);
                 static inline float     odp_curve(const compressor_t *c, float x);
@@ -241,10 +244,10 @@ namespace lsp
                 static void             odp_curve(float *dst, const float *x, const compressor_t *c, size_t count);
                 static void             odp_gain(float *dst, const float *x, const compressor_t *c, size_t count);
 
-                static float            sigmoid_curve(const sigmoid_params_t *p, float x);
-                static float            sigmoid_gain(const sigmoid_params_t *p, float x);
-                static void             sigmoid_curve(float *dst, const float *x, const sigmoid_params_t *p, size_t count);
-                static void             sigmoid_gain(float *dst, const float *x, const sigmoid_params_t *p, size_t count);
+                static float            clip_curve(const clip_params_t *p, float x);
+                static float            clip_gain(const clip_params_t *p, float x);
+                static void             clip_curve(float *dst, const float *x, const clip_params_t *p, size_t count);
+                static void             clip_gain(float *dst, const float *x, const clip_params_t *p, size_t count);
 
             protected:
                 void                    do_destroy();
