@@ -140,18 +140,22 @@ namespace lsp
                     clip_params_t       sClip;              // Clipping parameters
 
                     uint32_t            nFlags;             // Processor flags
+                    float               fStereoLink;        // Stereo link
 
                     float              *vTr;                // Transfer function
 
                     plug::IPort        *pSolo;              // Solo button
                     plug::IPort        *pMute;              // Mute button
                     plug::IPort        *pFreqChart;         // Frequency chart
+                    plug::IPort        *pStereoLink;        // Stereo link
                 } processor_t;
 
                 typedef struct split_t
                 {
                     float               fFreq;              // Split frequency
+                    float               fOdpLink;           // Overdrive protection link
                     plug::IPort        *pFreq;              // Split frequency
+                    plug::IPort        *pOdpLink;           // Overdrive protection link
                 } split_t;
 
                 typedef struct channel_t
@@ -174,6 +178,7 @@ namespace lsp
                     float              *vIn;                // Input buffer
                     float              *vOut;               // Output buffer
                     float              *vData;              // Data buffer
+                    float              *vSc;                // Sidechain buffer
                     float              *vInAnalyze;         // Input data analysis
 
                     // Input ports
@@ -225,7 +230,6 @@ namespace lsp
                 plug::IPort        *pLpfFreq;           // LPF filter frequency
                 plug::IPort        *pExtraBandOn;       // Enable extra band
                 plug::IPort        *pFilterCurves;      // Band filter curves
-                plug::IPort        *pStereoLink;        // Stereo linking
 
                 uint8_t            *pData;              // Allocated data
 
@@ -243,6 +247,7 @@ namespace lsp
                 static inline float     odp_gain(const compressor_t *c, float x);
                 static void             odp_curve(float *dst, const float *x, const compressor_t *c, size_t count);
                 static void             odp_gain(float *dst, const float *x, const compressor_t *c, size_t count);
+                static void             odp_link(float *dst, const float *src, float link, size_t count);
 
                 static float            clip_curve(const clip_params_t *p, float x);
                 static float            clip_gain(const clip_params_t *p, float x);
@@ -253,6 +258,7 @@ namespace lsp
                 void                    do_destroy();
                 void                    bind_input_buffers();
                 void                    split_bands(size_t samples);
+                void                    process_bands(size_t samples);
                 void                    perform_analysis(size_t samples);
                 void                    output_signal(size_t samples);
                 void                    advance_buffers(size_t samples);

@@ -87,7 +87,56 @@ namespace lsp
                 split_t *sp     = &vSplits[i];
 
                 sp->fFreq       = 0.0f;
+                sp->fOdpLink    = 0.0f;
                 sp->pFreq       = NULL;
+                sp->pOdpLink    = NULL;
+            }
+
+            for (size_t i=0; i<meta::clipper::BANDS_MAX-1; ++i)
+            {
+                processor_t *p  = &vProc[i];
+
+                // Initialize fields
+                p->sComp.x0             = 0.0f;
+                p->sComp.x1             = 0.0f;
+                p->sComp.x2             = 0.0f;
+                p->sComp.t              = 0.0f;
+                p->sComp.g              = 0.0f;
+                p->sComp.a              = 0.0f;
+                p->sComp.b              = 0.0f;
+                p->sComp.c              = 0.0f;
+
+                p->sOdp.fThreshold      = 0.0f;
+                p->sOdp.fKnee           = 0.0f;
+                p->sOdp.fMakeup         = 0.0f;
+
+                p->sOdp.pThreshold      = NULL;
+                p->sOdp.pKnee           = NULL;
+                p->sOdp.pMakeup         = NULL;
+                p->sOdp.pResonance      = NULL;
+                p->sOdp.pCurveMesh      = NULL;
+
+                p->sClip.pFunc          = NULL;
+                p->sClip.fThreshold     = 0.0f;
+                p->sClip.fPumping       = 1.0f;
+                p->sClip.fScaling       = 0.0f;
+                p->sClip.fKnee          = 0.0f;
+
+                p->sClip.pOn            = NULL;
+                p->sClip.pFunction      = NULL;
+                p->sClip.pThreshold     = NULL;
+                p->sClip.pPumping       = NULL;
+                p->sClip.pCurveMesh     = NULL;
+
+                p->nFlags               = PF_DIRTY_BAND | PF_SYNC_ALL;
+                p->fStereoLink          = 0.0f;
+
+                p->vTr                  = NULL;
+
+                p->pSolo                = NULL;
+                p->pMute                = NULL;
+                p->pFreqChart           = NULL;
+                p->pStereoLink          = NULL;
             }
 
             enXOverMode     = XOVER_IIR;
@@ -120,7 +169,6 @@ namespace lsp
             pLpfFreq        = NULL;
             pExtraBandOn    = NULL;
             pFilterCurves   = NULL;
-            pStereoLink     = NULL;
 
             pData           = NULL;
         }
@@ -155,6 +203,7 @@ namespace lsp
                 ) +
                 nChannels * (
                     szof_buffer +       // vData
+                    szof_buffer +       // vSc
                     szof_buffer +       // vInAnalyze
                     meta::clipper::BANDS_MAX * (
                         szof_buffer         // vData
@@ -241,6 +290,7 @@ namespace lsp
                 c->vIn                  = NULL;
                 c->vOut                 = NULL;
                 c->vData                = advance_ptr_bytes<float>(ptr, szof_buffer);
+                c->vSc                  = advance_ptr_bytes<float>(ptr, szof_buffer);
                 c->vInAnalyze           = advance_ptr_bytes<float>(ptr, szof_buffer);
 
                 c->pIn                  = NULL;
@@ -254,46 +304,7 @@ namespace lsp
             for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
             {
                 processor_t *p          = &vProc[j];
-
-                // Initialize fields
-                p->sComp.x0             = 0.0f;
-                p->sComp.x1             = 0.0f;
-                p->sComp.x2             = 0.0f;
-                p->sComp.t              = 0.0f;
-                p->sComp.g              = 0.0f;
-                p->sComp.a              = 0.0f;
-                p->sComp.b              = 0.0f;
-                p->sComp.c              = 0.0f;
-
-                p->sOdp.fThreshold      = 0.0f;
-                p->sOdp.fKnee           = 0.0f;
-                p->sOdp.fMakeup         = 0.0f;
-
-                p->sOdp.pThreshold      = NULL;
-                p->sOdp.pKnee           = NULL;
-                p->sOdp.pMakeup         = NULL;
-                p->sOdp.pResonance      = NULL;
-                p->sOdp.pCurveMesh      = NULL;
-
-                p->sClip.pFunc          = NULL;
-                p->sClip.fThreshold     = 0.0f;
-                p->sClip.fPumping       = 1.0f;
-                p->sClip.fScaling       = 0.0f;
-                p->sClip.fKnee          = 0.0f;
-
-                p->sClip.pOn            = NULL;
-                p->sClip.pFunction      = NULL;
-                p->sClip.pThreshold     = NULL;
-                p->sClip.pPumping       = NULL;
-                p->sClip.pCurveMesh     = NULL;
-
-                p->nFlags               = PF_DIRTY_BAND | PF_SYNC_ALL;
-
                 p->vTr                  = advance_ptr_bytes<float>(ptr, szof_fft_buffer);
-
-                p->pSolo                = NULL;
-                p->pMute                = NULL;
-                p->pFreqChart           = NULL;
             }
 
             lsp_assert( ptr <= tail );
@@ -325,17 +336,16 @@ namespace lsp
             pHpfSlope           = trace_port(ports[port_id++]);
             pHpfFreq            = trace_port(ports[port_id++]);
             for (size_t i=0; i<meta::clipper::BANDS_MAX-1; ++i)
-                vSplits[i].pFreq    = trace_port(ports[port_id++]);
+            {
+                split_t *sp         = &vSplits[i];
+                sp->pFreq           = trace_port(ports[port_id++]);
+                sp->pOdpLink        = trace_port(ports[port_id++]);
+            }
             pLpfSlope           = trace_port(ports[port_id++]);
             pLpfFreq            = trace_port(ports[port_id++]);
             pExtraBandOn        = trace_port(ports[port_id++]);
             trace_port(ports[port_id++]); // Skip band selector
             pFilterCurves       = trace_port(ports[port_id++]);
-
-            if (nChannels > 1)
-            {
-                pStereoLink         = trace_port(ports[port_id++]);
-            }
 
             // Bind frequency band ports
             lsp_trace("Binding processor ports");
@@ -343,6 +353,7 @@ namespace lsp
             {
                 processor_t *p          = &vProc[j];
 
+                p->pStereoLink          = (nChannels > 0) ? trace_port(ports[port_id++]) : NULL;
                 p->pSolo                = trace_port(ports[port_id++]);
                 p->pMute                = trace_port(ports[port_id++]);
                 p->sOdp.pOn             = trace_port(ports[port_id++]);
@@ -620,6 +631,16 @@ namespace lsp
                 dst[i]      = odp_gain(c, x[i]);
         }
 
+        void clipper::odp_link(float *dst, const float *src, float link, size_t count)
+        {
+            const float rlink = 1.0f - link;
+            for (size_t i=0; i<count; ++i)
+            {
+                const float k = rlink + src[i] * link;
+                dst[i]  = dst[i] * k;
+            }
+        }
+
         float clipper::clip_curve(const clip_params_t *p, float x)
         {
             float s = x * p->fPumping;
@@ -823,6 +844,8 @@ namespace lsp
             {
                 processor_t *p          = &vProc[j];
 
+                p->fStereoLink          = (p->pStereoLink != NULL) ? p->pStereoLink->value() * 0.01f : 1.0f;
+
                 p->nFlags               = lsp_setflag(p->nFlags, PF_ODP_ENABLED, p->sOdp.pOn->value() >= 0.5f);
                 if (update_odp_params(&p->sOdp))
                 {
@@ -980,6 +1003,43 @@ namespace lsp
                     dsp::mul_k3(c->vInAnalyze, c->vIn, fInGain, samples);
                     c->sFFTXOver.process(c->vInAnalyze, samples);
                 }
+            }
+        }
+
+        void clipper::process_bands(size_t samples)
+        {
+            if (nChannels > 1)
+            {
+                // Stereo version
+                channel_t *l            = &vChannels[0];
+                channel_t *r            = &vChannels[1];
+
+                for (size_t i=0; i<meta::clipper::BANDS_MAX; ++i)
+                {
+                    band_t *lb              = &l->vBands[i];
+                    band_t *rb              = &r->vBands[i];
+//                    processor_t *p          = &vProc[i];
+
+                    // Apply pre-delay and overdrive protection link
+                    if (i > 0)
+                    {
+                        lb->sPreDelay.process(l->vData, l->vData, samples);
+                        rb->sPreDelay.process(r->vData, r->vData, samples);
+
+                        const float odp_linking = vSplits[i-1].fOdpLink;
+                        if (odp_linking <= 0.0f)
+                        {
+                            odp_link(l->vData, l->vSc, odp_linking, samples);
+                            odp_link(r->vData, r->vSc, odp_linking, samples);
+                        }
+                    }
+
+                    // TODO: implement base logic
+                }
+            }
+            else
+            {
+                // TODO: implement mono version algorithm
             }
         }
 
@@ -1191,7 +1251,7 @@ namespace lsp
                 size_t to_do    = lsp_min(samples - offset, BUFFER_SIZE);
 
                 split_bands(to_do);
-                // TODO: do main processing stuff
+                process_bands(to_do);
                 merge_bands(to_do);
                 perform_analysis(to_do);
                 output_signal(to_do);

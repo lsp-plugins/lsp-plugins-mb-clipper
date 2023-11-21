@@ -104,8 +104,11 @@ namespace lsp
         COMBO("hpf_m", "High-pass pre-filter mode", 0, clipper_prefilter_slopes), \
         LOG_CONTROL("hpf_f", "High-pass pre-filter frequency", U_HZ, clipper::HPF_FREQ), \
         LOG_CONTROL("sf1", "Split frequency 1", U_HZ, clipper::SPLIT1), \
+        LOG_CONTROL("ol1", "Overdrive protection link 1", U_GAIN_AMP, clipper::ODP_LINK), \
         LOG_CONTROL("sf2", "Split frequency 2", U_HZ, clipper::SPLIT2), \
+        LOG_CONTROL("ol2", "Overdrive protection link 2", U_GAIN_AMP, clipper::ODP_LINK), \
         LOG_CONTROL("sf3", "Split frequency 3", U_HZ, clipper::SPLIT3), \
+        LOG_CONTROL("ol3", "Overdrive protection link 3", U_GAIN_AMP, clipper::ODP_LINK), \
         COMBO("lpf_m", "High-pass pre-filter mode", 0, clipper_prefilter_slopes), \
         LOG_CONTROL("lpf_f", "Low-pass pre-filter frequency", U_HZ, clipper::LPF_FREQ), \
         SWITCH("ebe", "Enable extra band", 0), \
@@ -137,8 +140,9 @@ namespace lsp
         METER_OUT_GAIN("sfy" id, "Sigmoid function output meter" label, GAIN_AMP_P_36_DB), \
         METER_GAIN_DFL("srm" id, "Sigmoid function reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB)
 
-    #define CLIPPER_STEREO_COMMON \
-        CONTROL("slink", "Stereo link", U_PERCENT, clipper::STEREO_LINK)
+    #define CLIPPER_STEREO_BAND(id, label, resonance, link) \
+        CONTROL_DFL("bl" id, "Band stereo link" label, U_PERCENT, clipper::STEREO_LINK, link), \
+        CLIPPER_BAND(id, label, resonance)
 
     #define CLIPPER_ANALYSIS(id, label) \
         SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
@@ -173,12 +177,11 @@ namespace lsp
         {
             PORTS_STEREO_PLUGIN,
             CLIPPER_COMMON,
-            CLIPPER_STEREO_COMMON,
 
-            CLIPPER_BAND("_1", "", ODP_REACT1),
-            CLIPPER_BAND("_2", "", ODP_REACT2),
-            CLIPPER_BAND("_3", "", ODP_REACT3),
-            CLIPPER_BAND("_4", "", ODP_REACT4),
+            CLIPPER_STEREO_BAND("_1", "", ODP_REACT1, 1.0f),
+            CLIPPER_STEREO_BAND("_2", "", ODP_REACT2, 0.5f),
+            CLIPPER_STEREO_BAND("_3", "", ODP_REACT3, 0.25f),
+            CLIPPER_STEREO_BAND("_4", "", ODP_REACT4, 0.0f),
 
             CLIPPER_ANALYSIS("_l", " Left"),
             CLIPPER_ANALYSIS("_r", " Right"),
