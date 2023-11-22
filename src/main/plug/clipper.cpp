@@ -202,6 +202,7 @@ namespace lsp
                     szof_fft_buffer     // vTr
                 ) +
                 nChannels * (
+                    szof_buffer +       // vInData
                     szof_buffer +       // vData
                     szof_buffer +       // vSc
                     szof_buffer +       // vInAnalyze
@@ -256,6 +257,7 @@ namespace lsp
                     // Initialize DSP units
                     b->sSc.construct();
                     b->sScDelay.construct();
+                    b->sInDelay.construct();
                     b->sPreDelay.construct();
                     b->sPostDelay.construct();
 
@@ -266,10 +268,11 @@ namespace lsp
                     b->fOdpOut              = GAIN_AMP_M_INF_DB;
                     b->fOdpRed              = GAIN_AMP_M_INF_DB;
 
-                    b->fSigmoidIn           = GAIN_AMP_M_INF_DB;
-                    b->fSigmoidOut          = GAIN_AMP_M_INF_DB;
-                    b->fSigmoidRed          = GAIN_AMP_M_INF_DB;
+                    b->fClipIn              = GAIN_AMP_M_INF_DB;
+                    b->fClipOut             = GAIN_AMP_M_INF_DB;
+                    b->fClipRed             = GAIN_AMP_M_INF_DB;
 
+                    b->vInData              = advance_ptr_bytes<float>(ptr, szof_buffer);
                     b->vData                = advance_ptr_bytes<float>(ptr, szof_buffer);
 
                     b->pOdpIn               = NULL;
@@ -353,7 +356,7 @@ namespace lsp
             {
                 processor_t *p          = &vProc[j];
 
-                p->pStereoLink          = (nChannels > 0) ? trace_port(ports[port_id++]) : NULL;
+                p->pStereoLink          = (nChannels > 1) ? trace_port(ports[port_id++]) : NULL;
                 p->pSolo                = trace_port(ports[port_id++]);
                 p->pMute                = trace_port(ports[port_id++]);
                 p->sOdp.pOn             = trace_port(ports[port_id++]);
@@ -442,6 +445,7 @@ namespace lsp
 
                         b->sSc.destroy();
                         b->sScDelay.destroy();
+                        b->sInDelay.destroy();
                         b->sPreDelay.destroy();
                         b->sPostDelay.destroy();
                     }
@@ -498,9 +502,10 @@ namespace lsp
                 for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
                 {
                     band_t *b               = &c->vBands[j];
+                    b->sScDelay.init(max_odp_delay);
+                    b->sInDelay.init(max_odp_delay);
                     b->sPreDelay.init(max_odp_delay);
                     b->sPostDelay.init(max_odp_delay);
-                    b->sScDelay.init(max_odp_delay);
                 }
             }
 
@@ -852,7 +857,7 @@ namespace lsp
                     calc_odp_compressor(&p->sComp, &p->sOdp);
                     p->nFlags              |= PF_SYNC_ODP;
                 }
-                p->nFlags               = lsp_setflag(p->nFlags, PF_SIGMOID_ENABLED, p->sClip.pOn->value() >= 0.5f);
+                p->nFlags               = lsp_setflag(p->nFlags, PF_CLIP_ENABLED, p->sClip.pOn->value() >= 0.5f);
                 if (update_clip_params(&p->sClip))
                     p->nFlags              |= PF_SYNC_CLIP;
             }
@@ -915,8 +920,9 @@ namespace lsp
                     b->sSc.set_mode(dspu::SCM_RMS);
                     b->sSc.set_stereo_mode(dspu::SCSM_STEREO);
 
-                    b->sPreDelay.set_delay(band_latency);
                     b->sScDelay.set_delay(sc_latency);
+                    b->sInDelay.set_delay(sc_latency);
+                    b->sPreDelay.set_delay(band_latency);
 
                     band_latency        = b->sPreDelay.delay();
                 }
@@ -946,12 +952,6 @@ namespace lsp
 
             // Copy data to the data buffer
             dsp::copy(&b->vData[sample], data, count);
-            // Apply delay compensation and store to band's data buffer.
-//            b->sDelay.process(&b->vData[sample], data, count);
-//            b->sScDelay.process(&b->vSc[sample], data, count);
-
-            // Measure the input level
-//            b->fInLevel             = lsp_max(dsp::abs_max(&b->vInData[sample], count), b->fInLevel);
         }
 
         void clipper::bind_input_buffers()
@@ -1018,28 +1018,141 @@ namespace lsp
                 {
                     band_t *lb              = &l->vBands[i];
                     band_t *rb              = &r->vBands[i];
-//                    processor_t *p          = &vProc[i];
+                    processor_t *p          = &vProc[i];
 
                     // Apply pre-delay and overdrive protection link
                     if (i > 0)
                     {
-                        lb->sPreDelay.process(l->vData, l->vData, samples);
-                        rb->sPreDelay.process(r->vData, r->vData, samples);
+                        // Apply phase compensation
+                        lb->sPreDelay.process(lb->vData, lb->vData, samples);
+                        rb->sPreDelay.process(rb->vData, rb->vData, samples);
 
+                        // Remember input data for analysis
+                        lb->sInDelay.process(lb->vInData, lb->vData, samples);
+                        lb->sInDelay.process(rb->vInData, rb->vData, samples);
+
+                        // Perorm linking with previous band
                         const float odp_linking = vSplits[i-1].fOdpLink;
                         if (odp_linking <= 0.0f)
                         {
-                            odp_link(l->vData, l->vSc, odp_linking, samples);
-                            odp_link(r->vData, r->vSc, odp_linking, samples);
+                            odp_link(lb->vData, l->vSc, odp_linking, samples);
+                            odp_link(rb->vData, r->vSc, odp_linking, samples);
                         }
                     }
+                    else
+                    {
+                        // Remember input data for analysis
+                        lb->sInDelay.process(lb->vInData, lb->vData, samples);
+                        lb->sInDelay.process(rb->vInData, rb->vData, samples);
+                    }
 
-                    // TODO: implement base logic
+                    // Overdrive protection
+                    if (p->nFlags & PF_ODP_ENABLED)
+                    {
+                        // Process sidechain signal
+                        if (p->fStereoLink >= 1.0f)
+                        {
+                            dsp::lr_to_mid(r->vSc, lb->vData, rb->vData, samples);
+                            lb->sSc.process(l->vSc, const_cast<const float **>(&r->vSc), samples);
+                            rb->sSc.process(r->vSc, const_cast<const float **>(&r->vSc), samples);
+                        }
+                        else if (p->fStereoLink > 0.0f)
+                        {
+                            dsp::mix_copy2(l->vSc, lb->vData, rb->vData, 1.0f - p->fStereoLink * 0.5f, p->fStereoLink * 0.5f, samples);
+                            dsp::mix_copy2(r->vSc, lb->vData, rb->vData, p->fStereoLink * 0.5f, 1.0f - p->fStereoLink * 0.5f, samples);
+
+                            lb->sSc.process(l->vSc, const_cast<const float **>(&l->vSc), samples);
+                            rb->sSc.process(r->vSc, const_cast<const float **>(&r->vSc), samples);
+                        }
+                        else
+                        {
+                            lb->sSc.process(l->vSc, const_cast<const float **>(&lb->vData), samples);
+                            rb->sSc.process(r->vSc, const_cast<const float **>(&rb->vData), samples);
+                        }
+
+                        // Apply comppressors
+                        odp_gain(l->vSc, l->vSc, &p->sComp, samples);
+                        odp_gain(r->vSc, r->vSc, &p->sComp, samples);
+                        dsp::mul2(lb->vData, l->vSc, samples);
+                        dsp::mul2(rb->vData, r->vSc, samples);
+
+                        // Perform analysis
+                        size_t idx_l    = dsp::abs_max_index(lb->vInData, samples);
+                        size_t idx_r    = dsp::abs_max_index(rb->vInData, samples);
+                        float in_l      = fabsf(lb->vInData[idx_l]);
+                        float in_r      = fabsf(lb->vInData[idx_r]);
+                        float out_l     = fabsf(lb->vData[idx_l]);
+                        float out_r     = fabsf(rb->vData[idx_r]);
+                        float red_l     = (in_l >= GAIN_AMP_M_120_DB) ? out_l / in_l : GAIN_AMP_0_DB;
+                        float red_r     = (in_r >= GAIN_AMP_M_120_DB) ? out_r / in_r : GAIN_AMP_0_DB;
+
+                        lb->fOdpIn      = lsp_max(lb->fClipIn, in_l);
+                        lb->fOdpOut     = lsp_max(lb->fClipOut, out_l);
+                        lb->fOdpRed     = lsp_min(lb->fClipRed, red_l);
+
+                        rb->fOdpIn      = lsp_max(rb->fClipIn, in_r);
+                        rb->fOdpOut     = lsp_max(rb->fClipOut, out_r);
+                        rb->fOdpRed     = lsp_min(rb->fClipRed, red_r);
+                    }
+                    else
+                    {
+                        dsp::fill_one(l->vSc, samples);
+                        dsp::fill_one(r->vSc, samples);
+
+                        lb->fOdpIn      = GAIN_AMP_M_INF_DB;
+                        lb->fOdpOut     = GAIN_AMP_M_INF_DB;
+                        lb->fOdpRed     = GAIN_AMP_0_DB;
+
+                        rb->fOdpIn      = GAIN_AMP_M_INF_DB;
+                        rb->fOdpOut     = GAIN_AMP_M_INF_DB;
+                        rb->fOdpRed     = GAIN_AMP_0_DB;
+                    }
+
+                    // Clipping
+                    if (p->nFlags & PF_CLIP_ENABLED)
+                    {
+                        size_t idx_l    = dsp::abs_max_index(lb->vData, samples);
+                        size_t idx_r    = dsp::abs_max_index(rb->vData, samples);
+                        float in_l      = fabsf(lb->vData[idx_l]);
+                        float in_r      = fabsf(lb->vData[idx_r]);
+
+                        clip_curve(lb->vData, lb->vData, &p->sClip, samples);
+                        clip_curve(rb->vData, rb->vData, &p->sClip, samples);
+
+                        float out_l     = fabsf(lb->vData[idx_l]);
+                        float out_r     = fabsf(rb->vData[idx_r]);
+                        float red_l     = (in_l >= GAIN_AMP_M_120_DB) ? out_l / in_l : GAIN_AMP_0_DB;
+                        float red_r     = (in_r >= GAIN_AMP_M_120_DB) ? out_r / in_r : GAIN_AMP_0_DB;
+
+                        lb->fClipIn     = lsp_max(lb->fClipIn, in_l);
+                        lb->fClipOut    = lsp_max(lb->fClipOut, out_l);
+                        lb->fClipRed    = lsp_min(lb->fClipRed, red_l);
+
+                        rb->fClipIn     = lsp_max(rb->fClipIn, in_r);
+                        rb->fClipOut    = lsp_max(rb->fClipOut, out_r);
+                        rb->fClipRed    = lsp_min(rb->fClipRed, red_r);
+                    }
+                    else
+                    {
+                        lb->fClipIn     = GAIN_AMP_M_INF_DB;
+                        lb->fClipOut    = GAIN_AMP_M_INF_DB;
+                        lb->fClipRed    = GAIN_AMP_0_DB;
+
+                        rb->fClipIn     = GAIN_AMP_M_INF_DB;
+                        rb->fClipOut    = GAIN_AMP_M_INF_DB;
+                        rb->fClipRed    = GAIN_AMP_0_DB;
+                    }
+
+                    // Apply post-delay
+                    lb->sPostDelay.process(lb->vData, lb->vData, samples);
+                    rb->sPostDelay.process(rb->vData, rb->vData, samples);
+
+                    // TODO: apply analysis
                 }
             }
             else
             {
-                // TODO: implement mono version algorithm
+                // TODO: implement mono version of algorithm
             }
         }
 

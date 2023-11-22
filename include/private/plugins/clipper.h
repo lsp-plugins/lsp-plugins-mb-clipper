@@ -55,7 +55,7 @@ namespace lsp
                 {
                     PF_ENABLED          = 1 << 0,           // Band is enabled
                     PF_ODP_ENABLED      = 1 << 1,           // Overdrive protection enabled
-                    PF_SIGMOID_ENABLED  = 1 << 2,           // Sigmoid processing enabled
+                    PF_CLIP_ENABLED     = 1 << 2,           // Clipping enabled
                     PF_DIRTY_BAND       = 1 << 3,           // Update band filter curve
                     PF_SYNC_BAND        = 1 << 4,           // Sync band filter curve
                     PF_SYNC_ODP         = 1 << 5,           // Sync overdrive protection curve
@@ -111,18 +111,20 @@ namespace lsp
                 {
                     dspu::Sidechain     sSc;                // Sidechain
                     dspu::Delay         sScDelay;           // Sidechain latency compensation delay
+                    dspu::Delay         sInDelay;           // Input data delay
                     dspu::Delay         sPreDelay;          // Signal pre-delay
                     dspu::Delay         sPostDelay;         // Signal post-delay
 
+                    float              *vInData;            // Input data buffer
                     float              *vData;              // Data buffer
 
                     float               fOdpIn;             // Overdrive protection input level
                     float               fOdpOut;            // Overdrive protection out level
                     float               fOdpRed;            // Overdrive protection reduction level
 
-                    float               fSigmoidIn;         // Sigmoid input level measured
-                    float               fSigmoidOut;        // Sigmoid output level measured
-                    float               fSigmoidRed;        // Sigmoid reduction level measured
+                    float               fClipIn;            // Clipping input level measured
+                    float               fClipOut;           // Clipping output level measured
+                    float               fClipRed;           // Clipping reduction level measured
 
                     plug::IPort        *pOdpIn;             // Input level meter
                     plug::IPort        *pOdpOut;            // Output level meter
