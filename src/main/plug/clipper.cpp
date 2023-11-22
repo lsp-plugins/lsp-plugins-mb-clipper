@@ -202,11 +202,11 @@ namespace lsp
                     szof_fft_buffer     // vTr
                 ) +
                 nChannels * (
-                    szof_buffer +       // vInData
                     szof_buffer +       // vData
                     szof_buffer +       // vSc
                     szof_buffer +       // vInAnalyze
                     meta::clipper::BANDS_MAX * (
+                        szof_buffer +       // vInData
                         szof_buffer         // vData
                     )
                 );
