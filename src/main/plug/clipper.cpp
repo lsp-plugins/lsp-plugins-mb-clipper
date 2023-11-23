@@ -92,9 +92,9 @@ namespace lsp
                 sp->pOdpLink    = NULL;
             }
 
-            for (size_t i=0; i<meta::clipper::BANDS_MAX-1; ++i)
+            for (size_t i=0; i<meta::clipper::BANDS_MAX; ++i)
             {
-                processor_t *p  = &vProc[i];
+                processor_t *p          = &vProc[i];
 
                 // Initialize fields
                 p->sComp.x0             = 0.0f;
