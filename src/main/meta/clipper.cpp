@@ -128,17 +128,20 @@ namespace lsp
         SWITCH("sl" id, "Clipper sigmoid function display logarithmic" label, 1.0f), \
         COMBO("sf" id, "Clipper sigmoid function" label, 1.0f, sigmoid_functions), \
         LOG_CONTROL("st" id, "Clipper sigmoid threshold" label, U_GAIN_AMP, clipper::CLIP_THRESHOLD), \
-        CONTROL("sp" id, "Clipper sigmoid pumping" label, U_PERCENT, clipper::CLIP_PUMPING), \
+        CONTROL("sp" id, "Clipper sigmoid pumping" label, U_DB, clipper::CLIP_PUMPING), \
         MESH("sfc" id, "Sigmoid function chart" label, 4, clipper::CURVE_MESH_POINTS), \
         MESH("bfc" id, "Band frequency chart" label, 2, clipper::FFT_MESH_POINTS + 2)
 
     #define CLIPPER_BAND_METERS(id, label) \
-        METER_OUT_GAIN("odx" id, "Overdrive protection input meter" label, GAIN_AMP_P_36_DB), \
-        METER_OUT_GAIN("ody" id, "Overdrive protection output meter" label, GAIN_AMP_P_36_DB), \
-        METER_GAIN_DFL("orm" id, "Overdrive protection reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB), \
-        METER_OUT_GAIN("sfx" id, "Sigmoid function input meter" label, GAIN_AMP_P_36_DB), \
-        METER_OUT_GAIN("sfy" id, "Sigmoid function output meter" label, GAIN_AMP_P_36_DB), \
-        METER_GAIN_DFL("srm" id, "Sigmoid function reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB)
+        METER_OUT_GAIN("ilm" id, "Band input level meter" label, GAIN_AMP_P_36_DB), \
+        METER_OUT_GAIN("olm" id, "Band output level meter" label, GAIN_AMP_P_36_DB), \
+        METER_GAIN_DFL("grm" id, "Band gain reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB), \
+        METER_OUT_GAIN("odx" id, "Band overdrive protection input meter" label, GAIN_AMP_P_36_DB), \
+        METER_OUT_GAIN("ody" id, "Band overdrive protection output meter" label, GAIN_AMP_P_36_DB), \
+        METER_GAIN_DFL("odr" id, "Band overdrive protection reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB), \
+        METER_OUT_GAIN("cfx" id, "Band clipping function input meter" label, GAIN_AMP_P_36_DB), \
+        METER_OUT_GAIN("cfy" id, "Band clipping function output meter" label, GAIN_AMP_P_36_DB), \
+        METER_GAIN_DFL("cfr" id, "Band clipping function reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB)
 
     #define CLIPPER_STEREO_BAND(id, label, resonance, link) \
         CONTROL_DFL("bl" id, "Band stereo link" label, U_PERCENT, clipper::STEREO_LINK, link), \
@@ -178,9 +181,9 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
             CLIPPER_COMMON,
 
-            CLIPPER_STEREO_BAND("_1", "", ODP_REACT1, 1.0f),
-            CLIPPER_STEREO_BAND("_2", "", ODP_REACT2, 0.5f),
-            CLIPPER_STEREO_BAND("_3", "", ODP_REACT3, 0.25f),
+            CLIPPER_STEREO_BAND("_1", "", ODP_REACT1, 100.0f),
+            CLIPPER_STEREO_BAND("_2", "", ODP_REACT2, 50.0f),
+            CLIPPER_STEREO_BAND("_3", "", ODP_REACT3, 25.0f),
             CLIPPER_STEREO_BAND("_4", "", ODP_REACT4, 0.0f),
 
             CLIPPER_ANALYSIS("_l", " Left"),

@@ -141,10 +141,10 @@ namespace lsp
             static constexpr float  CLIP_THRESHOLD_DFL      = GAIN_AMP_M_6_DB;
             static constexpr float  CLIP_THRESHOLD_STEP     = 0.025f;
 
-            static constexpr float  CLIP_PUMPING_MIN        = 25.0f;
-            static constexpr float  CLIP_PUMPING_MAX        = 400.0f;
-            static constexpr float  CLIP_PUMPING_DFL        = 100.0f;
-            static constexpr float  CLIP_PUMPING_STEP       = 0.1f;
+            static constexpr float  CLIP_PUMPING_MIN        = -12.0f;
+            static constexpr float  CLIP_PUMPING_MAX        = 12.0f;
+            static constexpr float  CLIP_PUMPING_DFL        = 0.0f;
+            static constexpr float  CLIP_PUMPING_STEP       = 0.025f;
         } clipper;
 
         // Plugin type metadata

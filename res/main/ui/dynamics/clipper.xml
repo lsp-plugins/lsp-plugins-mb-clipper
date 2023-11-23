@@ -277,7 +277,7 @@
 								<label text="Pumping" />
 								
 								<!-- Row 2 -->
-								<button id="s_${i}" text="ON" />
+								<button id="op_${i}" text="ON" />
 								<knob id="th_${i}" />
 								<knob id="kn_${i}" />
 								<knob id="rs_${i}" />
@@ -334,9 +334,8 @@
 			
 								<!-- Meshes -->
 								<mesh id="opc_${i}" width="3" color="graph_mesh" smooth="true"/>
-								<!-- dot x.id="elm_l" y.id="clm_l" color="graph_mesh" bcolor="graph_mesh" visibility="!:ssplit"/>
-								<dot x.id="elm_l" y.id="clm_l" color="left" bcolor="left" visibility=":ssplit"/>
-								<dot x.id="elm_r" y.id="clm_r" color="right" bcolor="right" visibility=":ssplit"/-->
+								<dot x.id="odx_${i}l" y.id="ody_${i}l" color="left" bcolor="left" visibility=":op_${i}"/>
+								<dot x.id="odx_${i}r" y.id="ody_${i}r" color="right" bcolor="right" visibility=":op_${i}"/>
 			
 								<!-- Markers -->
 								<marker id="th_${i}" ox="2" width="2" color="attack_1" editable="true" />
@@ -414,9 +413,8 @@
 			
 								<!-- Meshes -->
 								<mesh id="sfc_${i}" x.index="0" y.index="1" width="3" color="graph_mesh" smooth="true"/>
-								<!-- dot x.id="elm_l" y.id="clm_l" color="graph_mesh" bcolor="graph_mesh" visibility="!:ssplit"/>
-								<dot x.id="elm_l" y.id="clm_l" color="left" bcolor="left" visibility=":ssplit"/>
-								<dot x.id="elm_r" y.id="clm_r" color="right" bcolor="right" visibility=":ssplit"/-->
+								<dot x.id="cfx_${i}l" y.id="cfy_${i}l" color="left" bcolor="left" visibility=":se_${i}" />
+								<dot x.id="cfx_${i}r" y.id="cfy_${i}r" color="right" bcolor="right" visibility=":se_${i}" />
 			
 								<!-- Markers -->
 								<marker id="st_${i}" o="1" ox="2" width="2" color="attack_1" editable="true" />
@@ -477,6 +475,8 @@
 			
 								<!-- Meshes -->
 								<mesh id="sfc_${i}" x.index="2" y.index="3" width="3" color="graph_mesh" smooth="true"/>
+								<dot x.id="cfx_${i}l" y.id="cfy_${i}l" color="left" bcolor="left" visibility=":se_${i}" />
+								<dot x.id="cfx_${i}r" y.id="cfy_${i}r" color="right" bcolor="right" visibility=":se_${i}" />
 			
 								<!-- Markers -->
 								<marker id="st_${i}" color="attack_1" width="2" editable="true" />

@@ -73,7 +73,7 @@ namespace lsp
                 typedef struct compressor_t
                 {
                     float       x0, x1, x2;
-                    float       t, g;
+                    float       t;
                     float       a, b, c;
                 } compressor_t;
 
@@ -118,6 +118,10 @@ namespace lsp
                     float              *vInData;            // Input data buffer
                     float              *vData;              // Data buffer
 
+                    float               fIn;                // Input gain
+                    float               fOut;               // Output gain
+                    float               fRed;               // Overall reduction
+
                     float               fOdpIn;             // Overdrive protection input level
                     float               fOdpOut;            // Overdrive protection out level
                     float               fOdpRed;            // Overdrive protection reduction level
@@ -126,9 +130,13 @@ namespace lsp
                     float               fClipOut;           // Clipping output level measured
                     float               fClipRed;           // Clipping reduction level measured
 
-                    plug::IPort        *pOdpIn;             // Input level meter
-                    plug::IPort        *pOdpOut;            // Output level meter
-                    plug::IPort        *pOdpRed;            // Reduction level meter
+                    plug::IPort        *pIn;                // Input level meter
+                    plug::IPort        *pOut;               // Output level meter
+                    plug::IPort        *pRed;               // Reduction level meter
+
+                    plug::IPort        *pOdpIn;             // ODP input level meter
+                    plug::IPort        *pOdpOut;            // ODP output level meter
+                    plug::IPort        *pOdpRed;            // ODP reduction level meter
 
                     plug::IPort        *pClipIn;            // Clipping input level meter
                     plug::IPort        *pClipOut;           // Clipping output level meter
@@ -252,9 +260,7 @@ namespace lsp
                 static void             odp_link(float *dst, const float *src, float link, size_t count);
 
                 static float            clip_curve(const clip_params_t *p, float x);
-                static float            clip_gain(const clip_params_t *p, float x);
                 static void             clip_curve(float *dst, const float *x, const clip_params_t *p, size_t count);
-                static void             clip_gain(float *dst, const float *x, const clip_params_t *p, size_t count);
 
             protected:
                 void                    do_destroy();
@@ -265,6 +271,7 @@ namespace lsp
                 void                    output_signal(size_t samples);
                 void                    advance_buffers(size_t samples);
                 void                    merge_bands(size_t samples);
+                void                    output_meters();
                 void                    output_mesh_curves(size_t samples);
 
             public:
