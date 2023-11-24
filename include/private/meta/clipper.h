@@ -46,8 +46,8 @@ namespace lsp
             static constexpr float  ODP_CURVE_DB_MAX        = 6.0f;
             static constexpr float  CLIP_CURVE_DB_MIN       = -36.0f;
             static constexpr float  CLIP_CURVE_DB_MAX       = 12.0f;
-            static constexpr float  CLIP_CURVE_X_MIN        = -2.0f;
-            static constexpr float  CLIP_CURVE_X_MAX        = 2.0f;
+            static constexpr float  CLIP_CURVE_X_MIN        = -0.25f;
+            static constexpr float  CLIP_CURVE_X_MAX        = 2.25f;
             static constexpr size_t CURVE_MESH_POINTS       = 256;
             static constexpr size_t REFRESH_RATE            = 20;
 
@@ -69,26 +69,26 @@ namespace lsp
             static constexpr float  SPLIT1_MIN              = 20.0f;
             static constexpr float  SPLIT1_MAX              = 250.0f;
             static constexpr float  SPLIT1_DFL              = 125.0f;
-            static constexpr float  SPLIT1_STEP             = 0.0005f;
+            static constexpr float  SPLIT1_STEP             = 0.0025f;
 
-            static constexpr float  SPLIT2_MIN              = SPLIT1_MAX + 25;
+            static constexpr float  SPLIT2_MIN              = SPLIT1_MAX + 25.0f;
             static constexpr float  SPLIT2_MAX              = 5000.0f;
-            static constexpr float  SPLIT2_DFL              = 1500.0f;
-            static constexpr float  SPLIT2_STEP             = SPLIT1_STEP;
+            static constexpr float  SPLIT2_DFL              = 4500.0f;
+            static constexpr float  SPLIT2_STEP             = 0.0025f;
 
-            static constexpr float  SPLIT3_MIN              = SPLIT2_MAX + 250;
+            static constexpr float  SPLIT3_MIN              = SPLIT2_MAX + 250.0f;
             static constexpr float  SPLIT3_MAX              = 14000.0f;
             static constexpr float  SPLIT3_DFL              = 7500.0f;
-            static constexpr float  SPLIT3_STEP             = SPLIT1_STEP;
+            static constexpr float  SPLIT3_STEP             = 0.001f;
 
             static constexpr float  HPF_FREQ_MIN            = 10.0f;
             static constexpr float  HPF_FREQ_MAX            = 60.0f;
-            static constexpr float  HPF_FREQ_DFL            = 10.0f;
+            static constexpr float  HPF_FREQ_DFL            = 30.0f;
             static constexpr float  HPF_FREQ_STEP           = 0.0025f;
 
             static constexpr float  LPF_FREQ_MIN            = 10000.0f;
             static constexpr float  LPF_FREQ_MAX            = 20000.0f;
-            static constexpr float  LPF_FREQ_DFL            = 20000.0f;
+            static constexpr float  LPF_FREQ_DFL            = 12500.0f;
             static constexpr float  LPF_FREQ_STEP           = 0.0025f;
 
             static constexpr float  STEREO_LINK_MIN         = 0.0f;
@@ -96,10 +96,20 @@ namespace lsp
             static constexpr float  STEREO_LINK_DFL         = 50.0f;
             static constexpr float  STEREO_LINK_STEP        = 0.05f;
 
+            static constexpr float  MAKEUP_MIN              = -24.0f;
+            static constexpr float  MAKEUP_MAX              = 24.0f;
+            static constexpr float  MAKEUP_DFL              = 0.0f;
+            static constexpr float  MAKEUP_STEP             = 0.05f;
+
+            static constexpr float  PREAMP_MIN              = -24.0f;
+            static constexpr float  PREAMP_MAX              = 24.0f;
+            static constexpr float  PREAMP_DFL              = 0.0f;
+            static constexpr float  PREAMP_STEP             = 0.05f;
+
             static constexpr float  ODP_LINK_MIN            = GAIN_AMP_M_INF_DB;
             static constexpr float  ODP_LINK_MAX            = GAIN_AMP_0_DB;
             static constexpr float  ODP_LINK_DFL            = GAIN_AMP_M_6_DB;
-            static constexpr float  ODP_LINK_STEP           = 0.0025f;
+            static constexpr float  ODP_LINK_STEP           = 0.05f;
 
             static constexpr float  ODP_KNEE_MIN            = 0.0f;
             static constexpr float  ODP_KNEE_MAX            = 6.0f;
@@ -110,11 +120,6 @@ namespace lsp
             static constexpr float  ODP_THRESHOLD_MAX       = 0.0f;
             static constexpr float  ODP_THRESHOLD_DFL       = 0.0f;
             static constexpr float  ODP_THRESHOLD_STEP      = 0.005f;
-
-            static constexpr float  ODP_MAKEUP_MIN          = -24.0f;
-            static constexpr float  ODP_MAKEUP_MAX          = 24.0f;
-            static constexpr float  ODP_MAKEUP_DFL          = 0.0f;
-            static constexpr float  ODP_MAKEUP_STEP         = 0.01f;
 
             static constexpr float  ODP_REACT1_MIN          = SPEC_FREQ_MIN;
             static constexpr float  ODP_REACT1_MAX          = SPLIT1_MAX;
@@ -138,7 +143,7 @@ namespace lsp
 
             static constexpr float  CLIP_THRESHOLD_MIN      = GAIN_AMP_M_INF_DB;
             static constexpr float  CLIP_THRESHOLD_MAX      = GAIN_AMP_0_DB;
-            static constexpr float  CLIP_THRESHOLD_DFL      = GAIN_AMP_M_6_DB;
+            static constexpr float  CLIP_THRESHOLD_DFL      = GAIN_AMP_M_3_DB;
             static constexpr float  CLIP_THRESHOLD_STEP     = 0.025f;
 
             static constexpr float  CLIP_PUMPING_MIN        = -12.0f;

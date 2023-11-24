@@ -103,12 +103,12 @@ namespace lsp
         LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, clipper::ZOOM), \
         COMBO("hpf_m", "High-pass pre-filter mode", 0, clipper_prefilter_slopes), \
         LOG_CONTROL("hpf_f", "High-pass pre-filter frequency", U_HZ, clipper::HPF_FREQ), \
-        LOG_CONTROL("sf1", "Split frequency 1", U_HZ, clipper::SPLIT1), \
-        LOG_CONTROL("ol1", "Overdrive protection link 1", U_GAIN_AMP, clipper::ODP_LINK), \
-        LOG_CONTROL("sf2", "Split frequency 2", U_HZ, clipper::SPLIT2), \
-        LOG_CONTROL("ol2", "Overdrive protection link 2", U_GAIN_AMP, clipper::ODP_LINK), \
-        LOG_CONTROL("sf3", "Split frequency 3", U_HZ, clipper::SPLIT3), \
-        LOG_CONTROL("ol3", "Overdrive protection link 3", U_GAIN_AMP, clipper::ODP_LINK), \
+        LOG_CONTROL("xf_1", "Split frequency 1", U_HZ, clipper::SPLIT1), \
+        LOG_CONTROL("ol_1", "Overdrive protection link 1", U_GAIN_AMP, clipper::ODP_LINK), \
+        LOG_CONTROL("xf_2", "Split frequency 2", U_HZ, clipper::SPLIT2), \
+        LOG_CONTROL("ol_2", "Overdrive protection link 2", U_GAIN_AMP, clipper::ODP_LINK), \
+        LOG_CONTROL("xf_3", "Split frequency 3", U_HZ, clipper::SPLIT3), \
+        LOG_CONTROL("ol_3", "Overdrive protection link 3", U_GAIN_AMP, clipper::ODP_LINK), \
         COMBO("lpf_m", "High-pass pre-filter mode", 0, clipper_prefilter_slopes), \
         LOG_CONTROL("lpf_f", "Low-pass pre-filter frequency", U_HZ, clipper::LPF_FREQ), \
         SWITCH("ebe", "Enable extra band", 0), \
@@ -118,18 +118,19 @@ namespace lsp
     #define CLIPPER_BAND(id, label, resonance) \
         SWITCH("bs" id, "Solo band" label, 0.0f), \
         SWITCH("bm" id, "Mute band" label, 0.0f), \
+        CONTROL("pa" id, "Band preamp gain" label, U_DB, clipper::PREAMP), \
+        CONTROL("mk" id, "Band makeup gain" label, U_DB, clipper::MAKEUP), \
         SWITCH("op" id, "Overdrive protection" label, 1.0f), \
         CONTROL("th" id, "Overdrive protection threshold" label, U_DB, clipper::ODP_THRESHOLD), \
         CONTROL("kn" id, "Overdrive protection knee" label, U_DB, clipper::ODP_KNEE), \
-        CONTROL("mk" id, "Overdrive protection makeup gain" label, U_DB, clipper::ODP_MAKEUP), \
         LOG_CONTROL("rs" id, "Overdrive protection resonance" label, U_HZ, clipper::resonance), \
         MESH("opc" id, "Overdrive protection chart" label, 2, clipper::CURVE_MESH_POINTS), \
-        SWITCH("se" id, "Clipper sigmoid function enable" label, 1.0f), \
-        SWITCH("sl" id, "Clipper sigmoid function display logarithmic" label, 1.0f), \
-        COMBO("sf" id, "Clipper sigmoid function" label, 1.0f, sigmoid_functions), \
-        LOG_CONTROL("st" id, "Clipper sigmoid threshold" label, U_GAIN_AMP, clipper::CLIP_THRESHOLD), \
-        CONTROL("sp" id, "Clipper sigmoid pumping" label, U_DB, clipper::CLIP_PUMPING), \
-        MESH("sfc" id, "Sigmoid function chart" label, 4, clipper::CURVE_MESH_POINTS), \
+        SWITCH("ce" id, "Clipper sigmoid function enable" label, 1.0f), \
+        SWITCH("cl" id, "Clipper sigmoid function display logarithmic" label, 1.0f), \
+        COMBO("cf" id, "Clipper sigmoid function" label, 1.0f, sigmoid_functions), \
+        LOG_CONTROL("ct" id, "Clipper sigmoid threshold" label, U_GAIN_AMP, clipper::CLIP_THRESHOLD), \
+        CONTROL("cp" id, "Clipper sigmoid pumping" label, U_DB, clipper::CLIP_PUMPING), \
+        MESH("cfc" id, "Clipper sigmoid function chart" label, 4, clipper::CURVE_MESH_POINTS), \
         MESH("bfc" id, "Band frequency chart" label, 2, clipper::FFT_MESH_POINTS + 2)
 
     #define CLIPPER_BAND_METERS(id, label) \

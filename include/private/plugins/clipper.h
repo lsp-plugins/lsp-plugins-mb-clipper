@@ -82,12 +82,10 @@ namespace lsp
                 {
                     float               fThreshold;         // Threshold
                     float               fKnee;              // Knee
-                    float               fMakeup;            // Makeup gain
 
                     plug::IPort        *pOn;                // Enable overdrive protection
                     plug::IPort        *pThreshold;         // Threshold
                     plug::IPort        *pKnee;              // Knee
-                    plug::IPort        *pMakeup;            // Makeup gain
                     plug::IPort        *pResonance;         // Resonance frequency
                     plug::IPort        *pCurveMesh;         // Curve chart mesh
                 } odp_params_t;
@@ -150,14 +148,18 @@ namespace lsp
                     clip_params_t       sClip;              // Clipping parameters
 
                     uint32_t            nFlags;             // Processor flags
+                    float               fPreamp;            // Preamp gain
                     float               fStereoLink;        // Stereo link
+                    float               fMakeup;            // Makeup gain
 
                     float              *vTr;                // Transfer function
 
                     plug::IPort        *pSolo;              // Solo button
                     plug::IPort        *pMute;              // Mute button
-                    plug::IPort        *pFreqChart;         // Frequency chart
+                    plug::IPort        *pPreamp;            // Preamp gain
                     plug::IPort        *pStereoLink;        // Stereo link
+                    plug::IPort        *pMakeup;            // Makeup gain
+                    plug::IPort        *pFreqChart;         // Frequency chart
                 } processor_t;
 
                 typedef struct split_t

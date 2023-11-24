@@ -57,9 +57,9 @@
 						hrcolor="graph_marker_cycle">
 
 						<marker v="10" color.hue="0" hcolor.hue="0" rborder="16" hrborder="16" rcolor.hue="0" hrcolor.hue="0"/>
-						<marker id="sf1" editable="true" pointer="hsize" color.hue="0" hcolor.hue="0" lborder="16" hlborder="16" lcolor.hue="0" hlcolor.hue="0" rborder="16" hrborder="16" rcolor.hue="0.25" hrcolor.hue="0.25"/>
-						<marker id="sf2" editable="true" pointer="hsize" color.hue="0.25" hcolor.hue="0.25" lborder="16" hlborder="16" lcolor.hue="0.25" hlcolor.hue="0.25" rborder="16" hrborder="16" rcolor.hue="0.5" hrcolor.hue="0.5"/>
-						<marker id="sf3" editable="true" pointer="hsize" color.hue="0.5" hcolor.hue="0.5" lborder="16" hlborder="16" lcolor.hue="0.5" hlcolor.hue="0.5" rborder="16" hrborder="16" rcolor.hue="0.75" hrcolor.hue="0.75" visibility=":ebe"/>
+						<marker id="xf_1" editable="true" pointer="hsize" color.hue="0" hcolor.hue="0" lborder="16" hlborder="16" lcolor.hue="0" hlcolor.hue="0" rborder="16" hrborder="16" rcolor.hue="0.25" hrcolor.hue="0.25"/>
+						<marker id="xf_2" editable="true" pointer="hsize" color.hue="0.25" hcolor.hue="0.25" lborder="16" hlborder="16" lcolor.hue="0.25" hlcolor.hue="0.25" rborder="16" hrborder="16" rcolor.hue="0.5" hrcolor.hue="0.5"/>
+						<marker id="xf_3" editable="true" pointer="hsize" color.hue="0.5" hcolor.hue="0.5" lborder="16" hlborder="16" lcolor.hue="0.5" hlcolor.hue="0.5" rborder="16" hrborder="16" rcolor.hue="0.75" hrcolor.hue="0.75" visibility=":ebe"/>
 						<marker v="24000" color.hue="(:ebe) ? 0.75 : 0.5" hcolor.hue="(:ebe) ? 0.75 : 0.5" lborder="16" hlborder="16" lcolor.hue="(:ebe) ? 0.75 : 0.5" hlcolor.hue="(:ebe) ? 0.75 : 0.5"/>
 					</ui:with>
 
@@ -240,9 +240,9 @@
 						<knob id="g_in" />
 						<knob id="hpf_f" />
 						<void />
-						<knob id="sf1" />
-						<knob id="sf2" />
-						<knob id="sf3" />
+						<knob id="xf_1" />
+						<knob id="xf_2" />
+						<knob id="xf_3" />
 						<knob id="lpf_f" />
 						<knob id="g_out" />
 						
@@ -250,9 +250,9 @@
 						<value id="g_in" />
 						<value id="hpf_f" />
 						<void />
-						<value id="sf1" />
-						<value id="sf2" />
-						<value id="sf3" />
+						<value id="xf_1" />
+						<value id="xf_2" />
+						<value id="xf_3" />
 						<value id="lpf_f" />
 						<value id="g_out" />
 					</grid>
@@ -263,45 +263,54 @@
 					<vbox>
 						<!-- Controls -->
 						<hbox>
-							<grid rows="3" cols="9">
+							<grid rows="3" cols="12">
 								<!-- Row 1 -->
+								<label text="Preamp" />
 								<label text="ODP" />
+								<label text="ODP link" visibility="${:i igt 1}"/>
 								<label text="Thresh" />
 								<label text="Knee" />
 								<label text="Resonance" />
-								<label text="Makeup" />
+								<label text="Stereo link" />
 								
 								<label text="Sigmoid" />
 								<label text="Function" />
 								<label text="Threshold" />
 								<label text="Pumping" />
+								<label text="Makeup" />
 								
 								<!-- Row 2 -->
+								<knob id="pa_${i}" />
 								<button id="op_${i}" text="ON" />
+								<knob id="ol_${:i-1}" visibility="${:i igt 1}"/>
 								<knob id="th_${i}" />
 								<knob id="kn_${i}" />
 								<knob id="rs_${i}" />
-								<knob id="mk_${i}" />
+								<knob id="bl_${i}" />
 								
 								<vbox>
-									<button id="se_${i}" text="ON" />
-									<button id="sl_${i}" text="LOG" />
+									<button id="ce_${i}" text="ON" />
+									<button id="cl_${i}" text="LOG" />
 								</vbox>
-								<combo id="sf_${i}" />
-								<knob id="st_${i}" />
-								<knob id="sp_${i}" />
+								<combo id="cf_${i}" />
+								<knob id="ct_${i}" />
+								<knob id="cp_${i}" />
+								<knob id="mk_${i}" />
 								
 								<!-- Row 3 -->
+								<value id="pa_${i}" />
 								<void />
+								<value id="ol_${:i-1}" visibility="${:i igt 1}"/>
 								<value id="th_${i}" />
 								<value id="kn_${i}" />
 								<value id="rs_${i}" />
-								<value id="mk_${i}" />
+								<value id="bl_${i}" />
 								
 								<void />
 								<void />
-								<value id="st_${i}" />
-								<value id="sp_${i}" />
+								<value id="ct_${i}" />
+								<value id="cp_${i}" />
+								<value id="mk_${i}" />
 							</grid>
 						</hbox>
 					
@@ -368,88 +377,80 @@
 									halign="(:th_${i} lt -6) ? 1 : -1" valign="1"/>
 							</graph>
 							
-							<!-- Clipper function graph -->
-							<graph width.min="192" height.min="192" expand="true" fill="true" visibility="!:sl_${i}">
-								<origin hpos="0" vpos="0" visible="false"/>
+							<!-- ODP gain reduction meter -->
+							<ledmeter vexpand="true" height.min="256" angle="1">
+								<ledchannel id="odr_${i}l" min="-12 db" max="0 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":op_${i}" value.color="blue"/>
+								<ledchannel id="odr_${i}r" min="-12 db" max="0 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":op_${i}" value.color="blue"/>
+							</ledmeter>
+							
+							<!-- Clipper function graph linear -->
+							<graph width.min="192" height.min="192" expand="true" fill="true" visibility="!:cl_${i}">
+								<origin hpos="-0.8" vpos="-2.0/3.0" visible="false"/>
 								<origin hpos="-1" vpos="0" visible="false"/>
 			
 								<ui:with ox="0" oy="1">
-									<marker v="-1.75" color="graph_alt_1"/>
-									<marker v="-1.25" color="graph_alt_1"/>
-									<marker v="-0.75" color="graph_alt_1"/>
-									<marker v="-0.25" color="graph_alt_1"/>
 									<marker v="0.25" color="graph_alt_1"/>
 									<marker v="0.75" color="graph_alt_1"/>
 									<marker v="1.25" color="graph_alt_1"/>
 									<marker v="1.75" color="graph_alt_1"/>
 								</ui:with>
 								<ui:with ox="1" oy="0">
-									<marker v="-0.75" color="graph_alt_1"/>
-									<marker v="-0.25" color="graph_alt_1"/>
 									<marker v="0.25" color="graph_alt_1"/>
 									<marker v="0.75" color="graph_alt_1"/>
 								</ui:with>
 			
 								<ui:with ox="0" oy="1">
-									<marker v="-1.5" color="graph_sec"/>
-									<marker v="-1" color="graph_sec"/>
-									<marker v="-0.5" color="graph_sec"/>
 									<marker v="0.5" color="graph_sec"/>
 									<marker v="1" color="graph_sec"/>
 									<marker v="1.5" color="graph_sec"/>
+									<marker v="2" color="graph_sec"/>
 								</ui:with>
 								<ui:with ox="1" oy="0">
-									<marker v="-1" color="graph_sec"/>
-									<marker v="-0.5" color="graph_sec"/>
 									<marker v="0.5" color="graph_sec"/>
 									<marker v="1" color="graph_sec"/>
 								</ui:with>
 			
 								<!-- Axes and boundaries -->
-								<marker v="1" ox="1" oy="0" dv="1" dx=":_a_width * 0.625" dy=":_a_height" color="graph_alt_1" width="2" smooth="true"/>
-								<axis min="-2" max="2" color="graph_prim" angle="0.0" width="2" />
-								<axis min="-1.25" max="1.25" color="graph_prim" angle="0.5" width="2" />
-								<axis o="1" min="-2" max="2" color="graph_prim" angle="0.0" zero="-2" visibility="false" />
+								<marker v="1" ox="1" oy="0" dv="1" dx=":_a_width * 0.6" dy=":_a_height" color="graph_alt_1" width="2" smooth="true"/>
+								<axis min="-0.25" max="2.25" color="graph_prim" angle="0.0" width="2" />
+								<axis min="-0.25" max="1.25" color="graph_prim" angle="0.5" width="2" />
+								<axis o="1" min="-0.25" max="2.25" color="graph_prim" angle="0.0" zero="-0.25" visibility="false" />
 			
 								<!-- Meshes -->
-								<mesh id="sfc_${i}" x.index="0" y.index="1" width="3" color="graph_mesh" smooth="true"/>
-								<dot x.id="cfx_${i}l" y.id="cfy_${i}l" color="left" bcolor="left" visibility=":se_${i}" />
-								<dot x.id="cfx_${i}r" y.id="cfy_${i}r" color="right" bcolor="right" visibility=":se_${i}" />
+								<mesh id="cfc_${i}" x.index="0" y.index="1" width="3" color="graph_mesh" smooth="true"/>
+								<dot x.id="cfx_${i}l" y.id="cfy_${i}l" color="left" bcolor="left" visibility=":ce_${i}" />
+								<dot x.id="cfx_${i}r" y.id="cfy_${i}r" color="right" bcolor="right" visibility=":ce_${i}" />
 			
 								<!-- Markers -->
-								<marker id="st_${i}" o="1" ox="2" width="2" color="attack_1" editable="true" />
+								<marker id="ct_${i}" o="1" ox="2" width="2" color="attack_1" editable="true" />
 			
 								<!-- Text -->
 								<text x="0" y="0" text="0" halign="1" valign="1"/>
 								<ui:attributes x="0" halign="-1" valign="-1">
-									<text y="-1" text="-1"/>
-									<text y="-0.5" text="-0.5"/>
 									<text y="0" text="0"/>
 									<text y="0.5" text="0.5"/>
 									<text y="1" text="1"/>
 									<text y="1.25" text="graph.axis.out" valign="-1"/>
 								</ui:attributes>
 								<ui:attributes y="0" halign="1" valign="-1">
-									<text x="-2" text="2"/>
-									<text x="-1.5" text="-1.5"/>
-									<text x="-1.0" text="-1.0"/>
-									<text x="-0.5" text="-0.5"/>
 									<text x="0.5" text="0.5"/>
 									<text x="1.0" text="1"/>
 									<text x="1.5" text="1.5"/>
-									<text x="2" text="graph.axis.in" halign="-1"/>
+									<text x="2.0" text="2"/>
+									<text x="2.25" text="graph.axis.in" halign="-1"/>
 								</ui:attributes>
-								<text x=":st_${i}" y="1.25"
-									text="graph.values.x::f" text:value=":st_${i}" text.eval="true"
+								<text x=":ct_${i}" y="1.25"
+									text="graph.values.x::f" text:value=":ct_${i}" text.eval="true"
 									color="attack_1"
 									halign="1" valign="-1"/>
-								<text x=":st_${i}" y="-1.25"
-									text="graph.values.x:db:f" text:value="20 * lg :st_${i}" text.eval="true"
+								<text x=":ct_${i}" y="-0.25"
+									text="graph.values.x:db:f" text:value="20 * lg :ct_${i}" text.eval="true"
 									color="attack_1"
 									halign="1" valign="1"/>
 							</graph>
 							
-							<graph width.min="192" height.min="192" expand="true" fill="true" visibility=":sl_${i}">
+							<!-- Clipper function graph logarithmic -->
+							<graph width.min="192" height.min="192" expand="true" fill="true" visibility=":cl_${i}">
 								<origin hpos="-1" vpos="-1" visible="false"/>
 			
 								<!-- Gray grid -->
@@ -474,12 +475,12 @@
 								<marker v="0 db" ox="1" oy="0" width="2" color="graph_prim"/>
 			
 								<!-- Meshes -->
-								<mesh id="sfc_${i}" x.index="2" y.index="3" width="3" color="graph_mesh" smooth="true"/>
-								<dot x.id="cfx_${i}l" y.id="cfy_${i}l" color="left" bcolor="left" visibility=":se_${i}" />
-								<dot x.id="cfx_${i}r" y.id="cfy_${i}r" color="right" bcolor="right" visibility=":se_${i}" />
+								<mesh id="cfc_${i}" x.index="2" y.index="3" width="3" color="graph_mesh" smooth="true"/>
+								<dot x.id="cfx_${i}l" y.id="cfy_${i}l" color="left" bcolor="left" visibility=":ce_${i}" />
+								<dot x.id="cfx_${i}r" y.id="cfy_${i}r" color="right" bcolor="right" visibility=":ce_${i}" />
 			
 								<!-- Markers -->
-								<marker id="st_${i}" color="attack_1" width="2" editable="true" />
+								<marker id="ct_${i}" color="attack_1" width="2" editable="true" />
 			
 								<!-- Text -->
 								<text x="0 db" y="0 db" text="0" halign="1" valign="1"/>
@@ -504,15 +505,36 @@
 									<text x="-36 db" text="graph.axis.in" halign="1"/>
 								</ui:attributes>
 								
-								<text x=":st_${i}" y="12 db"
-									text="graph.values.x::f" text:value=":st_${i}" text.eval="true"
+								<text x=":ct_${i}" y="12 db"
+									text="graph.values.x::f" text:value=":ct_${i}" text.eval="true"
 									color="attack_1"
-									halign="(:st_${i} lt -12 db) ? 1 : -1" valign="-1"/>
-								<text x=":st_${i}" y="-36 db"
-									text="graph.values.x:db:f" text:value="20 * lg :st_${i}" text.eval="true"
+									halign="(:ct_${i} lt -12 db) ? 1 : -1" valign="-1"/>
+								<text x=":ct_${i}" y="-36 db"
+									text="graph.values.x:db:f" text:value="20 * lg :ct_${i}" text.eval="true"
 									color="attack_1"
-									halign="(:st_${i} lt -12 db) ? 1 : -1" valign="1"/>
+									halign="(:ct_${i} lt -12 db) ? 1 : -1" valign="1"/>
 							</graph>
+							
+							<!-- Clipper gain reduction meter -->
+							<ledmeter vexpand="true" height.min="192" angle="1">
+								<ledchannel id="cfr_${i}l" min="-12 db" max="12 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":op_${i}" value.color="blue"/>
+								<ledchannel id="cfr_${i}r" min="-12 db" max="12 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":op_${i}" value.color="blue"/>
+							</ledmeter>
+							<!-- Band gain reduction meter -->
+							<ledmeter vexpand="true" height.min="192" angle="1">
+								<ledchannel id="grm_${i}l" min="-24 db" max="0 db" log="true" balance="0 db" balance.visibility="true" type="peak" value.color="blue"/>
+								<ledchannel id="grm_${i}r" min="-24 db" max="0 db" log="true" balance="0 db" balance.visibility="true" type="peak" value.color="blue"/>
+							</ledmeter>
+							<!-- Band input level -->
+							<ledmeter vexpand="true" height.min="192" angle="1">
+								<ledchannel id="ilm_${i}l" min="-60 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left_in"/>
+								<ledchannel id="ilm_${i}r" min="-60 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right_in"/>
+							</ledmeter>
+							<!-- Band output level -->
+							<ledmeter vexpand="true" height.min="192" angle="1">
+								<ledchannel id="olm_${i}l" min="-60 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left"/>
+								<ledchannel id="olm_${i}r" min="-60 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right"/>
+							</ledmeter>
 						</hbox>
 					</vbox>
 				</ui:for>
