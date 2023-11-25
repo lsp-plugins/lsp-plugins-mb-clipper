@@ -1163,6 +1163,14 @@ namespace lsp
                     {
                         dsp::fill_one(l->vSc, samples);
                         dsp::fill_one(r->vSc, samples);
+
+                        lb->fOdpIn              = GAIN_AMP_M_INF_DB;
+                        lb->fOdpOut             = GAIN_AMP_M_INF_DB;
+                        lb->fOdpRed             = GAIN_AMP_0_DB;
+
+                        rb->fOdpIn              = GAIN_AMP_M_INF_DB;
+                        rb->fOdpOut             = GAIN_AMP_M_INF_DB;
+                        rb->fOdpRed             = GAIN_AMP_0_DB;
                     }
 
                     // Clipping
@@ -1192,6 +1200,16 @@ namespace lsp
                         rb->fClipOut            = lsp_max(rb->fClipOut, clip_out_r);
                         rb->fClipRed            = lsp_min(rb->fClipRed, clip_red_r);
                     }
+                    else
+                    {
+                        lb->fClipIn             = GAIN_AMP_M_INF_DB;
+                        lb->fClipOut            = GAIN_AMP_M_INF_DB;
+                        lb->fClipRed            = GAIN_AMP_0_DB;
+
+                        rb->fClipIn             = GAIN_AMP_M_INF_DB;
+                        rb->fClipOut            = GAIN_AMP_M_INF_DB;
+                        rb->fClipRed            = GAIN_AMP_0_DB;
+                    }
 
                     // Perform output metering
                     const float out_l       = fabsf(lb->vData[idx_in_l]) * p->fMakeup;
@@ -1206,10 +1224,6 @@ namespace lsp
                     rb->fIn                 = lsp_max(rb->fIn, in_r);
                     rb->fOut                = lsp_max(rb->fOut, out_r);
                     rb->fRed                = lsp_min(rb->fRed, red_r);
-
-                    // Apply post-delay
-                    lb->sPostDelay.process(lb->vData, lb->vData, p->fMakeup, samples);
-                    rb->sPostDelay.process(rb->vData, rb->vData, p->fMakeup, samples);
                 }
             }
             else
@@ -1231,12 +1245,15 @@ namespace lsp
                     band_t *b               = &c->vBands[j];
                     processor_t *p          = &vProc[j];
                     if (!(p->nFlags & PF_ENABLED))
+                    {
+                        b->sPostDelay.append(b->vData, samples); // Apply post-delay
                         continue;
+                    }
 
                     if (merged++)
-                        dsp::add2(c->vData, b->vData, samples);
+                        b->sPostDelay.process_add(c->vData, b->vData, p->fMakeup, samples); // Apply post-delay
                     else
-                        dsp::copy(c->vData, b->vData, samples);
+                        b->sPostDelay.process(c->vData, b->vData, p->fMakeup, samples); // Apply post-delay
                 }
 
                 // Fill output with zero if there is no data at output

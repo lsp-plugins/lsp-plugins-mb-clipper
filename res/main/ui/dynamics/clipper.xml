@@ -517,8 +517,8 @@
 							
 							<!-- Clipper gain reduction meter -->
 							<ledmeter vexpand="true" height.min="192" angle="1">
-								<ledchannel id="cfr_${i}l" min="-12 db" max="12 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":op_${i}" value.color="blue"/>
-								<ledchannel id="cfr_${i}r" min="-12 db" max="12 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":op_${i}" value.color="blue"/>
+								<ledchannel id="cfr_${i}l" min="-12 db" max="12 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":ce_${i}" value.color="blue"/>
+								<ledchannel id="cfr_${i}r" min="-12 db" max="12 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":ce_${i}" value.color="blue"/>
 							</ledmeter>
 							<!-- Band gain reduction meter -->
 							<ledmeter vexpand="true" height.min="192" angle="1">
