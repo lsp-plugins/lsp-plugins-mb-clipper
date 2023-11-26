@@ -713,8 +713,8 @@ namespace lsp
             size_t active_channels  = 0;
             bool sync_band_curves   = false;
 
-            fInGain                 = pGainIn->value();
-            fOutGain                = (pBoosting->value() >= 0.5f) ? out_gain : out_gain * fThresh;
+            fInGain                 = pGainIn->value() * fThresh;
+            fOutGain                = (pBoosting->value() >= 0.5f) ? out_gain : out_gain / fThresh;
 
             xover_mode_t mode       = (pXOverMode->value() >= 1) ? XOVER_FFT : XOVER_IIR;
             if (mode != enXOverMode)

@@ -212,7 +212,7 @@
 		<grid rows="2" cols="2" spacing="4">
 			<cell cols="2">
 				<group text="Crossover">
-					<grid rows="4" cols="8">
+					<grid rows="4" cols="9">
 						<!-- Row 1 -->
 						<cell rows="2">
 							<label text="labels.input" />
@@ -223,10 +223,12 @@
 						<label text="Band 3" />
 						<button id="ebe" text="Band 4" ui:inject="Button_cyan" />
 						<label text="labels.flt.LPF" />
+						<label text="labels.threshold" />
 						<cell rows="2">
 							<label text="labels.output" />
 						</cell>
 						
+						<!-- Row 2 -->
 						<combo id="hpf_m" />
 						<ui:for id="i" first="1" count="4">
 							<hbox>
@@ -235,6 +237,7 @@
 							</hbox>
 						</ui:for>
 						<combo id="lpf_m" />
+						<button id="boost" pad.h="6" height="18" width="70" text="labels.boost_" ui:inject="Button_violet_8"/>
 						
 						<!-- Row 3 -->
 						<knob id="g_in" />
@@ -244,6 +247,7 @@
 						<knob id="xf_2" />
 						<knob id="xf_3" />
 						<knob id="lpf_f" />
+						<knob id="thresh" />
 						<knob id="g_out" />
 						
 						<!-- Row 4 -->
@@ -254,6 +258,7 @@
 						<value id="xf_2" />
 						<value id="xf_3" />
 						<value id="lpf_f" />
+						<value id="thresh" />
 						<value id="g_out" />
 					</grid>
 				</group>

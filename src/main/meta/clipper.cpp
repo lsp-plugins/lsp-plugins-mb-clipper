@@ -234,7 +234,7 @@ namespace lsp
             clap_features_mono,
             E_DUMP_STATE,
             clipper_mono_ports,
-            "dynamics/clipper.xml",
+            "dynamics/clipper_mono.xml",
             NULL,
             mono_plugin_port_groups,
             &clipper_bundle
@@ -258,7 +258,7 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE,
             clipper_stereo_ports,
-            "dynamics/clipper.xml",
+            "dynamics/clipper_stereo.xml",
             NULL,
             stereo_plugin_port_groups,
             &clipper_bundle
