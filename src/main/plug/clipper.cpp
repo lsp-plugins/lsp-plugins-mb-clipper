@@ -1825,50 +1825,53 @@ namespace lsp
 
                 // Output oscilloscope graphs for output clipper
                 plug::mesh_t *mesh    = c->pTimeMesh->buffer<plug::mesh_t>();
-                if (nFlags & GF_OUT_CLIP)
+                if ((mesh != NULL) && (mesh->isEmpty()))
                 {
-                    // Fill time values
-                    float *t        = mesh->pvData[0];
-                    float *in       = mesh->pvData[1];
-                    float *out      = mesh->pvData[2];
-                    float *red      = mesh->pvData[3];
+                    if (nFlags & GF_OUT_CLIP)
+                    {
+                        // Fill time values
+                        float *t        = mesh->pvData[0];
+                        float *in       = mesh->pvData[1];
+                        float *out      = mesh->pvData[2];
+                        float *red      = mesh->pvData[3];
 
-                    dsp::copy(&t[2], vTime, meta::clipper::TIME_MESH_POINTS);
-                    dsp::copy(&in[2], c->sInGraph.data(), meta::clipper::TIME_MESH_POINTS);
-                    dsp::copy(&out[2], c->sOutGraph.data(), meta::clipper::TIME_MESH_POINTS);
+                        dsp::copy(&t[2], vTime, meta::clipper::TIME_MESH_POINTS);
+                        dsp::copy(&in[2], c->sInGraph.data(), meta::clipper::TIME_MESH_POINTS);
+                        dsp::copy(&out[2], c->sOutGraph.data(), meta::clipper::TIME_MESH_POINTS);
 
-                    for (size_t k=2; k<meta::clipper::TIME_MESH_POINTS + 2; ++k)
-                        red[k]      = lsp_max(out[k], GAIN_AMP_M_120_DB) / lsp_max(in[k], GAIN_AMP_M_120_DB);
+                        for (size_t k=2; k<meta::clipper::TIME_MESH_POINTS + 2; ++k)
+                            red[k]      = lsp_max(out[k], GAIN_AMP_M_120_DB) / lsp_max(in[k], GAIN_AMP_M_120_DB);
 
-                    // Generate extra points
-                    t[0]            = t[2] + meta::clipper::TIME_HISTORY_GAP;
-                    t[1]            = t[0];
-                    in[0]           = 0.0f;
-                    in[1]           = in[2];
-                    out[0]          = out[2];
-                    out[1]          = out[2];
-                    red[0]          = red[2];
-                    red[1]          = red[2];
+                        // Generate extra points
+                        t[0]            = t[2] + meta::clipper::TIME_HISTORY_GAP;
+                        t[1]            = t[0];
+                        in[0]           = 0.0f;
+                        in[1]           = in[2];
+                        out[0]          = out[2];
+                        out[1]          = out[2];
+                        red[0]          = red[2];
+                        red[1]          = red[2];
 
-                    t              += meta::clipper::TIME_MESH_POINTS + 2;
-                    in             += meta::clipper::TIME_MESH_POINTS + 2;
-                    out            += meta::clipper::TIME_MESH_POINTS + 2;
-                    red            += meta::clipper::TIME_MESH_POINTS + 2;
+                        t              += meta::clipper::TIME_MESH_POINTS + 2;
+                        in             += meta::clipper::TIME_MESH_POINTS + 2;
+                        out            += meta::clipper::TIME_MESH_POINTS + 2;
+                        red            += meta::clipper::TIME_MESH_POINTS + 2;
 
-                    t[0]            = t[-1] - meta::clipper::TIME_HISTORY_GAP;
-                    t[1]            = t[0];
-                    in[0]           = in[-1];
-                    in[1]           = 0.0f;
-                    out[0]          = out[-1];
-                    out[1]          = out[-1];
-                    red[0]          = red[-1];
-                    red[1]          = red[-1];
+                        t[0]            = t[-1] - meta::clipper::TIME_HISTORY_GAP;
+                        t[1]            = t[0];
+                        in[0]           = in[-1];
+                        in[1]           = 0.0f;
+                        out[0]          = out[-1];
+                        out[1]          = out[-1];
+                        red[0]          = red[-1];
+                        red[1]          = red[-1];
 
-                    // Notify mesh contains data
-                    mesh->data(4, meta::clipper::TIME_MESH_POINTS + 4);
+                        // Notify mesh contains data
+                        mesh->data(4, meta::clipper::TIME_MESH_POINTS + 4);
+                    }
+                    else
+                        mesh->data(4, 0);
                 }
-                else
-                    mesh->data(4, 0);
 
                 // Output oscilloscope graphs for band
                 for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
