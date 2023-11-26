@@ -142,8 +142,8 @@
 				<vbox vexpand="true" bg.color="bg_schema">
 					<label text="labels.chan.in" pad.b="3" pad.t="3"/>
 					<ledmeter vexpand="true" angle="1">
-						<ledchannel id="ilm_l" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left_in"/>
-						<ledchannel id="ilm_r" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right_in"/>
+						<ledchannel id="ism_l" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left_in"/>
+						<ledchannel id="ism_r" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right_in"/>
 					</ledmeter>
 				</vbox>
 			</cell>
@@ -152,8 +152,8 @@
 				<vbox vexpand="true" bg.color="bg_schema">
 					<label text="labels.chan.out" pad.b="3" pad.t="3"/>
 					<ledmeter vexpand="true" angle="1">
-						<ledchannel id="olm_l" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left"/>
-						<ledchannel id="olm_r" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right"/>
+						<ledchannel id="osm_l" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left"/>
+						<ledchannel id="osm_r" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right"/>
 					</ledmeter>
 				</vbox>
 			</cell>

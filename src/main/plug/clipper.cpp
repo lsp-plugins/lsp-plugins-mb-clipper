@@ -343,6 +343,9 @@ namespace lsp
                 c->nAnOutChannel        = an_id++;
                 c->nFlags               = 0;
 
+                c->fGainIn              = GAIN_AMP_M_INF_DB;
+                c->fGainOut             = GAIN_AMP_M_INF_DB;
+
                 c->fIn                  = GAIN_AMP_M_INF_DB;
                 c->fOut                 = GAIN_AMP_M_INF_DB;
                 c->fRed                 = GAIN_AMP_M_INF_DB;
@@ -368,6 +371,9 @@ namespace lsp
                 c->pFftOutSwitch        = NULL;
                 c->pFftInMesh           = NULL;
                 c->pFftOutMesh          = NULL;
+
+                c->pGainIn              = NULL;
+                c->pGainOut             = NULL;
 
                 c->pIn                  = NULL;
                 c->pOut                 = NULL;
@@ -483,6 +489,8 @@ namespace lsp
             {
                 channel_t *c            = &vChannels[i];
 
+                c->pGainIn              = trace_port(ports[port_id++]);
+                c->pGainOut             = trace_port(ports[port_id++]);
                 c->pFftInSwitch         = trace_port(ports[port_id++]);
                 c->pFftOutSwitch        = trace_port(ports[port_id++]);
                 c->pFftInMesh           = trace_port(ports[port_id++]);
@@ -825,12 +833,12 @@ namespace lsp
         {
             bool bypass             = pBypass->value() >= 0.5f;
             fThresh                 = dspu::db_to_gain(-pThresh->value());
-            float out_gain          = pGainOut->value();
             size_t active_channels  = 0;
             bool sync_band_curves   = false;
 
-            fInGain                 = pGainIn->value() * fThresh;
-            fOutGain                = (pBoosting->value() >= 0.5f) ? out_gain : out_gain / fThresh;
+            fInGain                 = pGainIn->value();
+            fOutGain                = pGainOut->value();
+            nFlags                  = lsp_setflag(nFlags, GF_BOOSTING, pBoosting->value() >= 0.5f);
 
             xover_mode_t mode       = (pXOverMode->value() >= 1) ? XOVER_FFT : XOVER_IIR;
             if (mode != enXOverMode)
@@ -1010,46 +1018,6 @@ namespace lsp
             if (update_clip_params(&sClip))
                 nFlags                 |= GF_SYNC_CLIP;
 
-            // Configure analyzer
-            for (size_t i=0; i<nChannels; ++i)
-            {
-                channel_t *c            = &vChannels[i];
-
-                c->nFlags               = lsp_setflag(c->nFlags, CF_IN_FFT, c->pFftInSwitch->value() >= 0.5f);
-                c->nFlags               = lsp_setflag(c->nFlags, CF_OUT_FFT, c->pFftOutSwitch->value() >= 0.5f);
-            }
-
-            sAnalyzer.set_reactivity(pFftReactivity->value());
-            sAnalyzer.set_shift(pFftShift->value() * 100.0f);
-            for (size_t i=0; i<nChannels; ++i)
-            {
-                channel_t *c            = &vChannels[i];
-
-                sAnalyzer.enable_channel(c->nAnInChannel, c->nFlags & CF_IN_FFT);
-                sAnalyzer.enable_channel(c->nAnOutChannel, c->nFlags & CF_OUT_FFT);
-                if (c->nFlags & (CF_IN_FFT | CF_OUT_FFT))
-                    ++active_channels;
-
-                sAnalyzer.set_channel_delay(c->nAnInChannel, xover_latency);
-            }
-            sAnalyzer.set_activity(active_channels > 0);
-
-            if (sAnalyzer.needs_reconfiguration())
-            {
-                sAnalyzer.reconfigure();
-                sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, meta::clipper::FFT_MESH_POINTS);
-            }
-
-            // Mark crossover bands out of sync
-            if (sync_band_curves)
-            {
-                for (size_t i=0; i < meta::clipper::BANDS_MAX; ++i)
-                {
-                    processor_t *b          = &vProc[i];
-                    b->nFlags              |= PF_DIRTY_BAND | PF_SYNC_BAND;
-                }
-            }
-
             // Adjust the compensation delays
             size_t max_band_latency = 0;
             size_t clip_latency     = dspu::millis_to_samples(fSampleRate, sOdp.pResonance->value()) * 0.5f;
@@ -1100,6 +1068,46 @@ namespace lsp
             }
             set_latency(latency);
 
+            // Configure analyzer
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
+
+                c->nFlags               = lsp_setflag(c->nFlags, CF_IN_FFT, c->pFftInSwitch->value() >= 0.5f);
+                c->nFlags               = lsp_setflag(c->nFlags, CF_OUT_FFT, c->pFftOutSwitch->value() >= 0.5f);
+            }
+
+            sAnalyzer.set_reactivity(pFftReactivity->value());
+            sAnalyzer.set_shift(pFftShift->value() * 100.0f);
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
+
+                sAnalyzer.enable_channel(c->nAnInChannel, c->nFlags & CF_IN_FFT);
+                sAnalyzer.enable_channel(c->nAnOutChannel, c->nFlags & CF_OUT_FFT);
+                if (c->nFlags & (CF_IN_FFT | CF_OUT_FFT))
+                    ++active_channels;
+
+                sAnalyzer.set_channel_delay(c->nAnInChannel, latency);
+            }
+            sAnalyzer.set_activity(active_channels > 0);
+
+            if (sAnalyzer.needs_reconfiguration())
+            {
+                sAnalyzer.reconfigure();
+                sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, meta::clipper::FFT_MESH_POINTS);
+            }
+
+            // Mark crossover bands out of sync
+            if (sync_band_curves)
+            {
+                for (size_t i=0; i < meta::clipper::BANDS_MAX; ++i)
+                {
+                    processor_t *b          = &vProc[i];
+                    b->nFlags              |= PF_DIRTY_BAND | PF_SYNC_BAND;
+                }
+            }
+
             // Debug
         #ifdef LSP_TRACE
             lsp_trace("max band latency = %d", int(max_band_latency));
@@ -1134,7 +1142,7 @@ namespace lsp
             processor_t *p          = &self->vProc[band];
 
             // Copy data to the data buffer and apply pre-amplification gain
-            dsp::mul_k3(&b->vData[sample], data, p->fPreamp, count);
+            dsp::mul_k3(&b->vData[sample], data, p->fPreamp * self->fThresh, count);
         }
 
         void clipper::bind_input_buffers()
@@ -1145,6 +1153,9 @@ namespace lsp
 
                 c->vIn              = c->pDataIn->buffer<float>();
                 c->vOut             = c->pDataOut->buffer<float>();
+
+                c->fGainIn          = GAIN_AMP_M_INF_DB;
+                c->fGainOut         = GAIN_AMP_M_INF_DB;
 
                 c->fIn              = GAIN_AMP_M_INF_DB;
                 c->fOut             = GAIN_AMP_M_INF_DB;
@@ -1541,6 +1552,13 @@ namespace lsp
                 r->fIn                  = lsp_max(r->fIn, in_r);
                 r->fOut                 = lsp_max(r->fOut, out_r);
                 r->fRed                 = lsp_min(r->fRed, red_r);
+
+                // Apply gain boosting compensation
+                if (!(nFlags & GF_BOOSTING))
+                {
+                    dsp::mul_k2(l->vData, 1.0f / fThresh, samples);
+                    dsp::mul_k2(r->vData, 1.0f / fThresh, samples);
+                }
             }
             else
             {
@@ -1588,8 +1606,8 @@ namespace lsp
                 bufs[c->nAnInChannel]   = c->vInAnalyze;
                 bufs[c->nAnOutChannel]  = c->vData;
 
-//                c->pOutMeter->set_value(dsp::abs_max(c->vData, samples));
-//                c->pInMeter->set_value(dsp::abs_max(c->vInBuf, samples) * fInGain);
+                c->fGainIn              = lsp_max(c->fGainIn, dsp::abs_max(c->vInAnalyze, samples));
+                c->fGainOut             = lsp_max(c->fGainOut, dsp::abs_max(c->vData, samples) * fOutGain);
             }
 
             // Perform FFT analysis
@@ -1601,6 +1619,9 @@ namespace lsp
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c    = &vChannels[i];
+
+                c->pGainIn->set_value(c->fGainIn);
+                c->pGainOut->set_value(c->fGainOut);
 
                 c->pIn->set_value(c->fIn);
                 c->pOut->set_value(c->fOut);

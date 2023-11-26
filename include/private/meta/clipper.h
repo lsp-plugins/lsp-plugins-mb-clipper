@@ -125,8 +125,8 @@ namespace lsp
             static constexpr float  ODP_THRESHOLD_STEP      = 0.005f;
 
             static constexpr float  ODP_REACT_MIN           = 1.0f;
-            static constexpr float  ODP_REACT_MAX           = 100.0f;
-            static constexpr float  ODP_REACT_DFL           = 20.0f;
+            static constexpr float  ODP_REACT_MAX           = 50.0f;
+            static constexpr float  ODP_REACT_DFL           = 5.0f;
             static constexpr float  ODP_REACT_STEP          = 0.0025f;
 
             static constexpr float  ODP_REACT1_MIN          = SPEC_FREQ_MIN;

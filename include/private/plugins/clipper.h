@@ -73,11 +73,12 @@ namespace lsp
 
                 enum global_flags_t
                 {
-                    GF_OUT_CLIP         = 1 << 0,           // Output clipper enabled
-                    GF_ODP_ENABLED      = 1 << 1,           // Overdrive protection enabled
-                    GF_CLIP_ENABLED     = 1 << 2,           // Clipping enabled
-                    GF_SYNC_ODP         = 1 << 3,           // Sync overdrive protection curve
-                    GF_SYNC_CLIP        = 1 << 4,           // Sync sigmoid clipping curve
+                    GF_BOOSTING         = 1 << 0,           // Enable gain boosting
+                    GF_OUT_CLIP         = 1 << 1,           // Output clipper enabled
+                    GF_ODP_ENABLED      = 1 << 2,           // Overdrive protection enabled
+                    GF_CLIP_ENABLED     = 1 << 3,           // Clipping enabled
+                    GF_SYNC_ODP         = 1 << 4,           // Sync overdrive protection curve
+                    GF_SYNC_CLIP        = 1 << 5,           // Sync sigmoid clipping curve
 
                     GF_SYNC_ALL         = GF_SYNC_ODP | GF_SYNC_CLIP
                 };
@@ -205,6 +206,9 @@ namespace lsp
                     uint32_t            nFlags;             // Flags
 
                     // Meter values
+                    float               fGainIn;            // Overall nput level meter
+                    float               fGainOut;           // Overall nput level meter
+
                     float               fIn;                // Input level meter
                     float               fOut;               // Output level meter
                     float               fRed;               // Reduction level meter
@@ -233,6 +237,9 @@ namespace lsp
                     plug::IPort        *pFftOutMesh;        // Output FFT mesh
 
                     // Metering
+                    plug::IPort        *pGainIn;            // Overall input level meter
+                    plug::IPort        *pGainOut;           // Overall output level meter
+
                     plug::IPort        *pIn;                // Input level meter
                     plug::IPort        *pOut;               // Output level meter
                     plug::IPort        *pRed;               // Reduction level meter

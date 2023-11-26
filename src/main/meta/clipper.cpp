@@ -164,7 +164,7 @@ namespace lsp
         CLIPPER_BAND(id, label, resonance)
 
     #define OUTPUT_STEREO_CLIPPER \
-        CONTROL_DFL("slink", "Stereo link", U_PERCENT, clipper::STEREO_LINK, 1.0f), \
+        CONTROL_DFL("slink", "Stereo link", U_PERCENT, clipper::STEREO_LINK, 50.0f), \
         OUTPUT_CLIPPER
 
     #define OSCILLOSCOPE_SWITCHES(id, label) \
@@ -173,6 +173,8 @@ namespace lsp
         SWITCH("grg" id, "Gain reduction graph enable" label, 1.0f)
 
     #define CLIPPER_ANALYSIS(id, label) \
+        METER_OUT_GAIN("ism" id, "Input signal meter" label, GAIN_AMP_P_36_DB), \
+        METER_OUT_GAIN("osm" id, "Output signal meter" label, GAIN_AMP_P_36_DB), \
         SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
         SWITCH("ofe" id, "Output FFT graph enable" label, 1.0f), \
         MESH("ifg" id, "Input FFT graph" label, 2, clipper::FFT_MESH_POINTS + 2), \
