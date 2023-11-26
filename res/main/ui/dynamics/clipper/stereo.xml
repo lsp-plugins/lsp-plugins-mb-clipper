@@ -911,12 +911,12 @@
 						</ui:with>
 
 						<!-- Meshes -->
-						<mesh id="ctg_l" width="0" x.index="0" y.index="1" color="left_in" fcolor="left_in" fcolor.a="0.8" fill="true" activity=":grg_l" />
-						<mesh id="ctg_r" width="0" x.index="0" y.index="1" color="right_in" fcolor="right_in" fcolor.a="0.8" fill="true" activity=":grg_r" />
-						<mesh id="ctg_l" width="2" x.index="0" y.index="2" color="left" activity=":ilg_l" />
-						<mesh id="ctg_r" width="2" x.index="0" y.index="2" color="right" activity=":ilg_r" />
-						<mesh id="ctg_l" width="2" x.index="0" y.index="3" color="bright_blue" activity=":olg_l" />
-						<mesh id="ctg_r" width="2" x.index="0" y.index="3" color="bright_blue" activity=":olg_r" />
+						<mesh id="ctg_l" width="0" x.index="0" y.index="1" color="left_in" fcolor="left_in" fcolor.a="0.8" fill="true" visibility=":grg_l" />
+						<mesh id="ctg_r" width="0" x.index="0" y.index="1" color="right_in" fcolor="right_in" fcolor.a="0.8" fill="true" visibility=":grg_r" />
+						<mesh id="ctg_l" width="2" x.index="0" y.index="2" color="left" visibility=":ilg_l" />
+						<mesh id="ctg_r" width="2" x.index="0" y.index="2" color="right" visibility=":ilg_r" />
+						<mesh id="ctg_l" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":olg_l" />
+						<mesh id="ctg_r" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":olg_r" />
 						
 						<!-- Boundaries -->
 						<marker v="24 db" ox="1" oy="0" color="graph_prim" visibility="false"/>

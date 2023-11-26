@@ -113,6 +113,7 @@ namespace lsp
         COMBO("lpf_m", "High-pass pre-filter mode", 0, clipper_prefilter_slopes), \
         LOG_CONTROL("lpf_f", "Low-pass pre-filter frequency", U_HZ, clipper::LPF_FREQ), \
         SWITCH("ebe", "Enable extra band", 0), \
+        SWITCH("oclip", "Enable output clipper", 1), \
         COMBO("tsel", "Tab selector", 4, clipper_tab_selectors), \
         SWITCH("flt", "Band filter curves", 1.0f), \
         SWITCH("clog", "Clipper logarithmic display", 1.0f)

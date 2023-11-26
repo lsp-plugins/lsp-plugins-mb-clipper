@@ -73,10 +73,11 @@ namespace lsp
 
                 enum global_flags_t
                 {
-                    GF_ODP_ENABLED      = 1 << 0,           // Overdrive protection enabled
-                    GF_CLIP_ENABLED     = 1 << 1,           // Clipping enabled
-                    GF_SYNC_ODP         = 1 << 2,           // Sync overdrive protection curve
-                    GF_SYNC_CLIP        = 1 << 3,           // Sync sigmoid clipping curve
+                    GF_OUT_CLIP         = 1 << 0,           // Output clipper enabled
+                    GF_ODP_ENABLED      = 1 << 1,           // Overdrive protection enabled
+                    GF_CLIP_ENABLED     = 1 << 2,           // Clipping enabled
+                    GF_SYNC_ODP         = 1 << 3,           // Sync overdrive protection curve
+                    GF_SYNC_CLIP        = 1 << 4,           // Sync sigmoid clipping curve
 
                     GF_SYNC_ALL         = GF_SYNC_ODP | GF_SYNC_CLIP
                 };
@@ -190,9 +191,13 @@ namespace lsp
                     // DSP processing modules
                     dspu::Bypass        sBypass;            // Bypass
                     dspu::Delay         sDryDelay;          // Delay for the dry signal
+                    dspu::Delay         sScDelay;           // Sidechain compensation delay
+                    dspu::Sidechain     sSc;                // Sidechain
                     dspu::Equalizer     sEqualizer;         // Equalizer for cut-off low/high frequencies
                     dspu::Crossover     sIIRXOver;          // IIR crossover
                     dspu::FFTCrossover  sFFTXOver;          // FFT crossover
+                    dspu::MeterGraph    sInGraph;           // Input meter graph
+                    dspu::MeterGraph    sOutGraph;          // Output meter graph
                     band_t              vBands[meta::clipper::BANDS_MAX];   // Bands for processing
 
                     uint32_t            nAnInChannel;       // Analyzer input channel
@@ -289,6 +294,7 @@ namespace lsp
                 plug::IPort        *pLpfSlope;          // LPF filter slope
                 plug::IPort        *pLpfFreq;           // LPF filter frequency
                 plug::IPort        *pExtraBandOn;       // Enable extra band
+                plug::IPort        *pOutClipperOn;      // Enable output clipper
                 plug::IPort        *pFilterCurves;      // Band filter curves
 
                 uint8_t            *pData;              // Allocated data
@@ -317,6 +323,7 @@ namespace lsp
                 void                    bind_input_buffers();
                 void                    split_bands(size_t samples);
                 void                    process_bands(size_t samples);
+                void                    process_output_clipper(size_t samples);
                 void                    perform_analysis(size_t samples);
                 void                    output_signal(size_t samples);
                 void                    advance_buffers(size_t samples);
