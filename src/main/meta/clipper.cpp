@@ -142,7 +142,8 @@ namespace lsp
         METER_GAIN_DFL("odr" id, "Band overdrive protection reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB), \
         METER_OUT_GAIN("cfx" id, "Band clipping function input meter" label, GAIN_AMP_P_36_DB), \
         METER_OUT_GAIN("cfy" id, "Band clipping function output meter" label, GAIN_AMP_P_36_DB), \
-        METER_GAIN_DFL("cfr" id, "Band clipping function reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB)
+        METER_GAIN_DFL("cfr" id, "Band clipping function reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB), \
+        MESH("ctg" id, "Clipper time graph" label, 4, clipper::TIME_MESH_POINTS + 4)
 
     #define CLIPPER_STEREO_BAND(id, label, resonance, link) \
         CONTROL_DFL("bl" id, "Band stereo link" label, U_PERCENT, clipper::STEREO_LINK, link), \

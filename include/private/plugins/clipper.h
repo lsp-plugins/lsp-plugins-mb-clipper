@@ -30,6 +30,7 @@
 #include <lsp-plug.in/dsp-units/util/Crossover.h>
 #include <lsp-plug.in/dsp-units/util/Delay.h>
 #include <lsp-plug.in/dsp-units/util/FFTCrossover.h>
+#include <lsp-plug.in/dsp-units/util/MeterGraph.h>
 #include <lsp-plug.in/dsp-units/util/Sidechain.h>
 #include <lsp-plug.in/plug-fw/plug.h>
 
@@ -112,6 +113,8 @@ namespace lsp
                     dspu::Delay         sInDelay;           // Input data delay
                     dspu::Delay         sPreDelay;          // Signal pre-delay
                     dspu::Delay         sPostDelay;         // Signal post-delay
+                    dspu::MeterGraph    sInGraph;           // Input meter graph
+                    dspu::MeterGraph    sOutGraph;          // Output meter graph
 
                     float              *vInData;            // Input data buffer
                     float              *vData;              // Data buffer
@@ -139,6 +142,8 @@ namespace lsp
                     plug::IPort        *pClipIn;            // Clipping input level meter
                     plug::IPort        *pClipOut;           // Clipping output level meter
                     plug::IPort        *pClipRed;           // Clipping reduction level meter
+
+                    plug::IPort        *pTimeMesh;          // Input, output and gain reduction graph mesh
                 } band_t;
 
                 typedef struct processor_t
@@ -225,6 +230,7 @@ namespace lsp
                 float              *vOdp;               // Overdrive protection curve input gain values
                 float              *vLinSigmoid;        // Linear scale for sigmoid
                 float              *vLogSigmoid;        // Logarithmic scale for sigmoid
+                float              *vTime;              // Time graph
 
                 plug::IPort        *pBypass;            // Bypass
                 plug::IPort        *pGainIn;            // Input gain
