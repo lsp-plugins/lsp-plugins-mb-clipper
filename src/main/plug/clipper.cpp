@@ -140,11 +140,41 @@ namespace lsp
                 p->pFreqChart           = NULL;
             }
 
+            sComp.x0                = 0.0f;
+            sComp.x1                = 0.0f;
+            sComp.x2                = 0.0f;
+            sComp.t                 = 0.0f;
+            sComp.a                 = 0.0f;
+            sComp.b                 = 0.0f;
+            sComp.c                 = 0.0f;
+
+            sOdp.fThreshold         = 0.0f;
+            sOdp.fKnee              = 0.0f;
+
+            sOdp.pThreshold         = NULL;
+            sOdp.pKnee              = NULL;
+            sOdp.pResonance         = NULL;
+            sOdp.pCurveMesh         = NULL;
+
+            sClip.pFunc             = NULL;
+            sClip.fThreshold        = 0.0f;
+            sClip.fPumping          = 1.0f;
+            sClip.fScaling          = 0.0f;
+            sClip.fKnee             = 0.0f;
+
+            sClip.pOn               = NULL;
+            sClip.pFunction         = NULL;
+            sClip.pThreshold        = NULL;
+            sClip.pPumping          = NULL;
+            sClip.pCurveMesh        = NULL;
+
             enXOverMode     = XOVER_IIR;
 
             fInGain         = GAIN_AMP_0_DB;
             fOutGain        = GAIN_AMP_0_DB;
             fThresh         = GAIN_AMP_0_DB;
+            fStereoLink     = 0.0f;
+            nFlags          = GF_SYNC_ALL;
 
             vBuffer         = NULL;
             vFreqs          = NULL;
@@ -160,6 +190,7 @@ namespace lsp
             pGainOut        = NULL;
             pThresh         = NULL;
             pBoosting       = NULL;
+            pStereoLink     = NULL;
             pXOverMode      = NULL;
             pXOverSlope     = NULL;
             pFftReactivity  = NULL;
@@ -305,8 +336,18 @@ namespace lsp
                 c->nAnInChannel         = an_id++;
                 c->nAnOutChannel        = an_id++;
                 c->nFlags               = 0;
-                c->fInGain              = GAIN_AMP_0_DB;
-                c->fOutGain             = GAIN_AMP_0_DB;
+
+                c->fIn                  = GAIN_AMP_M_INF_DB;
+                c->fOut                 = GAIN_AMP_M_INF_DB;
+                c->fRed                 = GAIN_AMP_M_INF_DB;
+
+                c->fOdpIn               = GAIN_AMP_M_INF_DB;
+                c->fOdpOut              = GAIN_AMP_M_INF_DB;
+                c->fOdpRed              = GAIN_AMP_M_INF_DB;
+
+                c->fClipIn              = GAIN_AMP_M_INF_DB;
+                c->fClipOut             = GAIN_AMP_M_INF_DB;
+                c->fClipRed             = GAIN_AMP_M_INF_DB;
 
                 c->vIn                  = NULL;
                 c->vOut                 = NULL;
@@ -314,12 +355,27 @@ namespace lsp
                 c->vSc                  = advance_ptr_bytes<float>(ptr, szof_buffer);
                 c->vInAnalyze           = advance_ptr_bytes<float>(ptr, szof_buffer);
 
-                c->pIn                  = NULL;
-                c->pOut                 = NULL;
+                // Initialize ports
+                c->pDataIn              = NULL;
+                c->pDataOut             = NULL;
                 c->pFftInSwitch         = NULL;
                 c->pFftOutSwitch        = NULL;
                 c->pFftInMesh           = NULL;
                 c->pFftOutMesh          = NULL;
+
+                c->pIn                  = NULL;
+                c->pOut                 = NULL;
+                c->pRed                 = NULL;
+
+                c->pOdpIn               = NULL;
+                c->pOdpOut              = NULL;
+                c->pOdpRed              = NULL;
+
+                c->pClipIn              = NULL;
+                c->pClipOut             = NULL;
+                c->pClipRed             = NULL;
+
+                c->pTimeMesh            = NULL;
             }
 
             for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
@@ -336,11 +392,11 @@ namespace lsp
 
             // Bind input audio ports
             for (size_t i=0; i<nChannels; ++i)
-                vChannels[i].pIn    = trace_port(ports[port_id++]);
+                vChannels[i].pDataIn    = trace_port(ports[port_id++]);
 
             // Bind output audio ports
             for (size_t i=0; i<nChannels; ++i)
-                vChannels[i].pOut   = trace_port(ports[port_id++]);
+                vChannels[i].pDataOut   = trace_port(ports[port_id++]);
 
             // Bind bypass
             lsp_trace("Binding common ports");
@@ -367,8 +423,9 @@ namespace lsp
             pExtraBandOn        = trace_port(ports[port_id++]);
             trace_port(ports[port_id++]); // Skip band selector
             pFilterCurves       = trace_port(ports[port_id++]);
+            trace_port(ports[port_id++]); // Skip clipper linear/logarithmic graph view
 
-            // Bind frequency band ports
+            // Bind processor ports
             lsp_trace("Binding processor ports");
             for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
             {
@@ -385,12 +442,33 @@ namespace lsp
                 p->sOdp.pResonance      = trace_port(ports[port_id++]);
                 p->sOdp.pCurveMesh      = trace_port(ports[port_id++]);
                 p->sClip.pOn            = trace_port(ports[port_id++]);
-                trace_port(ports[port_id++]); // Skip sigmoid linear/logarithmic view
                 p->sClip.pFunction      = trace_port(ports[port_id++]);
                 p->sClip.pThreshold     = trace_port(ports[port_id++]);
                 p->sClip.pPumping       = trace_port(ports[port_id++]);
                 p->sClip.pCurveMesh     = trace_port(ports[port_id++]);
                 p->pFreqChart           = trace_port(ports[port_id++]);
+            }
+
+            // Bind output clipper ports
+            lsp_trace("Binding output clipper ports");
+            pStereoLink             = (nChannels > 1) ? trace_port(ports[port_id++]) : NULL;
+            sOdp.pOn                = trace_port(ports[port_id++]);
+            sOdp.pThreshold         = trace_port(ports[port_id++]);
+            sOdp.pKnee              = trace_port(ports[port_id++]);
+            sOdp.pResonance         = trace_port(ports[port_id++]);
+            sOdp.pCurveMesh         = trace_port(ports[port_id++]);
+            sClip.pOn               = trace_port(ports[port_id++]);
+            sClip.pFunction         = trace_port(ports[port_id++]);
+            sClip.pThreshold        = trace_port(ports[port_id++]);
+            sClip.pPumping          = trace_port(ports[port_id++]);
+            sClip.pCurveMesh        = trace_port(ports[port_id++]);
+
+            lsp_trace("Skipping graph visibility ports");
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                trace_port(ports[port_id++]); // Skip input level graph visibility
+                trace_port(ports[port_id++]); // Skip output level graph visibility
+                trace_port(ports[port_id++]); // Skip gain reduction graph visibility
             }
 
             lsp_trace("Binding analysis ports");
@@ -427,6 +505,27 @@ namespace lsp
 
                     b->pTimeMesh            = trace_port(ports[port_id++]);
                 }
+            }
+
+            // Bind channel metering
+            lsp_trace("Binding channel metering ports");
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
+
+                c->pIn                  = trace_port(ports[port_id++]);
+                c->pOut                 = trace_port(ports[port_id++]);
+                c->pRed                 = trace_port(ports[port_id++]);
+
+                c->pOdpIn               = trace_port(ports[port_id++]);
+                c->pOdpOut              = trace_port(ports[port_id++]);
+                c->pOdpRed              = trace_port(ports[port_id++]);
+
+                c->pClipIn              = trace_port(ports[port_id++]);
+                c->pClipOut             = trace_port(ports[port_id++]);
+                c->pClipRed             = trace_port(ports[port_id++]);
+
+                c->pTimeMesh            = trace_port(ports[port_id++]);
             }
 
             // Initialize curve (logarithmic) in range of -72 .. +24 db
@@ -502,13 +601,14 @@ namespace lsp
 
         void clipper::update_sample_rate(long sr)
         {
-            const size_t fft_rank       = select_fft_rank(sr);
-            const size_t max_delay_fft  = (1 << fft_rank);
-            const size_t max_odp_delay  = (
-                dspu::hz_to_samples(sr, meta::clipper::ODP_REACT1_MAX) +
-                dspu::hz_to_samples(sr, meta::clipper::ODP_REACT2_MAX) +
-                dspu::hz_to_samples(sr, meta::clipper::ODP_REACT3_MAX) +
-                dspu::hz_to_samples(sr, meta::clipper::ODP_REACT4_MAX)) * 2;
+            const size_t fft_rank           = select_fft_rank(sr);
+            const size_t max_delay_fft      = (1 << fft_rank);
+            const size_t max_odp_delay      = (
+                dspu::hz_to_samples(sr, meta::clipper::ODP_REACT1_MIN) * 0.5f +
+                dspu::hz_to_samples(sr, meta::clipper::ODP_REACT2_MIN) * 0.5f +
+                dspu::hz_to_samples(sr, meta::clipper::ODP_REACT3_MIN) * 0.5f +
+                dspu::hz_to_samples(sr, meta::clipper::ODP_REACT4_MIN) * 0.5f);
+            const size_t max_global_delay   = dspu::millis_to_samples(sr, meta::clipper::ODP_REACT1_MAX) * 0.5f;
             const size_t samples_per_dot    = dspu::seconds_to_samples(
                 sr, meta::clipper::TIME_HISTORY_MAX / meta::clipper::TIME_MESH_POINTS);
 
@@ -519,7 +619,7 @@ namespace lsp
                 channel_t *c            = &vChannels[i];
 
                 c->sBypass.init(sr);
-                c->sDryDelay.init(max_delay_fft + max_odp_delay);
+                c->sDryDelay.init(max_delay_fft + max_odp_delay + max_global_delay);
                 c->sEqualizer.set_sample_rate(sr);
                 c->sIIRXOver.set_sample_rate(sr);
 
@@ -871,7 +971,6 @@ namespace lsp
                 processor_t *p          = &vProc[j];
 
                 p->fStereoLink          = (p->pStereoLink != NULL) ? p->pStereoLink->value() * 0.01f : 1.0f;
-
                 p->nFlags               = lsp_setflag(p->nFlags, PF_ODP_ENABLED, p->sOdp.pOn->value() >= 0.5f);
                 if (update_odp_params(&p->sOdp))
                 {
@@ -882,6 +981,17 @@ namespace lsp
                 if (update_clip_params(&p->sClip))
                     p->nFlags              |= PF_SYNC_CLIP;
             }
+
+            fStereoLink             = (pStereoLink != NULL) ? pStereoLink->value() * 0.01f : 1.0f;
+            nFlags                  = lsp_setflag(nFlags, GF_ODP_ENABLED, sOdp.pOn->value() >= 0.5f);
+            if (update_odp_params(&sOdp))
+            {
+                calc_odp_compressor(&sComp, &sOdp);
+                nFlags                 |= GF_SYNC_ODP;
+            }
+            nFlags                  = lsp_setflag(nFlags, GF_CLIP_ENABLED, sClip.pOn->value() >= 0.5f);
+            if (update_clip_params(&sClip))
+                nFlags                 |= GF_SYNC_CLIP;
 
             // Configure analyzer
             for (size_t i=0; i<nChannels; ++i)
@@ -1005,11 +1115,20 @@ namespace lsp
             {
                 channel_t *c        = &vChannels[i];
 
-                c->vIn              = c->pIn->buffer<float>();
-                c->vOut             = c->pOut->buffer<float>();
+                c->vIn              = c->pDataIn->buffer<float>();
+                c->vOut             = c->pDataOut->buffer<float>();
 
-                c->fInGain          = GAIN_AMP_M_INF_DB;
-                c->fOutGain         = GAIN_AMP_M_INF_DB;
+                c->fIn              = GAIN_AMP_M_INF_DB;
+                c->fOut             = GAIN_AMP_M_INF_DB;
+                c->fRed             = GAIN_AMP_P_72_DB;
+
+                c->fOdpIn           = GAIN_AMP_M_INF_DB;
+                c->fOdpOut          = GAIN_AMP_M_INF_DB;
+                c->fOdpRed          = GAIN_AMP_P_72_DB;
+
+                c->fClipIn          = GAIN_AMP_M_INF_DB;
+                c->fClipOut         = GAIN_AMP_M_INF_DB;
+                c->fClipRed         = GAIN_AMP_P_72_DB;
 
                 for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
                 {
@@ -1421,6 +1540,38 @@ namespace lsp
                 }
             }
 
+            // Sync ODP curve
+            if (nFlags & GF_SYNC_ODP)
+            {
+                mesh                = (sOdp.pCurveMesh != NULL) ? sOdp.pCurveMesh->buffer<plug::mesh_t>() : NULL;
+                if ((mesh != NULL) && (mesh->isEmpty()))
+                {
+                    dsp::copy(mesh->pvData[0], vOdp, meta::clipper::CURVE_MESH_POINTS);
+                    odp_curve(mesh->pvData[1], vOdp, &sComp, meta::clipper::CURVE_MESH_POINTS);
+                    mesh->data(2, meta::clipper::CURVE_MESH_POINTS);
+
+                    // Mark mesh as synchronized
+                    nFlags             &= uint32_t(~GF_SYNC_ODP);
+                }
+            }
+
+            // Sync sigmoid curve
+            if (nFlags & GF_SYNC_CLIP)
+            {
+                mesh                = (sClip.pCurveMesh != NULL) ? sClip.pCurveMesh->buffer<plug::mesh_t>() : NULL;
+                if ((mesh != NULL) && (mesh->isEmpty()))
+                {
+                    dsp::copy(mesh->pvData[0], vLinSigmoid, meta::clipper::CURVE_MESH_POINTS);
+                    clip_curve(mesh->pvData[1], vLinSigmoid, &sClip, meta::clipper::CURVE_MESH_POINTS);
+                    dsp::copy(mesh->pvData[2], vLogSigmoid, meta::clipper::CURVE_MESH_POINTS);
+                    clip_curve(mesh->pvData[3], vLogSigmoid, &sClip, meta::clipper::CURVE_MESH_POINTS);
+                    mesh->data(4, meta::clipper::CURVE_MESH_POINTS);
+
+                    // Mark mesh as synchronized
+                    nFlags             &= uint32_t(~GF_SYNC_CLIP);
+                }
+            }
+
             // Output FFT mesh data for each channel
             for (size_t i=0; i<nChannels; ++i)
             {
@@ -1569,6 +1720,7 @@ namespace lsp
                 processor_t *p      = &vProc[j];
                 p->nFlags          |= PF_SYNC_ALL;
             }
+            nFlags             |= GF_SYNC_ALL;
         }
 
         bool clipper::inline_display(plug::ICanvas *cv, size_t width, size_t height)
@@ -1596,8 +1748,8 @@ namespace lsp
                     v->write("vIn", c->vIn);
                     v->write("vOut", c->vOut);
 
-                    v->write("pIn", c->pIn);
-                    v->write("pOut", c->pOut);
+                    v->write("pDataIn", c->pDataIn);
+                    v->write("pDataOut", c->pDataOut);
                 }
                 v->end_object();
             }

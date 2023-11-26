@@ -64,12 +64,13 @@ namespace lsp
             { NULL, NULL }
         };
 
-        static const port_item_t clipper_band_selectors[] =
+        static const port_item_t clipper_tab_selectors[] =
         {
             { "Band 1",             "clipper.band.1"                        },
             { "Band 2",             "clipper.band.2"                        },
             { "Band 3",             "clipper.band.3"                        },
             { "Band 4",             "clipper.band.4"                        },
+            { "Output",             "clipper.output"                        },
             { NULL, NULL }
         };
 
@@ -112,8 +113,9 @@ namespace lsp
         COMBO("lpf_m", "High-pass pre-filter mode", 0, clipper_prefilter_slopes), \
         LOG_CONTROL("lpf_f", "Low-pass pre-filter frequency", U_HZ, clipper::LPF_FREQ), \
         SWITCH("ebe", "Enable extra band", 0), \
-        COMBO("bsel", "Band selector", 0, clipper_band_selectors), \
-        SWITCH("flt", "Band filter curves", 1.0f)
+        COMBO("tsel", "Tab selector", 4, clipper_tab_selectors), \
+        SWITCH("flt", "Band filter curves", 1.0f), \
+        SWITCH("clog", "Clipper logarithmic display", 1.0f)
 
     #define CLIPPER_BAND(id, label, resonance) \
         SWITCH("bs" id, "Solo band" label, 0.0f), \
@@ -125,15 +127,26 @@ namespace lsp
         CONTROL("kn" id, "Overdrive protection knee" label, U_DB, clipper::ODP_KNEE), \
         LOG_CONTROL("rs" id, "Overdrive protection resonance" label, U_HZ, clipper::resonance), \
         MESH("opc" id, "Overdrive protection chart" label, 2, clipper::CURVE_MESH_POINTS), \
-        SWITCH("ce" id, "Clipper sigmoid function enable" label, 1.0f), \
-        SWITCH("cl" id, "Clipper sigmoid function display logarithmic" label, 1.0f), \
+        SWITCH("ce" id, "Clipper enable" label, 1.0f), \
         COMBO("cf" id, "Clipper sigmoid function" label, 1.0f, sigmoid_functions), \
         LOG_CONTROL("ct" id, "Clipper sigmoid threshold" label, U_GAIN_AMP, clipper::CLIP_THRESHOLD), \
         CONTROL("cp" id, "Clipper sigmoid pumping" label, U_DB, clipper::CLIP_PUMPING), \
         MESH("cfc" id, "Clipper sigmoid function chart" label, 4, clipper::CURVE_MESH_POINTS), \
         MESH("bfc" id, "Band frequency chart" label, 2, clipper::FFT_MESH_POINTS + 2)
 
-    #define CLIPPER_BAND_METERS(id, label) \
+    #define OUTPUT_CLIPPER \
+        SWITCH("op", "Output overdrive protection", 1.0f), \
+        CONTROL("th", "Output overdrive protection threshold", U_DB, clipper::ODP_THRESHOLD), \
+        CONTROL("kn", "Output overdrive protection knee", U_DB, clipper::ODP_KNEE), \
+        LOG_CONTROL("or", "Output overdrive protection reactivity", U_MSEC, clipper::ODP_REACT), \
+        MESH("opc", "Output overdrive protection chart", 2, clipper::CURVE_MESH_POINTS), \
+        SWITCH("ce", "Output clipper enable", 1.0f), \
+        COMBO("cf", "Output clipper sigmoid function", 1.0f, sigmoid_functions), \
+        LOG_CONTROL("ct", "Output clipper sigmoid threshold", U_GAIN_AMP, clipper::CLIP_THRESHOLD), \
+        CONTROL("cp", "Output clipper sigmoid pumping", U_DB, clipper::CLIP_PUMPING), \
+        MESH("cfc", "Output clipper sigmoid function chart", 4, clipper::CURVE_MESH_POINTS)
+
+    #define CLIPPER_METERS(id, label) \
         METER_OUT_GAIN("ilm" id, "Band input level meter" label, GAIN_AMP_P_36_DB), \
         METER_OUT_GAIN("olm" id, "Band output level meter" label, GAIN_AMP_P_36_DB), \
         METER_GAIN_DFL("grm" id, "Band gain reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB), \
@@ -149,6 +162,15 @@ namespace lsp
         CONTROL_DFL("bl" id, "Band stereo link" label, U_PERCENT, clipper::STEREO_LINK, link), \
         CLIPPER_BAND(id, label, resonance)
 
+    #define OUTPUT_STEREO_CLIPPER \
+        CONTROL_DFL("slink", "Stereo link", U_PERCENT, clipper::STEREO_LINK, 1.0f), \
+        OUTPUT_CLIPPER
+
+    #define OSCILLOSCOPE_SWITCHES(id, label) \
+        SWITCH("ilg" id, "Input level graph enable" label, 1.0f), \
+        SWITCH("olg" id, "Output level graph enable" label, 1.0f), \
+        SWITCH("grg" id, "Gain reduction graph enable" label, 1.0f)
+
     #define CLIPPER_ANALYSIS(id, label) \
         SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
         SWITCH("ofe" id, "Output FFT graph enable" label, 1.0f), \
@@ -163,17 +185,21 @@ namespace lsp
             PORTS_MONO_PLUGIN,
             CLIPPER_COMMON,
 
-            CLIPPER_BAND("_1", "", ODP_REACT1),
-            CLIPPER_BAND("_2", "", ODP_REACT2),
-            CLIPPER_BAND("_3", "", ODP_REACT3),
-            CLIPPER_BAND("_4", "", ODP_REACT4),
+            CLIPPER_BAND("_1", " Band 1", ODP_REACT1),
+            CLIPPER_BAND("_2", " Band 2", ODP_REACT2),
+            CLIPPER_BAND("_3", " Band 3", ODP_REACT3),
+            CLIPPER_BAND("_4", " Band 4", ODP_REACT4),
+            OUTPUT_CLIPPER,
+
+            OSCILLOSCOPE_SWITCHES("", ""),
 
             CLIPPER_ANALYSIS("", ""),
 
-            CLIPPER_BAND_METERS("_1", ""),
-            CLIPPER_BAND_METERS("_2", ""),
-            CLIPPER_BAND_METERS("_3", ""),
-            CLIPPER_BAND_METERS("_4", ""),
+            CLIPPER_METERS("_1", " Band 1"),
+            CLIPPER_METERS("_2", " Band 2"),
+            CLIPPER_METERS("_3", " Band 3"),
+            CLIPPER_METERS("_4", " Band 4"),
+            CLIPPER_METERS("", " Output"),
 
             PORTS_END
         };
@@ -183,22 +209,28 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
             CLIPPER_COMMON,
 
-            CLIPPER_STEREO_BAND("_1", "", ODP_REACT1, 100.0f),
-            CLIPPER_STEREO_BAND("_2", "", ODP_REACT2, 50.0f),
-            CLIPPER_STEREO_BAND("_3", "", ODP_REACT3, 25.0f),
-            CLIPPER_STEREO_BAND("_4", "", ODP_REACT4, 0.0f),
+            CLIPPER_STEREO_BAND("_1", " Band 1", ODP_REACT1, 100.0f),
+            CLIPPER_STEREO_BAND("_2", " Band 2", ODP_REACT2, 50.0f),
+            CLIPPER_STEREO_BAND("_3", " Band 3", ODP_REACT3, 25.0f),
+            CLIPPER_STEREO_BAND("_4", " Band 4", ODP_REACT4, 0.0f),
+            OUTPUT_STEREO_CLIPPER,
+
+            OSCILLOSCOPE_SWITCHES("_l", " Left"),
+            OSCILLOSCOPE_SWITCHES("_r", " Right"),
 
             CLIPPER_ANALYSIS("_l", " Left"),
             CLIPPER_ANALYSIS("_r", " Right"),
 
-            CLIPPER_BAND_METERS("_1l", " Left"),
-            CLIPPER_BAND_METERS("_2l", " Left"),
-            CLIPPER_BAND_METERS("_3l", " Left"),
-            CLIPPER_BAND_METERS("_4l", " Left"),
-            CLIPPER_BAND_METERS("_1r", " Right"),
-            CLIPPER_BAND_METERS("_2r", " Right"),
-            CLIPPER_BAND_METERS("_3r", " Right"),
-            CLIPPER_BAND_METERS("_4r", " Right"),
+            CLIPPER_METERS("_1l", " Band 1 Left"),
+            CLIPPER_METERS("_2l", " Band 2 Left"),
+            CLIPPER_METERS("_3l", " Band 3 Left"),
+            CLIPPER_METERS("_4l", " Band 4 Left"),
+            CLIPPER_METERS("_1r", " Right"),
+            CLIPPER_METERS("_2r", " Right"),
+            CLIPPER_METERS("_3r", " Right"),
+            CLIPPER_METERS("_4r", " Right"),
+            CLIPPER_METERS("_l", " Output Left"),
+            CLIPPER_METERS("_r", " Output Right"),
 
             PORTS_END
         };
@@ -234,7 +266,7 @@ namespace lsp
             clap_features_mono,
             E_DUMP_STATE,
             clipper_mono_ports,
-            "dynamics/clipper_mono.xml",
+            "dynamics/clipper/mono.xml",
             NULL,
             mono_plugin_port_groups,
             &clipper_bundle
@@ -258,7 +290,7 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE,
             clipper_stereo_ports,
-            "dynamics/clipper_stereo.xml",
+            "dynamics/clipper/stereo.xml",
             NULL,
             stereo_plugin_port_groups,
             &clipper_bundle

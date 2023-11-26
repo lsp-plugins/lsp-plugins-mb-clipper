@@ -68,7 +68,17 @@ namespace lsp
                 enum channel_flags_t
                 {
                     CF_IN_FFT           = 1 << 0,           // Input FFT analysis is enabled
-                    CF_OUT_FFT          = 1 << 1,           // Output FFT analysis is enabled
+                    CF_OUT_FFT          = 1 << 1            // Output FFT analysis is enabled
+                };
+
+                enum global_flags_t
+                {
+                    GF_ODP_ENABLED      = 1 << 0,           // Overdrive protection enabled
+                    GF_CLIP_ENABLED     = 1 << 1,           // Clipping enabled
+                    GF_SYNC_ODP         = 1 << 2,           // Sync overdrive protection curve
+                    GF_SYNC_CLIP        = 1 << 3,           // Sync sigmoid clipping curve
+
+                    GF_SYNC_ALL         = GF_SYNC_ODP | GF_SYNC_CLIP
                 };
 
                 typedef struct compressor_t
@@ -188,8 +198,19 @@ namespace lsp
                     uint32_t            nAnInChannel;       // Analyzer input channel
                     uint32_t            nAnOutChannel;      // Analyzer output channel
                     uint32_t            nFlags;             // Flags
-                    float               fInGain;            // Input level meter
-                    float               fOutGain;           // Output level meter
+
+                    // Meter values
+                    float               fIn;                // Input level meter
+                    float               fOut;               // Output level meter
+                    float               fRed;               // Reduction level meter
+
+                    float               fOdpIn;             // Overdrive protection input level
+                    float               fOdpOut;            // Overdrive protection out level
+                    float               fOdpRed;            // Overdrive protection reduction level
+
+                    float               fClipIn;            // Clipping input level measured
+                    float               fClipOut;           // Clipping output level measured
+                    float               fClipRed;           // Clipping reduction level measured
 
                     // Buffers
                     float              *vIn;                // Input buffer
@@ -199,12 +220,27 @@ namespace lsp
                     float              *vInAnalyze;         // Input data analysis
 
                     // Input ports
-                    plug::IPort        *pIn;                // Input port
-                    plug::IPort        *pOut;               // Output port
+                    plug::IPort        *pDataIn;            // Input port
+                    plug::IPort        *pDataOut;           // Output port
                     plug::IPort        *pFftInSwitch;       // Input FFT enable switch
                     plug::IPort        *pFftOutSwitch;      // Output FFT enable switch
                     plug::IPort        *pFftInMesh;         // Input FFT mesh
                     plug::IPort        *pFftOutMesh;        // Output FFT mesh
+
+                    // Metering
+                    plug::IPort        *pIn;                // Input level meter
+                    plug::IPort        *pOut;               // Output level meter
+                    plug::IPort        *pRed;               // Reduction level meter
+
+                    plug::IPort        *pOdpIn;             // ODP input level meter
+                    plug::IPort        *pOdpOut;            // ODP output level meter
+                    plug::IPort        *pOdpRed;            // ODP reduction level meter
+
+                    plug::IPort        *pClipIn;            // Clipping input level meter
+                    plug::IPort        *pClipOut;           // Clipping output level meter
+                    plug::IPort        *pClipRed;           // Clipping reduction level meter
+
+                    plug::IPort        *pTimeMesh;          // Input, output and gain reduction graph mesh
                 } channel_t;
 
                 static dspu::sigmoid::function_t    vSigmoidFunctions[];
@@ -217,11 +253,16 @@ namespace lsp
                 dspu::Counter       sCounter;           // Counter
                 split_t             vSplits[meta::clipper::BANDS_MAX-1];
                 processor_t         vProc[meta::clipper::BANDS_MAX];      // Processor
+                compressor_t        sComp;              // Simple compressor
+                odp_params_t        sOdp;               // Overdrive protection params
+                clip_params_t       sClip;              // Clipping parameters
 
                 xover_mode_t        enXOverMode;        // Crossover mode
                 float               fInGain;            // Input gain
-                float               fThresh;            // Threshold
                 float               fOutGain;           // Output gain
+                float               fThresh;            // Threshold
+                float               fStereoLink;        // Stereo link
+                uint32_t            nFlags;             // Global flags
 
                 float              *vBuffer;            // Temporary buffer
                 float              *vFreqs;             // FFT frequencies
@@ -237,6 +278,7 @@ namespace lsp
                 plug::IPort        *pGainOut;           // Output gain
                 plug::IPort        *pThresh;            // Threshold
                 plug::IPort        *pBoosting;          // Boosting mode
+                plug::IPort        *pStereoLink;        // Stereo linking for output clipper
                 plug::IPort        *pXOverMode;         // Crossover mode
                 plug::IPort        *pXOverSlope;        // Crossover filter slope
                 plug::IPort        *pFftReactivity;     // FFT reactivity

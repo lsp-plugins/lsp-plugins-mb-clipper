@@ -6,6 +6,7 @@
 			"3": "Band 3",
 			"4": "Band 4"
 		},
+		"output": "Output",
 		"sigmoid": {
 			"arctangent": "Arctangent",
 			"circle": "Circle",
