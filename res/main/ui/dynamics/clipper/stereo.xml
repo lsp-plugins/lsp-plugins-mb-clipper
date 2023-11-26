@@ -207,6 +207,9 @@
 				</hbox>
 				<vsep pad.h="2" bg.color="bg" reduce="true" />
 				<void hexpand="true" bg.color="bg_schema" />
+				<hbox spacing="4" vreduce="true" bg.color="bg_schema" pad.h="6">
+					<button id="oclip" text="labels.chan.output" size="22" ui:inject="Button_cyan"/>
+				</hbox>
 			</hbox>
 		</grid>
 		<group text="Crossover">
@@ -701,8 +704,8 @@
 	
 						<!-- Meshes -->
 						<mesh id="opc" width="3" color="graph_mesh" smooth="true"/>
-						<dot x.id="odx_l" y.id="ody_l" color="left" bcolor="left" visibility=":op"/>
-						<dot x.id="odx_r" y.id="ody_r" color="right" bcolor="right" visibility=":op"/>
+						<dot x.id="odx_l" y.id="ody_l" color="left" bcolor="left" visibility=":oclip and :op"/>
+						<dot x.id="odx_r" y.id="ody_r" color="right" bcolor="right" visibility=":oclip and :op"/>
 	
 						<!-- Markers -->
 						<marker id="th" ox="2" width="2" color="attack_1" editable="true" />
@@ -739,8 +742,8 @@
 					<vbox>
 						<label text="labels.gain_" padding="4"/>
 						<ledmeter vexpand="true" angle="1">
-							<ledchannel id="odr_l" min="-12 db" max="0 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":op" value.color="blue" />
-							<ledchannel id="odr_r" min="-12 db" max="0 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":op" value.color="blue"/>
+							<ledchannel id="odr_l" min="-12 db" max="0 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":oclip and :op" value.color="blue" />
+							<ledchannel id="odr_r" min="-12 db" max="0 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":oclip and :op" value.color="blue"/>
 						</ledmeter>
 					</vbox>
 					
@@ -779,8 +782,8 @@
 	
 						<!-- Meshes -->
 						<mesh id="cfc" x.index="0" y.index="1" width="3" color="graph_mesh" smooth="true"/>
-						<dot x.id="cfx_l" y.id="cfy_l" color="left" bcolor="left" visibility=":ce" />
-						<dot x.id="cfx_r" y.id="cfy_r" color="right" bcolor="right" visibility=":ce" />
+						<dot x.id="cfx_l" y.id="cfy_l" color="left" bcolor="left" visibility=":oclip and :ce" />
+						<dot x.id="cfx_r" y.id="cfy_r" color="right" bcolor="right" visibility=":oclip and :ce" />
 	
 						<!-- Markers -->
 						<marker id="ct" o="1" ox="2" width="2" color="attack_1" editable="true" />
@@ -836,8 +839,8 @@
 	
 						<!-- Meshes -->
 						<mesh id="cfc" x.index="2" y.index="3" width="3" color="graph_mesh" smooth="true"/>
-						<dot x.id="cfx_l" y.id="cfy_l" color="left" bcolor="left" visibility=":ce" />
-						<dot x.id="cfx_r" y.id="cfy_r" color="right" bcolor="right" visibility=":ce" />
+						<dot x.id="cfx_l" y.id="cfy_l" color="left" bcolor="left" visibility=":oclip and :ce" />
+						<dot x.id="cfx_r" y.id="cfy_r" color="right" bcolor="right" visibility=":oclip and :ce" />
 	
 						<!-- Markers -->
 						<marker id="ct" color="attack_1" width="2" editable="true" />
@@ -879,8 +882,8 @@
 					<vbox>
 						<label text="labels.gain_" padding="4"/>
 						<ledmeter vexpand="true" angle="1">
-							<ledchannel id="cfr_l" min="-12 db" max="12 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":ce" value.color="blue"/>
-							<ledchannel id="cfr_r" min="-12 db" max="12 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":ce" value.color="blue"/>
+							<ledchannel id="cfr_l" min="-12 db" max="12 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":oclip and :ce" value.color="blue"/>
+							<ledchannel id="cfr_r" min="-12 db" max="12 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":oclip and :ce" value.color="blue"/>
 						</ledmeter>
 					</vbox>
 					
@@ -911,12 +914,12 @@
 						</ui:with>
 
 						<!-- Meshes -->
-						<mesh id="ctg_l" width="0" x.index="0" y.index="1" color="left_in" fcolor="left_in" fcolor.a="0.8" fill="true" visibility=":grg_l" />
-						<mesh id="ctg_r" width="0" x.index="0" y.index="1" color="right_in" fcolor="right_in" fcolor.a="0.8" fill="true" visibility=":grg_r" />
-						<mesh id="ctg_l" width="2" x.index="0" y.index="2" color="left" visibility=":ilg_l" />
-						<mesh id="ctg_r" width="2" x.index="0" y.index="2" color="right" visibility=":ilg_r" />
-						<mesh id="ctg_l" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":olg_l" />
-						<mesh id="ctg_r" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":olg_r" />
+						<mesh id="ctg_l" width="0" x.index="0" y.index="1" color="left_in" fcolor="left_in" fcolor.a="0.8" fill="true" visibility=":oclip and :ilg_l" />
+						<mesh id="ctg_r" width="0" x.index="0" y.index="1" color="right_in" fcolor="right_in" fcolor.a="0.8" fill="true" visibility=":oclip and :ilg_r" />
+						<mesh id="ctg_l" width="2" x.index="0" y.index="2" color="left" visibility=":oclip and :olg_l" />
+						<mesh id="ctg_r" width="2" x.index="0" y.index="2" color="right" visibility=":oclip and :olg_r" />
+						<mesh id="ctg_l" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":oclip and :grg_l" />
+						<mesh id="ctg_r" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":oclip and :grg_r" />
 						
 						<!-- Boundaries -->
 						<marker v="24 db" ox="1" oy="0" color="graph_prim" visibility="false"/>
@@ -968,18 +971,18 @@
 				
 						<!-- Band gain reduction meter -->
 						<ledmeter vexpand="true" angle="1">
-							<ledchannel id="grm_l" min="-24 db" max="12 db" log="true" balance="0 db" balance.visibility="true" type="peak" value.color="blue" activity=":grg_l" />
-							<ledchannel id="grm_r" min="-24 db" max="12 db" log="true" balance="0 db" balance.visibility="true" type="peak" value.color="blue" activity=":grg_r" />
+							<ledchannel id="grm_l" min="-24 db" max="12 db" log="true" balance="0 db" balance.visibility="true" type="peak" value.color="blue" activity=":oclip and :grg_l" />
+							<ledchannel id="grm_r" min="-24 db" max="12 db" log="true" balance="0 db" balance.visibility="true" type="peak" value.color="blue" activity=":oclip and :grg_r" />
 						</ledmeter>
 						<!-- Band input level -->
 						<ledmeter vexpand="true" angle="1">
-							<ledchannel id="ilm_l" min="-60 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left_in" activity=":ilg_l" />
-							<ledchannel id="ilm_r" min="-60 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right_in" activity=":ilg_r" />
+							<ledchannel id="ilm_l" min="-60 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left_in" activity=":oclip and :ilg_l" />
+							<ledchannel id="ilm_r" min="-60 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right_in" activity=":oclip and :ilg_r" />
 						</ledmeter>
 						<!-- Band output level -->
 						<ledmeter vexpand="true" angle="1">
-							<ledchannel id="olm_l" min="-60 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left" activity=":olg_l" />
-							<ledchannel id="olm_r" min="-60 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right" activity=":olg_r" />
+							<ledchannel id="olm_l" min="-60 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left" activity=":oclip and :olg_l" />
+							<ledchannel id="olm_r" min="-60 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right" activity=":oclip and :olg_r" />
 						</ledmeter>
 					</grid>
 				</hbox>

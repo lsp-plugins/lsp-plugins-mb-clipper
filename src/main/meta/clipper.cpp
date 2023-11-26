@@ -77,7 +77,7 @@ namespace lsp
         static const port_item_t sigmoid_functions[] =
         {
             { "Hard clip",          "clipper.sigmoid.hardclip"              },
-            { "Quadratic",          "clipper.sigmoid.quadratic"             },
+            { "Parabolic",          "clipper.sigmoid.parabolic"             },
             { "Sine",               "clipper.sigmoid.sine"                  },
             { "Logistic",           "clipper.sigmoid.logistic"              },
             { "Arctangent",         "clipper.sigmoid.arctangent"            },
