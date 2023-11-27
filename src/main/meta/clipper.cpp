@@ -163,15 +163,15 @@ namespace lsp
         MESH("cfc", "Output clipper sigmoid function chart", 4, clipper::CURVE_MESH_POINTS)
 
     #define CLIPPER_METERS(id, label) \
-        METER_OUT_GAIN("ilm" id, "Band input level meter" label, GAIN_AMP_P_36_DB), \
-        METER_OUT_GAIN("olm" id, "Band output level meter" label, GAIN_AMP_P_36_DB), \
-        METER_GAIN_DFL("grm" id, "Band gain reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB), \
-        METER_OUT_GAIN("odx" id, "Band overdrive protection input meter" label, GAIN_AMP_P_36_DB), \
-        METER_OUT_GAIN("ody" id, "Band overdrive protection output meter" label, GAIN_AMP_P_36_DB), \
-        METER_GAIN_DFL("odr" id, "Band overdrive protection reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB), \
-        METER_OUT_GAIN("cfx" id, "Band clipping function input meter" label, GAIN_AMP_P_36_DB), \
-        METER_OUT_GAIN("cfy" id, "Band clipping function output meter" label, GAIN_AMP_P_36_DB), \
-        METER_GAIN_DFL("cfr" id, "Band clipping function reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB), \
+        METER_OUT_GAIN("ilm" id, "Input level meter" label, GAIN_AMP_P_36_DB), \
+        METER_OUT_GAIN("olm" id, "Output level meter" label, GAIN_AMP_P_36_DB), \
+        METER_GAIN_DFL("grm" id, "Gain reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB), \
+        METER_OUT_GAIN("odx" id, "Overdrive protection input meter" label, GAIN_AMP_P_36_DB), \
+        METER_OUT_GAIN("ody" id, "Overdrive protection output meter" label, GAIN_AMP_P_36_DB), \
+        METER_GAIN_DFL("odr" id, "Overdrive protection reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB), \
+        METER_OUT_GAIN("cfx" id, "Clipping function input meter" label, GAIN_AMP_P_36_DB), \
+        METER_OUT_GAIN("cfy" id, "Clipping function output meter" label, GAIN_AMP_P_36_DB), \
+        METER_GAIN_DFL("cfr" id, "Clipping function reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB), \
         MESH("ctg" id, "Clipper time graph" label, 4, clipper::TIME_MESH_POINTS + 4)
 
     #define CLIPPER_STEREO_BAND(id, label, resonance, link) \
@@ -193,7 +193,8 @@ namespace lsp
         SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
         SWITCH("ofe" id, "Output FFT graph enable" label, 1.0f), \
         MESH("ifg" id, "Input FFT graph" label, 2, clipper::FFT_MESH_POINTS + 2), \
-        MESH("ofg" id, "Output FFT graph" label, 2, clipper::FFT_MESH_POINTS)
+        MESH("ofg" id, "Output FFT graph" label, 2, clipper::FFT_MESH_POINTS), \
+        MESH("grc" id, "Crossover gain reduction chart" label, 2, clipper::FFT_MESH_POINTS)
 
         //-------------------------------------------------------------------------
         // Plugin metadata

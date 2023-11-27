@@ -84,8 +84,8 @@
 					<mesh id="ofg_l" oy=":_ui_zoomable_spectrum_graph ? 1 : 3" width="2" color="left" visibility=":ofe_l"/>
 					<mesh id="ofg_r" oy=":_ui_zoomable_spectrum_graph ? 1 : 3" width="2" color="right" visibility=":ofe_r"/>
 
-					<!-- mesh id="ag_l" width="3" color="left" smooth="true" />
-					<mesh id="ag_r" width="3" color="right" smooth="true" / -->
+					<mesh id="grc_l" width="3" color="left" smooth="true" />
+					<mesh id="grc_r" width="3" color="right" smooth="true" />
 
 					<!-- Boundaries -->
 					<marker v="1" ox="2" oy="0" color="graph_prim" visibility="false"/>

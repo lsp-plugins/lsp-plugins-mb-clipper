@@ -228,6 +228,7 @@ namespace lsp
                     float              *vOut;               // Output buffer
                     float              *vData;              // Data buffer
                     float              *vSc;                // Sidechain buffer
+                    float              *vTr;                // Transfer function
                     float              *vInAnalyze;         // Input data analysis
 
                     // Input ports
@@ -237,6 +238,7 @@ namespace lsp
                     plug::IPort        *pFftOutSwitch;      // Output FFT enable switch
                     plug::IPort        *pFftInMesh;         // Input FFT mesh
                     plug::IPort        *pFftOutMesh;        // Output FFT mesh
+                    plug::IPort        *pFreqMesh;          // Frequency reduction mesh
 
                     // Metering
                     plug::IPort        *pGainIn;            // Overall input level meter

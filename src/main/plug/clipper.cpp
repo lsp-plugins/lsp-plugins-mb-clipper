@@ -241,6 +241,7 @@ namespace lsp
                 nChannels * (
                     szof_buffer +       // vData
                     szof_buffer +       // vSc
+                    szof_fft_buffer +   // vTr
                     szof_buffer +       // vInAnalyze
                     meta::clipper::BANDS_MAX * (
                         szof_buffer +       // vInData
@@ -366,7 +367,9 @@ namespace lsp
                 c->vOut                 = NULL;
                 c->vData                = advance_ptr_bytes<float>(ptr, szof_buffer);
                 c->vSc                  = advance_ptr_bytes<float>(ptr, szof_buffer);
+                c->vTr                  = advance_ptr_bytes<float>(ptr, szof_fft_buffer);
                 c->vInAnalyze           = advance_ptr_bytes<float>(ptr, szof_buffer);
+                c->pFreqMesh            = NULL;
 
                 // Initialize ports
                 c->pDataIn              = NULL;
@@ -500,6 +503,7 @@ namespace lsp
                 c->pFftOutSwitch        = trace_port(ports[port_id++]);
                 c->pFftInMesh           = trace_port(ports[port_id++]);
                 c->pFftOutMesh          = trace_port(ports[port_id++]);
+                c->pFreqMesh            = trace_port(ports[port_id++]);
             }
 
             lsp_trace("Binding band metering ports");
@@ -1811,6 +1815,49 @@ namespace lsp
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c        = &vChannels[i];
+
+                // Update transfer curve for crossover if needed
+                if (sCounter.fired())
+                {
+                    for (size_t offset=0; offset<meta::clipper::FFT_MESH_POINTS; )
+                    {
+                        size_t count    = lsp_min(BUFFER_SIZE, meta::clipper::FFT_MESH_POINTS - offset);
+                        size_t bands    = 0;
+
+                        for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                        {
+                            band_t *b       = &c->vBands[j];
+                            processor_t *p  = &vProc[j];
+                            if (!(p->nFlags & PF_ENABLED))
+                                continue;
+
+                            if (bands++)
+                                dsp::fmadd_k3(vBuffer, &p->vTr[offset], b->fRed, count);
+                            else
+                                dsp::mul_k3(vBuffer, &p->vTr[offset], b->fRed, count);
+                        }
+
+                        // Commit data
+                        if (!bands)
+                            dsp::fill_zero(&c->vTr[offset], count);
+                        else
+                            dsp::copy(&c->vTr[offset], vBuffer, count);
+
+                        offset         += count;
+                    }
+                }
+
+                // Output transfer curve for crossover
+                mesh            = (c->pFreqMesh != NULL) ? c->pFreqMesh->buffer<plug::mesh_t>() : NULL;
+                if ((mesh != NULL) && (mesh->isEmpty()))
+                {
+                    // Copy frequency points
+                    dsp::copy(mesh->pvData[0], vFreqs, meta::clipper::FFT_MESH_POINTS);
+                    dsp::copy(mesh->pvData[1], c->vTr, meta::clipper::FFT_MESH_POINTS);
+
+                    // Mark mesh containing data
+                    mesh->data(2, meta::clipper::FFT_MESH_POINTS);
+                }
 
                 // Output FFT curve for input
                 mesh            = (c->pFftInMesh != NULL) ? c->pFftInMesh->buffer<plug::mesh_t>() : NULL;
