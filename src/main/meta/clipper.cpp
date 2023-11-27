@@ -91,6 +91,20 @@ namespace lsp
             { NULL, NULL }
         };
 
+        static port_item_t clipper_dither_modes[] =
+        {
+            { "None",               "dither.none"                           },
+            { "7bit",               "dither.bits.7"                         },
+            { "8bit",               "dither.bits.8"                         },
+            { "11bit",              "dither.bits.11"                        },
+            { "12bit",              "dither.bits.12"                        },
+            { "15bit",              "dither.bits.15"                        },
+            { "16bit",              "dither.bits.16"                        },
+            { "23bit",              "dither.bits.23"                        },
+            { "24bit",              "dither.bits.24"                        },
+            { NULL, NULL }
+        };
+
     #define CLIPPER_COMMON \
         BYPASS, \
         IN_GAIN, \
@@ -116,6 +130,7 @@ namespace lsp
         SWITCH("oclip", "Enable output clipper", 1), \
         COMBO("tsel", "Tab selector", 4, clipper_tab_selectors), \
         SWITCH("flt", "Band filter curves", 1.0f), \
+        COMBO("dither", "Dithering mode", 0, clipper_dither_modes), \
         SWITCH("clog", "Clipper logarithmic display", 1.0f)
 
     #define CLIPPER_BAND(id, label, resonance) \

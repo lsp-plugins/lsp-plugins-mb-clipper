@@ -29,6 +29,7 @@
 #include <lsp-plug.in/dsp-units/util/Analyzer.h>
 #include <lsp-plug.in/dsp-units/util/Crossover.h>
 #include <lsp-plug.in/dsp-units/util/Delay.h>
+#include <lsp-plug.in/dsp-units/util/Dither.h>
 #include <lsp-plug.in/dsp-units/util/FFTCrossover.h>
 #include <lsp-plug.in/dsp-units/util/MeterGraph.h>
 #include <lsp-plug.in/dsp-units/util/Sidechain.h>
@@ -197,6 +198,7 @@ namespace lsp
                     dspu::Equalizer     sEqualizer;         // Equalizer for cut-off low/high frequencies
                     dspu::Crossover     sIIRXOver;          // IIR crossover
                     dspu::FFTCrossover  sFFTXOver;          // FFT crossover
+                    dspu::Dither        sDither;            // Dither
                     dspu::MeterGraph    sInGraph;           // Input meter graph
                     dspu::MeterGraph    sOutGraph;          // Output meter graph
                     band_t              vBands[meta::clipper::BANDS_MAX];   // Bands for processing
@@ -302,6 +304,7 @@ namespace lsp
                 plug::IPort        *pLpfFreq;           // LPF filter frequency
                 plug::IPort        *pExtraBandOn;       // Enable extra band
                 plug::IPort        *pOutClipperOn;      // Enable output clipper
+                plug::IPort        *pDithering;         // Dithering mode
                 plug::IPort        *pFilterCurves;      // Band filter curves
 
                 uint8_t            *pData;              // Allocated data
@@ -324,6 +327,8 @@ namespace lsp
 
                 static float            clip_curve(const clip_params_t *p, float x);
                 static void             clip_curve(float *dst, const float *x, const clip_params_t *p, size_t count);
+
+                static size_t           decode_dithering(size_t mode);
 
             protected:
                 void                    do_destroy();

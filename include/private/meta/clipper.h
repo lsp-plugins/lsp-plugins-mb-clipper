@@ -158,6 +158,21 @@ namespace lsp
             static constexpr float  CLIP_PUMPING_MAX        = 12.0f;
             static constexpr float  CLIP_PUMPING_DFL        = 0.0f;
             static constexpr float  CLIP_PUMPING_STEP       = 0.025f;
+
+            enum dithering_t
+            {
+                DITHER_NONE,
+                DITHER_7BIT,
+                DITHER_8BIT,
+                DITHER_11BIT,
+                DITHER_12BIT,
+                DITHER_15BIT,
+                DITHER_16BIT,
+                DITHER_23BIT,
+                DITHER_24BIT,
+
+                DITHER_DEFAULT  = DITHER_NONE
+            };
         } clipper;
 
         // Plugin type metadata

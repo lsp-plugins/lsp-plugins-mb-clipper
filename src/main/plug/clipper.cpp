@@ -203,6 +203,7 @@ namespace lsp
             pExtraBandOn    = NULL;
             pOutClipperOn   = NULL;
             pFilterCurves   = NULL;
+            pDithering      = NULL;
 
             pData           = NULL;
         }
@@ -278,6 +279,7 @@ namespace lsp
                 c->sScDelay.construct();
                 c->sSc.construct();
                 c->sEqualizer.construct();
+                c->sDither.construct();
                 c->sIIRXOver.construct();
                 c->sFFTXOver.construct();
 
@@ -291,6 +293,8 @@ namespace lsp
 
                 c->sInGraph.construct();
                 c->sOutGraph.construct();
+
+                c->sDither.init();
 
                 for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
                 {
@@ -436,6 +440,7 @@ namespace lsp
             pOutClipperOn       = trace_port(ports[port_id++]);
             trace_port(ports[port_id++]); // Skip band selector
             pFilterCurves       = trace_port(ports[port_id++]);
+            pDithering          = trace_port(ports[port_id++]);
             trace_port(ports[port_id++]); // Skip clipper linear/logarithmic graph view
 
             // Bind processor ports
@@ -584,6 +589,7 @@ namespace lsp
                     c->sEqualizer.destroy();
                     c->sIIRXOver.destroy();
                     c->sFFTXOver.destroy();
+                    c->sDither.destroy();
                     c->sInGraph.destroy();
                     c->sOutGraph.destroy();
 
@@ -829,12 +835,32 @@ namespace lsp
                 dst[i]      = clip_curve(p, x[i]);
         }
 
+        size_t clipper::decode_dithering(size_t mode)
+        {
+            switch (mode)
+            {
+                case meta::clipper::DITHER_7BIT:        return 7;
+                case meta::clipper::DITHER_8BIT:        return 8;
+                case meta::clipper::DITHER_11BIT:       return 11;
+                case meta::clipper::DITHER_12BIT:       return 12;
+                case meta::clipper::DITHER_15BIT:       return 15;
+                case meta::clipper::DITHER_16BIT:       return 16;
+                case meta::clipper::DITHER_23BIT:       return 23;
+                case meta::clipper::DITHER_24BIT:       return 24;
+                case meta::clipper::DITHER_NONE:
+                default:
+                    return 0;
+            }
+            return 0;
+        }
+
         void clipper::update_settings()
         {
             bool bypass             = pBypass->value() >= 0.5f;
             fThresh                 = dspu::db_to_gain(-pThresh->value());
             size_t active_channels  = 0;
             bool sync_band_curves   = false;
+            const size_t dither_bits= decode_dithering(pDithering->value());
 
             fInGain                 = pGainIn->value();
             fOutGain                = pGainOut->value();
@@ -882,6 +908,9 @@ namespace lsp
             {
                 channel_t *c            = &vChannels[i];
                 c->sBypass.set_bypass(bypass);
+
+                // Configure dither noise
+                c->sDither.set_bits(dither_bits);
 
                 if (enXOverMode == XOVER_IIR)
                 {
@@ -1943,6 +1972,7 @@ namespace lsp
                 channel_t *c        = &vChannels[i];
 
                 dsp::mul_k2(c->vData, fOutGain, samples);
+                c->sDither.process(c->vData, c->vData, samples);
                 c->sDryDelay.process(vBuffer, c->vIn, samples);
                 c->sBypass.process(c->vOut, vBuffer, c->vData, samples);
             }

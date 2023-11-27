@@ -204,6 +204,8 @@
 					<button id="flt" text="labels.filters" size="22" ui:inject="Button_cyan"/>
 					<label text="labels.slope" />
 					<combo id="slope" pad.r="8" pad.v="4"/>
+					<label text="labels.dither:"/>
+					<combo id="dither" pad.r="8" pad.v="4"/>
 				</hbox>
 				<vsep pad.h="2" bg.color="bg" reduce="true" />
 				<void hexpand="true" bg.color="bg_schema" />
