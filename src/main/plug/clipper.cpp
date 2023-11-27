@@ -27,6 +27,7 @@
 #include <lsp-plug.in/dsp-units/misc/envelope.h>
 #include <lsp-plug.in/plug-fw/meta/func.h>
 #include <lsp-plug.in/shared/debug.h>
+#include <lsp-plug.in/shared/id_colors.h>
 
 #include <private/plugins/clipper.h>
 
@@ -174,6 +175,7 @@ namespace lsp
             fOutGain        = GAIN_AMP_0_DB;
             fThresh         = GAIN_AMP_0_DB;
             fStereoLink     = 0.0f;
+            fZoom           = GAIN_AMP_0_DB;
             nFlags          = GF_SYNC_ALL;
 
             vBuffer         = NULL;
@@ -184,6 +186,7 @@ namespace lsp
             vLinSigmoid     = NULL;
             vLogSigmoid     = NULL;
             vTime           = NULL;
+            pIDisplay       = NULL;
 
             pBypass         = NULL;
             pGainIn         = NULL;
@@ -613,6 +616,13 @@ namespace lsp
                 vChannels   = NULL;
             }
 
+            // Destroy inline display
+            if (pIDisplay != NULL)
+            {
+                pIDisplay->destroy();
+                pIDisplay   = NULL;
+            }
+
             // Destroy analyzer
             sAnalyzer.destroy();
             sCounter.destroy();
@@ -868,6 +878,7 @@ namespace lsp
 
             fInGain                 = pGainIn->value();
             fOutGain                = pGainOut->value();
+            fZoom                   = pZoom->value();
             nFlags                  = lsp_setflag(nFlags, GF_BOOSTING, pBoosting->value() >= 0.5f);
 
             xover_mode_t mode       = (pXOverMode->value() >= 1) ? XOVER_FFT : XOVER_IIR;
@@ -2182,9 +2193,6 @@ namespace lsp
                     }
                 }
             }
-
-            // Update counter
-            sCounter.submit(samples);
         }
 
         void clipper::output_signal(size_t samples)
@@ -2220,8 +2228,17 @@ namespace lsp
                 offset         += to_do;
             }
 
+            // Update counter
+            sCounter.submit(samples);
+
             output_meters();
             output_mesh_curves(samples);
+
+            // Request for redraw
+            if ((pWrapper != NULL) && (sCounter.fired()))
+                pWrapper->query_display_draw();
+
+            sCounter.commit();
         }
 
         void clipper::ui_activated()
@@ -2237,8 +2254,96 @@ namespace lsp
 
         bool clipper::inline_display(plug::ICanvas *cv, size_t width, size_t height)
         {
-            // TODO
-            return false;
+            // Check proportions
+            if (height > (M_RGOLD_RATIO * width))
+                height  = M_RGOLD_RATIO * width;
+
+            // Init canvas
+            if (!cv->init(width, height))
+                return false;
+            width   = cv->width();
+            height  = cv->height();
+
+            // Clear background
+            bool bypassing = vChannels[0].sBypass.bypassing();
+            cv->set_color_rgb((bypassing) ? CV_DISABLED : CV_BACKGROUND);
+            cv->paint();
+
+            // Draw axis
+            cv->set_line_width(1.0);
+
+            // "-72 db / (:zoom ** 3)" max="24 db * :zoom"
+
+            float miny  = logf(GAIN_AMP_M_72_DB / dsp::ipowf(fZoom, 3));
+            float maxy  = logf(GAIN_AMP_P_24_DB * fZoom);
+
+            float zx    = 1.0f/SPEC_FREQ_MIN;
+            float zy    = dsp::ipowf(fZoom, 3)/GAIN_AMP_M_72_DB;
+            float dx    = width/(logf(SPEC_FREQ_MAX)-logf(SPEC_FREQ_MIN));
+            float dy    = height/(miny-maxy);
+
+            // Draw vertical lines
+            cv->set_color_rgb(CV_YELLOW, 0.5f);
+            for (float i=100.0f; i<SPEC_FREQ_MAX; i *= 10.0f)
+            {
+                float ax = dx*(logf(i*zx));
+                cv->line(ax, 0, ax, height);
+            }
+
+            // Draw horizontal lines
+            cv->set_color_rgb(CV_WHITE, 0.5f);
+            for (float i=GAIN_AMP_M_72_DB; i<GAIN_AMP_P_24_DB; i *= GAIN_AMP_P_12_DB)
+            {
+                float ay = height + dy*(logf(i*zy));
+                cv->line(0, ay, width, ay);
+            }
+
+            // Allocate buffer: f, x, y, tr
+            pIDisplay           = core::IDBuffer::reuse(pIDisplay, 4, width+2);
+            core::IDBuffer *b   = pIDisplay;
+            if (b == NULL)
+                return false;
+
+            // Initialize mesh
+            b->v[0][0]          = SPEC_FREQ_MIN*0.5f;
+            b->v[0][width+1]    = SPEC_FREQ_MAX*2.0f;
+            b->v[3][0]          = 1.0f;
+            b->v[3][width+1]    = 1.0f;
+
+            static const uint32_t c_colors[] = {
+                CV_MIDDLE_CHANNEL,
+                CV_LEFT_CHANNEL, CV_RIGHT_CHANNEL
+            };
+
+            const uint32_t *vc  = (nChannels == 1) ? &c_colors[0] : &c_colors[1];
+
+            bool aa = cv->set_anti_aliasing(true);
+            lsp_finally { cv->set_anti_aliasing(aa); };
+            cv->set_line_width(2);
+
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c    = &vChannels[i];
+
+                for (size_t j=0; j<width; ++j)
+                {
+                    size_t k        = (j*meta::clipper::FFT_MESH_POINTS)/width;
+                    b->v[0][j+1]    = vFreqs[k];
+                    b->v[3][j+1]    = c->vTr[k];
+                }
+
+                dsp::fill(b->v[1], 0.0f, width+2);
+                dsp::fill(b->v[2], height, width+2);
+                dsp::axis_apply_log1(b->v[1], b->v[0], zx, dx, width+2);
+                dsp::axis_apply_log1(b->v[2], b->v[3], zy, dy, width+2);
+
+                // Draw mesh
+                uint32_t color = (bypassing || !(active())) ? CV_SILVER : vc[i];
+                Color stroke(color), fill(color, 0.5f);
+                cv->draw_poly(b->v[1], b->v[2], width+2, stroke, fill);
+            }
+
+            return true;
         }
 
         void clipper::dump(dspu::IStateDumper *v) const

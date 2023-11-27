@@ -33,6 +33,7 @@
 #include <lsp-plug.in/dsp-units/util/FFTCrossover.h>
 #include <lsp-plug.in/dsp-units/util/MeterGraph.h>
 #include <lsp-plug.in/dsp-units/util/Sidechain.h>
+#include <lsp-plug.in/plug-fw/core/IDBuffer.h>
 #include <lsp-plug.in/plug-fw/plug.h>
 
 #include <private/meta/clipper.h>
@@ -278,6 +279,7 @@ namespace lsp
                 float               fOutGain;           // Output gain
                 float               fThresh;            // Threshold
                 float               fStereoLink;        // Stereo link
+                float               fZoom;              // Zoom
                 uint32_t            nFlags;             // Global flags
 
                 float              *vBuffer;            // Temporary buffer
@@ -288,6 +290,7 @@ namespace lsp
                 float              *vLinSigmoid;        // Linear scale for sigmoid
                 float              *vLogSigmoid;        // Logarithmic scale for sigmoid
                 float              *vTime;              // Time graph
+                core::IDBuffer     *pIDisplay;          // Inline display buffer
 
                 plug::IPort        *pBypass;            // Bypass
                 plug::IPort        *pGainIn;            // Input gain
