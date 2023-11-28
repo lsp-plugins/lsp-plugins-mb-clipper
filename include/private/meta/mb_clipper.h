@@ -123,13 +123,13 @@ namespace lsp
 
             static constexpr float  ODP_KNEE_MIN            = 0.0f;
             static constexpr float  ODP_KNEE_MAX            = 6.0f;
-            static constexpr float  ODP_KNEE_DFL            = 3.0f;
+            static constexpr float  ODP_KNEE_DFL            = 1.5f;
             static constexpr float  ODP_KNEE_STEP           = 0.005f;
 
             static constexpr float  ODP_THRESHOLD_MIN       = -12.0f;
             static constexpr float  ODP_THRESHOLD_MAX       = 0.0f;
-            static constexpr float  ODP_THRESHOLD_DFL       = 0.0f;
-            static constexpr float  ODP_THRESHOLD_STEP      = 0.005f;
+            static constexpr float  ODP_THRESHOLD_DFL       = -1.5f;
+            static constexpr float  ODP_THRESHOLD_STEP      = 0.01f;
 
             static constexpr float  ODP_REACT_MIN           = 1.0f;
             static constexpr float  ODP_REACT_MAX           = 50.0f;

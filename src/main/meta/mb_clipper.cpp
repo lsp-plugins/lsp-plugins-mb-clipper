@@ -141,27 +141,35 @@ namespace lsp
         SWITCH("bs" id, "Solo band" label, 0.0f), \
         SWITCH("bm" id, "Mute band" label, 0.0f), \
         CONTROL("pa" id, "Band preamp gain" label, U_DB, mb_clipper::PREAMP), \
-        CONTROL("mk" id, "Band makeup gain" label, U_DB, mb_clipper::MAKEUP), \
+        SWITCH("lo" id, "Enable input LUFS limitation" label, 1.0f), \
+        CONTROL("lt" id, "Input LUFS limiter threshold" label, U_LUFS, mb_clipper::LUFS_THRESH), \
+        LUFS_METER("li" id, "Input LUFS value" label, 24.0f), \
+        METER_OUT_GAIN("lg" id, "Input LUFS gain reduction" label, GAIN_AMP_0_DB), \
         SWITCH("op" id, "Overdrive protection" label, 1.0f), \
         CONTROL("th" id, "Overdrive protection threshold" label, U_DB, mb_clipper::ODP_THRESHOLD), \
         CONTROL("kn" id, "Overdrive protection knee" label, U_DB, mb_clipper::ODP_KNEE), \
         LOG_CONTROL("rs" id, "Overdrive protection resonance" label, U_HZ, mb_clipper::resonance), \
         MESH("opc" id, "Overdrive protection chart" label, 2, mb_clipper::CURVE_MESH_POINTS), \
         SWITCH("ce" id, "Clipper enable" label, 1.0f), \
-        COMBO("cf" id, "Clipper sigmoid function" label, 1.0f, sigmoid_functions), \
+        COMBO("cf" id, "Clipper sigmoid function" label, 2.0f, sigmoid_functions), \
         LOG_CONTROL("ct" id, "Clipper sigmoid threshold" label, U_GAIN_AMP, mb_clipper::CLIP_THRESHOLD), \
         CONTROL("cp" id, "Clipper sigmoid pumping" label, U_DB, mb_clipper::CLIP_PUMPING), \
         MESH("cfc" id, "Clipper sigmoid function chart" label, 4, mb_clipper::CURVE_MESH_POINTS), \
-        MESH("bfc" id, "Band frequency chart" label, 2, mb_clipper::FFT_MESH_POINTS + 2)
+        MESH("bfc" id, "Band frequency chart" label, 2, mb_clipper::FFT_MESH_POINTS + 2), \
+        CONTROL("mk" id, "Band makeup gain" label, U_DB, mb_clipper::MAKEUP)
 
     #define OUTPUT_CLIPPER \
+        SWITCH("lo", "Enable output clipper LUFS limitation", 1.0f), \
+        CONTROL("lt", "Output clipper LUFS limiter threshold", U_LUFS, mb_clipper::LUFS_THRESH), \
+        LUFS_METER("li", "Output clipper LUFS value", 24.0f), \
+        METER_OUT_GAIN("lg", "Output clipper LUFS gain reduction", GAIN_AMP_0_DB), \
         SWITCH("op", "Output overdrive protection", 1.0f), \
         CONTROL("th", "Output overdrive protection threshold", U_DB, mb_clipper::ODP_THRESHOLD), \
         CONTROL("kn", "Output overdrive protection knee", U_DB, mb_clipper::ODP_KNEE), \
         LOG_CONTROL("or", "Output overdrive protection reactivity", U_MSEC, mb_clipper::ODP_REACT), \
         MESH("opc", "Output overdrive protection chart", 2, mb_clipper::CURVE_MESH_POINTS), \
         SWITCH("ce", "Output clipper enable", 1.0f), \
-        COMBO("cf", "Output clipper sigmoid function", 1.0f, sigmoid_functions), \
+        COMBO("cf", "Output clipper sigmoid function", 2.0f, sigmoid_functions), \
         LOG_CONTROL("ct", "Output clipper sigmoid threshold", U_GAIN_AMP, mb_clipper::CLIP_THRESHOLD), \
         CONTROL("cp", "Output clipper sigmoid pumping", U_DB, mb_clipper::CLIP_PUMPING), \
         MESH("cfc", "Output clipper sigmoid function chart", 4, mb_clipper::CURVE_MESH_POINTS)

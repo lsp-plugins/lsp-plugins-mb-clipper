@@ -223,7 +223,7 @@
 				<label text="LUFS" />
 				<cell rows="4">
 					<ledmeter vexpand="true" angle="1">
-						<ledchannel id="lufs_gr" min="-48 db" max="0 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":lufs_on" value.color="blue"/>
+						<ledchannel id="lufs_gr" min="-24 db" max="0 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":lufs_on" value.color="blue"/>
 					</ledmeter>
 				</cell>
 				<label text="labels.flt.HPF" />
@@ -282,9 +282,10 @@
 			<ui:for id="i" first="1" count="4">
 				<vbox>
 					<!-- Controls -->
-					<grid rows="3" cols="12">
+					<grid rows="3" cols="13">
 						<!-- Row 1 -->
 						<label text="Preamp" />
+						<button id="lo_${i}" pad.h="6" height="18" width="70" text="LUFS" ui:inject="Button_violet_8"/>
 						<label text="ODP" />
 						<label text="ODP link" visibility="${:i igt 1}"/>
 						<label text="Thresh" />
@@ -300,6 +301,10 @@
 						
 						<!-- Row 2 -->
 						<knob id="pa_${i}" />
+						<hbox>
+							<knob id="lt_${i}" ui:inject="Knob_meter_threshold" meter.max=":li_${i}" visibility=":lo_${i}"/>
+							<knob id="lt_${i}" scolor="cycle_inactive" visibility="!:lo_${i}"/>
+						</hbox>
 						<button id="op_${i}" text="ON" />
 						<knob id="ol_${:i-1}" visibility="${:i igt 1}"/>
 						<knob id="th_${i}" />
@@ -318,6 +323,7 @@
 						
 						<!-- Row 3 -->
 						<value id="pa_${i}" />
+						<value id="lt_${i}" />
 						<void />
 						<value id="ol_${:i-1}" visibility="${:i igt 1}"/>
 						<value id="th_${i}" />
@@ -333,6 +339,14 @@
 					</grid>
 				
 					<hbox>
+						<!-- LUFS gain reduction meter -->
+						<vbox>
+							<label text="labels.gain_" padding="4"/>
+							<ledmeter vexpand="true" angle="1">
+								<ledchannel id="lg_${i}" min="-24 db" max="0 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":lo_${i}" value.color="blue"/>
+							</ledmeter>
+						</vbox>
+						
 						<!-- Overdrive protection graph -->
 						<graph width.min="192" height.min="192" expand="true" fill="true">
 							<origin hpos="-1" vpos="-1" visible="false"/>
@@ -648,8 +662,9 @@
 			<!-- Output tab -->
 			<vbox>
 				<!-- Controls -->
-				<grid rows="3" cols="9">
+				<grid rows="3" cols="10">
 					<!-- Row 1 -->
+					<button id="lo" pad.h="6" height="18" width="70" text="LUFS" ui:inject="Button_violet_8"/>
 					<label text="ODP" />
 					<label text="Thresh" />
 					<label text="Knee" />
@@ -662,6 +677,10 @@
 					<label text="Pumping" />
 					
 					<!-- Row 2 -->
+					<hbox>
+						<knob id="lt" ui:inject="Knob_meter_threshold" meter.max=":li" visibility=":lo"/>
+						<knob id="lt" scolor="cycle_inactive" visibility="!:lo"/>
+					</hbox>
 					<button id="op" text="ON" />
 					<knob id="th" />
 					<knob id="kn" />
@@ -677,6 +696,7 @@
 					<knob id="cp" />
 					
 					<!-- Row 3 -->
+					<value id="lt" />
 					<void />
 					<value id="th" />
 					<value id="kn" />
@@ -690,6 +710,14 @@
 				</grid>
 			
 				<hbox>
+					<!-- LUFS gain reduction meter -->
+					<vbox>
+						<label text="labels.gain_" padding="4"/>
+						<ledmeter vexpand="true" angle="1">
+							<ledchannel id="lg" min="-24 db" max="0 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":lo" value.color="blue"/>
+						</ledmeter>
+					</vbox>
+						
 					<!-- Overdrive protection graph -->
 					<graph width.min="192" height.min="192" expand="true" fill="true">
 						<origin hpos="-1" vpos="-1" visible="false"/>

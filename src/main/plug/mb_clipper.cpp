@@ -126,6 +126,13 @@ namespace lsp
                 p->sClip.pPumping       = NULL;
                 p->sClip.pCurveMesh     = NULL;
 
+                p->sLufs.fIn            = GAIN_AMP_M_INF_DB;
+                p->sLufs.fRed           = GAIN_AMP_0_DB;
+                p->sLufs.pOn            = NULL;
+                p->sLufs.pIn            = NULL;
+                p->sLufs.pRed           = NULL;
+                p->sLufs.pThreshold     = NULL;
+
                 p->nFlags               = PF_DIRTY_BAND | PF_SYNC_ALL;
                 p->fPreamp              = 0.0f;
                 p->fStereoLink          = 0.0f;
@@ -169,12 +176,19 @@ namespace lsp
             sClip.pPumping          = NULL;
             sClip.pCurveMesh        = NULL;
 
-            sLufs.fIn               = GAIN_AMP_M_INF_DB;
-            sLufs.fRed              = GAIN_AMP_0_DB;
-            sLufs.pOn               = NULL;
-            sLufs.pIn               = NULL;
-            sLufs.pRed              = NULL;
-            sLufs.pThreshold        = NULL;
+            sInLufs.fIn             = GAIN_AMP_M_INF_DB;
+            sInLufs.fRed            = GAIN_AMP_0_DB;
+            sInLufs.pOn             = NULL;
+            sInLufs.pIn             = NULL;
+            sInLufs.pRed            = NULL;
+            sInLufs.pThreshold      = NULL;
+
+            sOutLufs.fIn            = GAIN_AMP_M_INF_DB;
+            sOutLufs.fRed           = GAIN_AMP_0_DB;
+            sOutLufs.pOn            = NULL;
+            sOutLufs.pIn            = NULL;
+            sOutLufs.pRed           = NULL;
+            sOutLufs.pThreshold     = NULL;
 
             enXOverMode             = XOVER_IIR;
 
@@ -263,22 +277,37 @@ namespace lsp
             size_t an_id            = 0;
             sAnalyzer.construct();
             sCounter.construct();
-            sLufs.sMeter.construct();
-            sLufs.sGain.construct();
+            sInLufs.sMeter.construct();
+            sInLufs.sGain.construct();
+            sOutLufs.sMeter.construct();
+            sOutLufs.sGain.construct();
 
             sCounter.set_frequency(meta::mb_clipper::REFRESH_RATE, true);
-            sLufs.sMeter.init(nChannels, meta::mb_clipper::LUFS_MEASUREMENT_PERIOD);
-            sLufs.sMeter.set_period(meta::mb_clipper::LUFS_MEASUREMENT_PERIOD);
-            sLufs.sMeter.set_weighting(dspu::bs::WEIGHT_K);
-            sLufs.sGain.init();
-            sLufs.sGain.set_speed(meta::mb_clipper::LUFS_LIMITER_REACT, meta::mb_clipper::LUFS_LIMITER_REACT);
+            sInLufs.sMeter.init(nChannels, meta::mb_clipper::LUFS_MEASUREMENT_PERIOD);
+            sInLufs.sMeter.set_period(meta::mb_clipper::LUFS_MEASUREMENT_PERIOD);
+            sInLufs.sMeter.set_weighting(dspu::bs::WEIGHT_K);
+            sInLufs.sGain.init();
+            sInLufs.sGain.set_speed(meta::mb_clipper::LUFS_LIMITER_REACT, meta::mb_clipper::LUFS_LIMITER_REACT);
             if (nChannels > 1)
             {
-                sLufs.sMeter.set_designation(0, dspu::bs::CHANNEL_LEFT);
-                sLufs.sMeter.set_designation(1, dspu::bs::CHANNEL_RIGHT);
+                sInLufs.sMeter.set_designation(0, dspu::bs::CHANNEL_LEFT);
+                sInLufs.sMeter.set_designation(1, dspu::bs::CHANNEL_RIGHT);
             }
             else
-                sLufs.sMeter.set_designation(0, dspu::bs::CHANNEL_CENTER);
+                sInLufs.sMeter.set_designation(0, dspu::bs::CHANNEL_CENTER);
+
+            sOutLufs.sMeter.init(nChannels, meta::mb_clipper::LUFS_MEASUREMENT_PERIOD);
+            sOutLufs.sMeter.set_period(meta::mb_clipper::LUFS_MEASUREMENT_PERIOD);
+            sOutLufs.sMeter.set_weighting(dspu::bs::WEIGHT_K);
+            sOutLufs.sGain.init();
+            sOutLufs.sGain.set_speed(meta::mb_clipper::LUFS_LIMITER_REACT, meta::mb_clipper::LUFS_LIMITER_REACT);
+            if (nChannels > 1)
+            {
+                sOutLufs.sMeter.set_designation(0, dspu::bs::CHANNEL_LEFT);
+                sOutLufs.sMeter.set_designation(1, dspu::bs::CHANNEL_RIGHT);
+            }
+            else
+                sOutLufs.sMeter.set_designation(0, dspu::bs::CHANNEL_CENTER);
 
             // Allocate memory-aligned data
             uint8_t *ptr            = alloc_aligned<uint8_t>(pData, to_alloc, OPTIMAL_ALIGN);
@@ -427,6 +456,20 @@ namespace lsp
             for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
             {
                 processor_t *p          = &vProc[j];
+
+                p->sLufs.sMeter.init(nChannels, meta::mb_clipper::LUFS_MEASUREMENT_PERIOD);
+                p->sLufs.sMeter.set_period(meta::mb_clipper::LUFS_MEASUREMENT_PERIOD);
+                p->sLufs.sMeter.set_weighting(dspu::bs::WEIGHT_K);
+                p->sLufs.sGain.init();
+                p->sLufs.sGain.set_speed(meta::mb_clipper::LUFS_LIMITER_REACT, meta::mb_clipper::LUFS_LIMITER_REACT);
+                if (nChannels > 1)
+                {
+                    p->sLufs.sMeter.set_designation(0, dspu::bs::CHANNEL_LEFT);
+                    p->sLufs.sMeter.set_designation(1, dspu::bs::CHANNEL_RIGHT);
+                }
+                else
+                    p->sLufs.sMeter.set_designation(0, dspu::bs::CHANNEL_CENTER);
+
                 p->vTr                  = advance_ptr_bytes<float>(ptr, szof_fft_buffer);
             }
 
@@ -449,10 +492,10 @@ namespace lsp
             pBypass             = trace_port(ports[port_id++]);
             pGainIn             = trace_port(ports[port_id++]);
             pGainOut            = trace_port(ports[port_id++]);
-            sLufs.pOn           = trace_port(ports[port_id++]);
-            sLufs.pThreshold    = trace_port(ports[port_id++]);
-            sLufs.pIn           = trace_port(ports[port_id++]);
-            sLufs.pRed          = trace_port(ports[port_id++]);
+            sInLufs.pOn         = trace_port(ports[port_id++]);
+            sInLufs.pThreshold  = trace_port(ports[port_id++]);
+            sInLufs.pIn         = trace_port(ports[port_id++]);
+            sInLufs.pRed        = trace_port(ports[port_id++]);
             pThresh             = trace_port(ports[port_id++]);
             pBoosting           = trace_port(ports[port_id++]);
             pXOverMode          = trace_port(ports[port_id++]);
@@ -487,7 +530,10 @@ namespace lsp
                 p->pSolo                = trace_port(ports[port_id++]);
                 p->pMute                = trace_port(ports[port_id++]);
                 p->pPreamp              = trace_port(ports[port_id++]);
-                p->pMakeup              = trace_port(ports[port_id++]);
+                p->sLufs.pOn            = trace_port(ports[port_id++]);
+                p->sLufs.pThreshold     = trace_port(ports[port_id++]);
+                p->sLufs.pIn            = trace_port(ports[port_id++]);
+                p->sLufs.pRed           = trace_port(ports[port_id++]);
                 p->sOdp.pOn             = trace_port(ports[port_id++]);
                 p->sOdp.pThreshold      = trace_port(ports[port_id++]);
                 p->sOdp.pKnee           = trace_port(ports[port_id++]);
@@ -499,11 +545,16 @@ namespace lsp
                 p->sClip.pPumping       = trace_port(ports[port_id++]);
                 p->sClip.pCurveMesh     = trace_port(ports[port_id++]);
                 p->pFreqChart           = trace_port(ports[port_id++]);
+                p->pMakeup              = trace_port(ports[port_id++]);
             }
 
             // Bind output clipper ports
             lsp_trace("Binding output clipper ports");
             pStereoLink             = (nChannels > 1) ? trace_port(ports[port_id++]) : NULL;
+            sOutLufs.pOn            = trace_port(ports[port_id++]);
+            sOutLufs.pThreshold     = trace_port(ports[port_id++]);
+            sOutLufs.pIn            = trace_port(ports[port_id++]);
+            sOutLufs.pRed           = trace_port(ports[port_id++]);
             sOdp.pOn                = trace_port(ports[port_id++]);
             sOdp.pThreshold         = trace_port(ports[port_id++]);
             sOdp.pKnee              = trace_port(ports[port_id++]);
@@ -680,8 +731,17 @@ namespace lsp
                 sr, meta::mb_clipper::TIME_HISTORY_MAX / meta::mb_clipper::TIME_MESH_POINTS);
 
             sCounter.set_sample_rate(sr, true);
-            sLufs.sMeter.set_sample_rate(sr);
-            sLufs.sGain.set_sample_rate(sr);
+            sInLufs.sMeter.set_sample_rate(sr);
+            sInLufs.sGain.set_sample_rate(sr);
+            sOutLufs.sMeter.set_sample_rate(sr);
+            sOutLufs.sGain.set_sample_rate(sr);
+
+            for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
+            {
+                processor_t *p          = &vProc[j];
+                p->sLufs.sMeter.set_sample_rate(sr);
+                p->sLufs.sGain.set_sample_rate(sr);
+            }
 
             for (size_t i=0; i<nChannels; ++i)
             {
@@ -919,8 +979,10 @@ namespace lsp
             }
 
             // Enable/disable input loudness limiter
-            nFlags                  = lsp_setflag(nFlags, GF_IN_LIMITER, sLufs.pOn->value() >= 0.5f);
-            sLufs.sGain.set_threshold(dspu::lufs_to_gain(sLufs.pThreshold->value()));
+            nFlags                  = lsp_setflag(nFlags, GF_IN_LIMITER, sInLufs.pOn->value() >= 0.5f);
+            nFlags                  = lsp_setflag(nFlags, GF_IN_LIMITER, sOutLufs.pOn->value() >= 0.5f);
+            sInLufs.sGain.set_threshold(dspu::lufs_to_gain(sInLufs.pThreshold->value()));
+            sOutLufs.sGain.set_threshold(dspu::lufs_to_gain(sOutLufs.pThreshold->value()));
 
             // Configure split frequencies
             const size_t num_splits = (pExtraBandOn->value() >= 0.5f) ? meta::mb_clipper::BANDS_MAX-1 : meta::mb_clipper::BANDS_MAX-2;
@@ -939,7 +1001,11 @@ namespace lsp
                 p->nFlags              &= uint32_t(~PF_ENABLED);
                 p->fPreamp              = dspu::db_to_gain(p->pPreamp->value());
                 p->fMakeup              = dspu::db_to_gain(p->pMakeup->value());
-                if ((p->pSolo->value() >= 0.5f) && (j<=num_splits))
+
+                p->nFlags               = lsp_setflag(p->nFlags, PF_LUFS_ENABLED, p->sLufs.pOn->value() >= 0.5f);
+                p->sLufs.sGain.set_threshold(dspu::lufs_to_gain(p->sLufs.pThreshold->value()));
+
+                if ((p->pSolo->value() >= 0.5f) && (j <= num_splits))
                     has_solo                = true;
             }
 
@@ -1225,8 +1291,11 @@ namespace lsp
 
         void mb_clipper::bind_input_buffers()
         {
-            sLufs.fIn           = GAIN_AMP_M_INF_DB;
-            sLufs.fRed          = GAIN_AMP_P_72_DB;
+            sInLufs.fIn         = GAIN_AMP_M_INF_DB;
+            sInLufs.fRed        = GAIN_AMP_P_72_DB;
+
+            sOutLufs.fIn        = GAIN_AMP_M_INF_DB;
+            sOutLufs.fRed       = GAIN_AMP_P_72_DB;
 
             for (size_t i=0; i<nChannels; ++i)
             {
@@ -1249,6 +1318,14 @@ namespace lsp
                 c->fClipIn          = GAIN_AMP_M_INF_DB;
                 c->fClipOut         = GAIN_AMP_M_INF_DB;
                 c->fClipRed         = GAIN_AMP_P_72_DB;
+
+                for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
+                {
+                    processor_t *p      = &vProc[j];
+
+                    p->sLufs.fIn        = GAIN_AMP_M_INF_DB;
+                    p->sLufs.fRed       = GAIN_AMP_P_72_DB;
+                }
 
                 for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
                 {
@@ -1292,25 +1369,25 @@ namespace lsp
                 dsp::mul_k3(r->vInAnalyze, r->vIn, fInGain, samples);
 
                 // Measure input loudness
-                sLufs.sMeter.bind(0, NULL, l->vInAnalyze);
-                sLufs.sMeter.bind(1, NULL, r->vInAnalyze);
-                sLufs.sMeter.process(vBuffer, samples);
+                sInLufs.sMeter.bind(0, NULL, l->vInAnalyze);
+                sInLufs.sMeter.bind(1, NULL, r->vInAnalyze);
+                sInLufs.sMeter.process(vBuffer, samples);
 
                 size_t max_index        = dsp::abs_max_index(vBuffer, samples);
-                sLufs.fIn               = lsp_max(sLufs.fIn, vBuffer[max_index]);
+                sInLufs.fIn             = lsp_max(sInLufs.fIn, vBuffer[max_index]);
 
                 // Apply gain limiter
                 if (nFlags & GF_IN_LIMITER)
                 {
-                    sLufs.sGain.process(vBuffer, vBuffer, samples);
-                    sLufs.fRed          = lsp_min(sLufs.fRed, vBuffer[max_index]);
+                    sInLufs.sGain.process(vBuffer, vBuffer, samples);
+                    sInLufs.fRed            = lsp_min(sInLufs.fRed, vBuffer[max_index]);
 
                     dsp::mul3(l->vData, l->vInAnalyze, vBuffer, samples);
                     dsp::mul3(r->vData, r->vInAnalyze, vBuffer, samples);
                 }
                 else
                 {
-                    sLufs.fRed          = GAIN_AMP_0_DB;
+                    sInLufs.fRed            = GAIN_AMP_0_DB;
 
                     dsp::copy(l->vData, l->vInAnalyze, samples);
                     dsp::copy(r->vData, r->vInAnalyze, samples);
@@ -1324,23 +1401,23 @@ namespace lsp
                 dsp::mul_k3(c->vInAnalyze, c->vIn, fInGain, samples);
 
                 // Measure input loudness
-                sLufs.sMeter.bind(0, NULL, c->vInAnalyze);
-                sLufs.sMeter.process(vBuffer, samples);
+                sInLufs.sMeter.bind(0, NULL, c->vInAnalyze);
+                sInLufs.sMeter.process(vBuffer, samples);
 
                 size_t max_index        = dsp::abs_max_index(vBuffer, samples);
-                sLufs.fIn               = lsp_max(sLufs.fIn, vBuffer[max_index]);
+                sInLufs.fIn             = lsp_max(sInLufs.fIn, vBuffer[max_index]);
 
                 // Apply gain limiter
                 if (nFlags & GF_IN_LIMITER)
                 {
-                    sLufs.sGain.process(vBuffer, vBuffer, samples);
-                    sLufs.fRed          = lsp_min(sLufs.fRed, vBuffer[max_index]);
+                    sInLufs.sGain.process(vBuffer, vBuffer, samples);
+                    sInLufs.fRed            = lsp_min(sInLufs.fRed, vBuffer[max_index]);
 
                     dsp::mul3(c->vData, c->vInAnalyze, vBuffer, samples);
                 }
                 else
                 {
-                    sLufs.fRed          = GAIN_AMP_0_DB;
+                    sInLufs.fRed            = GAIN_AMP_0_DB;
 
                     dsp::copy(c->vData, c->vInAnalyze, samples);
                 }
@@ -1399,31 +1476,13 @@ namespace lsp
                     band_t *rb              = &r->vBands[i];
                     processor_t *p          = &vProc[i];
 
-                    // Apply pre-delay and overdrive protection link
-                    if (i > 0)
-                    {
-                        // Apply phase compensation
-                        lb->sPreDelay.process(lb->vData, lb->vData, samples);
-                        rb->sPreDelay.process(rb->vData, rb->vData, samples);
+                    // Apply phase compensation
+                    lb->sPreDelay.process(lb->vData, lb->vData, samples);
+                    rb->sPreDelay.process(rb->vData, rb->vData, samples);
 
-                        // Remember input data for analysis
-                        lb->sInDelay.process(lb->vInData, lb->vData, samples);
-                        rb->sInDelay.process(rb->vInData, rb->vData, samples);
-
-                        // Perform linking with previous band
-                        const float odp_linking = vSplits[i-1].fOdpLink;
-                        if (odp_linking > 0.0f)
-                        {
-                            odp_link(lb->vData, l->vSc, odp_linking, samples);
-                            odp_link(rb->vData, r->vSc, odp_linking, samples);
-                        }
-                    }
-                    else
-                    {
-                        // Remember input data for analysis
-                        lb->sInDelay.process(lb->vInData, lb->vData, samples);
-                        rb->sInDelay.process(rb->vInData, rb->vData, samples);
-                    }
+                    // Remember input data for analysis
+                    lb->sInDelay.process(lb->vInData, lb->vData, samples);
+                    rb->sInDelay.process(rb->vInData, rb->vData, samples);
 
                     // Measure signal at the input of the band
                     const size_t idx_in_l   = dsp::abs_max_index(lb->vInData, samples);
@@ -1432,6 +1491,38 @@ namespace lsp
                     const float in_r        = fabsf(rb->vInData[idx_in_r]);
                     lb->sInGraph.process(lb->vInData, samples);
                     rb->sInGraph.process(rb->vInData, samples);
+
+                    // Measure input LUFS loudness
+                    p->sLufs.sMeter.bind(0, NULL, lb->vData);
+                    p->sLufs.sMeter.bind(1, NULL, rb->vData);
+                    p->sLufs.sMeter.process(vBuffer, samples);
+
+                    size_t max_index        = dsp::abs_max_index(vBuffer, samples);
+                    p->sLufs.fIn            = lsp_max(p->sLufs.fIn, vBuffer[max_index]);
+
+                    // Apply LUFS limiter
+                    if (p->nFlags & PF_LUFS_ENABLED)
+                    {
+                        p->sLufs.sGain.process(vBuffer, vBuffer, samples);
+                        p->sLufs.fRed           = lsp_min(p->sLufs.fRed, vBuffer[max_index]);
+
+                        dsp::mul2(lb->vData, vBuffer, samples);
+                        dsp::mul2(rb->vData, vBuffer, samples);
+                    }
+                    else
+                        p->sLufs.fRed           = GAIN_AMP_0_DB;
+
+                    // Apply pre-delay and overdrive protection link
+                    if (i > 0)
+                    {
+                        // Perform linking with previous band
+                        const float odp_linking = vSplits[i-1].fOdpLink;
+                        if (odp_linking > 0.0f)
+                        {
+                            odp_link(lb->vData, l->vSc, odp_linking, samples);
+                            odp_link(rb->vData, r->vSc, odp_linking, samples);
+                        }
+                    }
 
                     // Process sidechain signal
                     if (p->fStereoLink >= 1.0f)
@@ -1564,31 +1655,45 @@ namespace lsp
                     band_t *b               = &c->vBands[i];
                     processor_t *p          = &vProc[i];
 
-                    // Apply pre-delay and overdrive protection link
-                    if (i > 0)
-                    {
-                        // Apply phase compensation
-                        b->sPreDelay.process(b->vData, b->vData, samples);
+                    // Apply phase compensation
+                    b->sPreDelay.process(b->vData, b->vData, samples);
 
-                        // Remember input data for analysis
-                        b->sInDelay.process(b->vInData, b->vData, samples);
-
-                        // Perform linking with previous band
-                        const float odp_linking = vSplits[i-1].fOdpLink;
-                        if (odp_linking > 0.0f)
-                            odp_link(b->vData, c->vSc, odp_linking, samples);
-                    }
-                    else
-                    {
-                        // Remember input data for analysis
-                        b->sInDelay.process(b->vInData, b->vData, samples);
-                    }
+                    // Remember input data for analysis
+                    b->sInDelay.process(b->vInData, b->vData, samples);
 
                     // Measure signal at the input of the band
                     const size_t idx_in     = dsp::abs_max_index(b->vInData, samples);
                     const float in          = fabsf(b->vInData[idx_in]);
                     b->sInGraph.process(b->vInData, samples);
 
+                    // Measure input LUFS loudness
+                    p->sLufs.sMeter.bind(0, NULL, b->vData);
+                    p->sLufs.sMeter.process(vBuffer, samples);
+
+                    size_t max_index        = dsp::abs_max_index(vBuffer, samples);
+                    p->sLufs.fIn            = lsp_max(p->sLufs.fIn, vBuffer[max_index]);
+
+                    // Apply LUFS limiter
+                    if (p->nFlags & PF_LUFS_ENABLED)
+                    {
+                        p->sLufs.sGain.process(vBuffer, vBuffer, samples);
+                        p->sLufs.fRed           = lsp_min(p->sLufs.fRed, vBuffer[max_index]);
+
+                        dsp::mul2(b->vData, vBuffer, samples);
+                    }
+                    else
+                        p->sLufs.fRed           = GAIN_AMP_0_DB;
+
+                    // Apply pre-delay and overdrive protection link
+                    if (i > 0)
+                    {
+                        // Perform linking with previous band
+                        const float odp_linking = vSplits[i-1].fOdpLink;
+                        if (odp_linking > 0.0f)
+                            odp_link(b->vData, c->vSc, odp_linking, samples);
+                    }
+
+                    // Process sidechain signal
                     b->sSc.process(c->vSc, const_cast<const float **>(&b->vData), samples);
                     b->sScDelay.process(b->vData, b->vData, samples);
 
@@ -1698,6 +1803,26 @@ namespace lsp
                 const float in_r        = fabsf(r->vData[idx_in_r]);
                 l->sInGraph.process(l->vData, samples);
                 r->sInGraph.process(r->vData, samples);
+
+                // Measure input loudness
+                sOutLufs.sMeter.bind(0, NULL, l->vData);
+                sOutLufs.sMeter.bind(1, NULL, r->vData);
+                sOutLufs.sMeter.process(vBuffer, samples);
+
+                size_t max_index        = dsp::abs_max_index(vBuffer, samples);
+                sOutLufs.fIn            = lsp_max(sOutLufs.fIn, vBuffer[max_index]);
+
+                // Apply LUFS limiter
+                if (nFlags & GF_IN_LIMITER)
+                {
+                    sOutLufs.sGain.process(vBuffer, vBuffer, samples);
+                    sOutLufs.fRed           = lsp_min(sOutLufs.fRed, vBuffer[max_index]);
+
+                    dsp::mul2(l->vData, vBuffer, samples);
+                    dsp::mul2(r->vData, vBuffer, samples);
+                }
+                else
+                    sOutLufs.fRed           = GAIN_AMP_0_DB;
 
                 // Overdrive protection
                 if ((nFlags & (GF_ODP_ENABLED | GF_OUT_CLIP)) == (GF_ODP_ENABLED | GF_OUT_CLIP))
@@ -1938,8 +2063,11 @@ namespace lsp
 
         void mb_clipper::output_meters()
         {
-            sLufs.pIn->set_value(dspu::gain_to_lufs(sLufs.fIn));
-            sLufs.pRed->set_value(sLufs.fRed);
+            sInLufs.pIn->set_value(dspu::gain_to_lufs(sInLufs.fIn));
+            sInLufs.pRed->set_value(sInLufs.fRed);
+
+            sOutLufs.pIn->set_value(dspu::gain_to_lufs(sOutLufs.fIn));
+            sOutLufs.pRed->set_value(sOutLufs.fRed);
 
             for (size_t i=0; i<nChannels; ++i)
             {
@@ -1959,6 +2087,14 @@ namespace lsp
                 c->pClipIn->set_value(c->fClipIn);
                 c->pClipOut->set_value(c->fClipOut);
                 c->pClipRed->set_value(c->fClipRed);
+
+                for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
+                {
+                    processor_t *p  = &vProc[j];
+
+                    p->sLufs.pIn->set_value(dspu::gain_to_lufs(p->sLufs.fIn));
+                    p->sLufs.pRed->set_value(p->sLufs.fRed);
+                }
 
                 for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
                 {
