@@ -53,6 +53,8 @@ namespace lsp
             static constexpr size_t TIME_MESH_POINTS        = 320;
             static constexpr float  TIME_HISTORY_MAX        = 5.0f;
             static constexpr float  TIME_HISTORY_GAP        = 0.5f;
+            static constexpr float  LUFS_MEASUREMENT_PERIOD = 400.0f;
+            static constexpr float  LUFS_LIMITER_REACT      = 48.0f;
 
             static constexpr float  THRESHOLD_MIN           = -48.0f;
             static constexpr float  THRESHOLD_MAX           = 0.0f;
@@ -108,6 +110,11 @@ namespace lsp
             static constexpr float  PREAMP_MAX              = 24.0f;
             static constexpr float  PREAMP_DFL              = 0.0f;
             static constexpr float  PREAMP_STEP             = 0.05f;
+
+            static constexpr float  LUFS_THRESH_MIN         = -36.0f;
+            static constexpr float  LUFS_THRESH_MAX         = 0.0f;
+            static constexpr float  LUFS_THRESH_DFL         = -3.0f;
+            static constexpr float  LUFS_THRESH_STEP        = 0.05f;
 
             static constexpr float  ODP_LINK_MIN            = GAIN_AMP_M_INF_DB;
             static constexpr float  ODP_LINK_MAX            = GAIN_AMP_0_DB;

@@ -24,7 +24,9 @@
 
 #include <lsp-plug.in/dsp-units/ctl/Bypass.h>
 #include <lsp-plug.in/dsp-units/ctl/Counter.h>
+#include <lsp-plug.in/dsp-units/dynamics/SimpleAutoGain.h>
 #include <lsp-plug.in/dsp-units/filters/Equalizer.h>
+#include <lsp-plug.in/dsp-units/meters/LoudnessMeter.h>
 #include <lsp-plug.in/dsp-units/misc/sigmoid.h>
 #include <lsp-plug.in/dsp-units/util/Analyzer.h>
 #include <lsp-plug.in/dsp-units/util/Crossover.h>
@@ -76,11 +78,12 @@ namespace lsp
                 enum global_flags_t
                 {
                     GF_BOOSTING         = 1 << 0,           // Enable gain boosting
-                    GF_OUT_CLIP         = 1 << 1,           // Output clipper enabled
-                    GF_ODP_ENABLED      = 1 << 2,           // Overdrive protection enabled
-                    GF_CLIP_ENABLED     = 1 << 3,           // Clipping enabled
-                    GF_SYNC_ODP         = 1 << 4,           // Sync overdrive protection curve
-                    GF_SYNC_CLIP        = 1 << 5,           // Sync sigmoid clipping curve
+                    GF_IN_LIMITER       = 1 << 1,           // Enable input LUFS limiter
+                    GF_OUT_CLIP         = 1 << 2,           // Output clipper enabled
+                    GF_ODP_ENABLED      = 1 << 3,           // Overdrive protection enabled
+                    GF_CLIP_ENABLED     = 1 << 4,           // Clipping enabled
+                    GF_SYNC_ODP         = 1 << 5,           // Sync overdrive protection curve
+                    GF_SYNC_CLIP        = 1 << 6,           // Sync sigmoid clipping curve
 
                     GF_SYNC_ALL         = GF_SYNC_ODP | GF_SYNC_CLIP
                 };
@@ -181,6 +184,20 @@ namespace lsp
                     plug::IPort        *pFreqChart;         // Frequency chart
                 } processor_t;
 
+                typedef struct lufs_limiter_t
+                {
+                    dspu::LoudnessMeter sMeter;             // Input LUFS meter
+                    dspu::SimpleAutoGain sGain;             // Input LUFS limiter
+                    float               fIn;                // Input level
+                    float               fRed;               // Gain reduction
+
+                    plug::IPort        *pOn;                // Enable LUFS limiter
+                    plug::IPort        *pIn;                // LUFS input level
+                    plug::IPort        *pRed;               // LUFS gain reduction
+                    plug::IPort        *pThreshold;         // LUFS limiter threshold
+                } lufs_limiter_t;
+
+
                 typedef struct split_t
                 {
                     float               fFreq;              // Split frequency
@@ -273,6 +290,7 @@ namespace lsp
                 compressor_t        sComp;              // Simple compressor
                 odp_params_t        sOdp;               // Overdrive protection params
                 clip_params_t       sClip;              // Clipping parameters
+                lufs_limiter_t      sLufs;              // LUFS limiter
 
                 xover_mode_t        enXOverMode;        // Crossover mode
                 float               fInGain;            // Input gain
@@ -338,6 +356,7 @@ namespace lsp
             protected:
                 void                    do_destroy();
                 void                    bind_input_buffers();
+                void                    limit_input_loudness(size_t samples);
                 void                    split_bands(size_t samples);
                 void                    process_bands(size_t samples);
                 void                    process_output_clipper(size_t samples);

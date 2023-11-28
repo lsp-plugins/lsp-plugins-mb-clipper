@@ -109,6 +109,10 @@ namespace lsp
         BYPASS, \
         IN_GAIN, \
         OUT_GAIN, \
+        SWITCH("lufs_on", "Enable input LUFS limitation", 1.0f), \
+        CONTROL("lufs_th", "Input LUFS limiter threshold", U_LUFS, mb_clipper::LUFS_THRESH), \
+        LUFS_METER("lufs_il", "Input LUFS value", 24.0f), \
+        METER_OUT_GAIN("lufs_gr", "Input LUFS gain reduction", GAIN_AMP_0_DB), \
         CONTROL("thresh", "Clipping threshold", U_DB, mb_clipper::THRESHOLD), \
         SWITCH("boost", "Boosting mode", 1.0f), \
         COMBO("mode", "Crossover operating mode", 1, clipper_xover_modes), \

@@ -215,10 +215,16 @@
 			</hbox>
 		</grid>
 		<group text="Crossover">
-			<grid rows="4" cols="9">
+			<grid rows="4" cols="11">
 				<!-- Row 1 -->
 				<cell rows="2">
 					<label text="labels.input" />
+				</cell>
+				<label text="LUFS" />
+				<cell rows="4">
+					<ledmeter vexpand="true" angle="1">
+						<ledchannel id="lufs_gr" min="-48 db" max="0 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":lufs_on" value.color="blue"/>
+					</ledmeter>
 				</cell>
 				<label text="labels.flt.HPF" />
 				<label text="Band 1" />
@@ -232,6 +238,7 @@
 				</cell>
 				
 				<!-- Row 2 -->
+				<button id="lufs_on" pad.h="6" height="18" width="70" text="Limit" ui:inject="Button_violet_8"/>
 				<combo id="hpf_m" />
 				<ui:for id="i" first="1" count="4">
 					<hbox>
@@ -244,6 +251,10 @@
 				
 				<!-- Row 3 -->
 				<knob id="g_in" />
+				<hbox>
+					<knob id="lufs_th" ui:inject="Knob_meter_threshold" meter.max=":lufs_il" visibility=":lufs_on"/>
+					<knob id="lufs_th" scolor="cycle_inactive" visibility="!:lufs_on"/>
+				</hbox>
 				<knob id="hpf_f" />
 				<void />
 				<knob id="xf_1" />
@@ -255,6 +266,7 @@
 				
 				<!-- Row 4 -->
 				<value id="g_in" />
+				<value id="lufs_th" />
 				<value id="hpf_f" />
 				<void />
 				<value id="xf_1" />
