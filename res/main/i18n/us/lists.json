@@ -1,24 +1,11 @@
 {
-	"clipper": {
+	"mb_clipper": {
 		"band": {
 			"1": "Band 1",
 			"2": "Band 2",
 			"3": "Band 3",
 			"4": "Band 4"
 		},
-		"output": "Output",
-		"sigmoid": {
-			"arctangent": "Arctangent",
-			"circle": "Circle",
-			"error_function": "Error function",
-			"guidermannian": "Guidermannian",
-			"hardclip": "Hard clip",
-			"hyperbolic_tangent": "Hyperbolic tangent",
-			"logistic": "Logistic",
-			"parabolic": "Parabolic",
-			"sine": "Sine",
-			"smootherstep": "Smootherstep",
-			"smoothstep": "Smoothstep"
-		}
+		"output": "Output"
 	}
 }

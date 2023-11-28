@@ -2,25 +2,25 @@
  * Copyright (C) 2023 Linux Studio Plugins Project <https://lsp-plug.in/>
  *           (C) 2023 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
- * This file is part of lsp-plugins-clipper
+ * This file is part of lsp-plugins-mb-clipper
  * Created on: 11 ноя 2023 г.
  *
- * lsp-plugins-clipper is free software: you can redistribute it and/or modify
+ * lsp-plugins-mb-clipper is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * any later version.
  *
- * lsp-plugins-clipper is distributed in the hope that it will be useful,
+ * lsp-plugins-mb-clipper is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with lsp-plugins-clipper. If not, see <https://www.gnu.org/licenses/>.
+ * along with lsp-plugins-mb-clipper. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PRIVATE_PLUGINS_CLIPPER_H_
-#define PRIVATE_PLUGINS_CLIPPER_H_
+#ifndef PRIVATE_PLUGINS_MB_CLIPPER_H_
+#define PRIVATE_PLUGINS_MB_CLIPPER_H_
 
 #include <lsp-plug.in/dsp-units/ctl/Bypass.h>
 #include <lsp-plug.in/dsp-units/ctl/Counter.h>
@@ -36,7 +36,7 @@
 #include <lsp-plug.in/plug-fw/core/IDBuffer.h>
 #include <lsp-plug.in/plug-fw/plug.h>
 
-#include <private/meta/clipper.h>
+#include <private/meta/mb_clipper.h>
 
 namespace lsp
 {
@@ -45,7 +45,7 @@ namespace lsp
         /**
          * Base class for the latency compensation delay
          */
-        class clipper: public plug::Module
+        class mb_clipper: public plug::Module
         {
             protected:
                 enum xover_mode_t
@@ -202,7 +202,7 @@ namespace lsp
                     dspu::Dither        sDither;            // Dither
                     dspu::MeterGraph    sInGraph;           // Input meter graph
                     dspu::MeterGraph    sOutGraph;          // Output meter graph
-                    band_t              vBands[meta::clipper::BANDS_MAX];   // Bands for processing
+                    band_t              vBands[meta::mb_clipper::BANDS_MAX];   // Bands for processing
 
                     uint32_t            nAnInChannel;       // Analyzer input channel
                     uint32_t            nAnOutChannel;      // Analyzer output channel
@@ -268,8 +268,8 @@ namespace lsp
 
                 dspu::Analyzer      sAnalyzer;          // FFT analyzer
                 dspu::Counter       sCounter;           // Counter
-                split_t             vSplits[meta::clipper::BANDS_MAX-1];
-                processor_t         vProc[meta::clipper::BANDS_MAX];      // Processor
+                split_t             vSplits[meta::mb_clipper::BANDS_MAX-1];
+                processor_t         vProc[meta::mb_clipper::BANDS_MAX];      // Processor
                 compressor_t        sComp;              // Simple compressor
                 odp_params_t        sOdp;               // Overdrive protection params
                 clip_params_t       sClip;              // Clipping parameters
@@ -349,13 +349,13 @@ namespace lsp
                 void                    output_mesh_curves(size_t samples);
 
             public:
-                explicit clipper(const meta::plugin_t *meta);
-                clipper (const clipper &) = delete;
-                clipper (clipper &&) = delete;
-                virtual ~clipper() override;
+                explicit mb_clipper(const meta::plugin_t *meta);
+                mb_clipper (const mb_clipper &) = delete;
+                mb_clipper (mb_clipper &&) = delete;
+                virtual ~mb_clipper() override;
 
-                clipper & operator = (const clipper &) = delete;
-                clipper & operator = (clipper &&) = delete;
+                mb_clipper & operator = (const mb_clipper &) = delete;
+                mb_clipper & operator = (mb_clipper &&) = delete;
 
                 virtual void            init(plug::IWrapper *wrapper, plug::IPort **ports) override;
                 virtual void            destroy() override;
@@ -373,5 +373,5 @@ namespace lsp
 } /* namespace lsp */
 
 
-#endif /* PRIVATE_PLUGINS_CLIPPER_H_ */
+#endif /* PRIVATE_PLUGINS_MB_CLIPPER_H_ */
 

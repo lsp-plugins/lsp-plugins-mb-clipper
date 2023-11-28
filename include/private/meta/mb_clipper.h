@@ -2,21 +2,21 @@
  * Copyright (C) 2023 Linux Studio Plugins Project <https://lsp-plug.in/>
  *           (C) 2023 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
- * This file is part of lsp-plugins-clipper
+ * This file is part of lsp-plugins-mb-clipper
  * Created on: 11 ноя 2023 г.
  *
- * lsp-plugins-clipper is free software: you can redistribute it and/or modify
+ * lsp-plugins-mb-clipper is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * any later version.
  *
- * lsp-plugins-clipper is distributed in the hope that it will be useful,
+ * lsp-plugins-mb-clipper is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with lsp-plugins-clipper. If not, see <https://www.gnu.org/licenses/>.
+ * along with lsp-plugins-mb-clipper. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #ifndef PRIVATE_META_CLIPPER_H_
@@ -33,7 +33,7 @@ namespace lsp
     // Plugin metadata
     namespace meta
     {
-        typedef struct clipper
+        typedef struct mb_clipper
         {
             static constexpr size_t BANDS_MAX               = 4;
             static constexpr size_t FFT_MESH_POINTS         = 640;
@@ -173,11 +173,11 @@ namespace lsp
 
                 DITHER_DEFAULT  = DITHER_NONE
             };
-        } clipper;
+        } mb_clipper;
 
         // Plugin type metadata
-        extern const plugin_t clipper_mono;
-        extern const plugin_t clipper_stereo;
+        extern const plugin_t mb_clipper_mono;
+        extern const plugin_t mb_clipper_stereo;
 
     } /* namespace meta */
 } /* namespace lsp */

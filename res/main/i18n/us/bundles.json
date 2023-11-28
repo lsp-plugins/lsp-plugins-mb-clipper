@@ -1,7 +1,7 @@
 {
-	"clipper": {
-		"name": "Clipper",
-		"description": "Advanced peak clipping tool to maximize output loudness"
+	"mb_clipper": {
+		"name": "Multiband Clipper",
+		"description": "Advanced multiband peak clipping tool to maximize output loudness"
 	}
 }
 

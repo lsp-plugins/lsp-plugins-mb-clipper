@@ -2,21 +2,21 @@
  * Copyright (C) 2023 Linux Studio Plugins Project <https://lsp-plug.in/>
  *           (C) 2023 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
- * This file is part of lsp-plugins-clipper
+ * This file is part of lsp-plugins-mb-clipper
  * Created on: 11 ноя 2023 г.
  *
- * lsp-plugins-clipper is free software: you can redistribute it and/or modify
+ * lsp-plugins-mb-clipper is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * any later version.
  *
- * lsp-plugins-clipper is distributed in the hope that it will be useful,
+ * lsp-plugins-mb-clipper is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with lsp-plugins-clipper. If not, see <https://www.gnu.org/licenses/>.
+ * along with lsp-plugins-mb-clipper. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include <lsp-plug.in/common/alloc.h>
@@ -29,7 +29,7 @@
 #include <lsp-plug.in/shared/debug.h>
 #include <lsp-plug.in/shared/id_colors.h>
 
-#include <private/plugins/clipper.h>
+#include <private/plugins/mb_clipper.h>
 
 /* The size of temporary buffer for audio processing */
 #define BUFFER_SIZE         0x400U
@@ -42,13 +42,13 @@ namespace lsp
         // Plugin factory
         static const meta::plugin_t *plugins[] =
         {
-            &meta::clipper_mono,
-            &meta::clipper_stereo
+            &meta::mb_clipper_mono,
+            &meta::mb_clipper_stereo
         };
 
         static plug::Module *plugin_factory(const meta::plugin_t *meta)
         {
-            return new clipper(meta);
+            return new mb_clipper(meta);
         }
 
         static plug::Factory factory(plugin_factory, plugins, 2);
@@ -56,7 +56,7 @@ namespace lsp
         //---------------------------------------------------------------------
         // Implementation
 
-        dspu::sigmoid::function_t clipper::vSigmoidFunctions[] =
+        dspu::sigmoid::function_t mb_clipper::vSigmoidFunctions[] =
         {
             dspu::sigmoid::hard_clip,
             dspu::sigmoid::quadratic,
@@ -71,7 +71,7 @@ namespace lsp
             dspu::sigmoid::circle
         };
 
-        clipper::clipper(const meta::plugin_t *meta):
+        mb_clipper::mb_clipper(const meta::plugin_t *meta):
             Module(meta)
         {
             // Compute the number of audio channels by the number of inputs
@@ -83,7 +83,7 @@ namespace lsp
             // Initialize other parameters
             vChannels       = NULL;
 
-            for (size_t i=0; i<meta::clipper::BANDS_MAX-1; ++i)
+            for (size_t i=0; i<meta::mb_clipper::BANDS_MAX-1; ++i)
             {
                 split_t *sp     = &vSplits[i];
 
@@ -93,7 +93,7 @@ namespace lsp
                 sp->pOdpLink    = NULL;
             }
 
-            for (size_t i=0; i<meta::clipper::BANDS_MAX; ++i)
+            for (size_t i=0; i<meta::mb_clipper::BANDS_MAX; ++i)
             {
                 processor_t *p          = &vProc[i];
 
@@ -211,12 +211,12 @@ namespace lsp
             pData           = NULL;
         }
 
-        clipper::~clipper()
+        mb_clipper::~mb_clipper()
         {
             do_destroy();
         }
 
-        void clipper::init(plug::IWrapper *wrapper, plug::IPort **ports)
+        void mb_clipper::init(plug::IWrapper *wrapper, plug::IPort **ports)
         {
             // Call parent class for initialization
             Module::init(wrapper, ports);
@@ -224,10 +224,10 @@ namespace lsp
             // Estimate the number of bytes to allocate
             size_t szof_channels    = align_size(sizeof(channel_t) * nChannels, OPTIMAL_ALIGN);
             size_t szof_buffer      = align_size(sizeof(float) * BUFFER_SIZE, OPTIMAL_ALIGN);
-            size_t szof_fft_buffer  = align_size(sizeof(float) * meta::clipper::FFT_MESH_POINTS, OPTIMAL_ALIGN);
-            size_t szof_idx_buffer  = align_size(sizeof(uint32_t) * meta::clipper::FFT_MESH_POINTS, OPTIMAL_ALIGN);
-            size_t szof_curve_buffer= align_size(sizeof(float) * meta::clipper::CURVE_MESH_POINTS, OPTIMAL_ALIGN);
-            size_t szof_time_buffer = align_size(sizeof(float) * meta::clipper::TIME_MESH_POINTS, OPTIMAL_ALIGN);
+            size_t szof_fft_buffer  = align_size(sizeof(float) * meta::mb_clipper::FFT_MESH_POINTS, OPTIMAL_ALIGN);
+            size_t szof_idx_buffer  = align_size(sizeof(uint32_t) * meta::mb_clipper::FFT_MESH_POINTS, OPTIMAL_ALIGN);
+            size_t szof_curve_buffer= align_size(sizeof(float) * meta::mb_clipper::CURVE_MESH_POINTS, OPTIMAL_ALIGN);
+            size_t szof_time_buffer = align_size(sizeof(float) * meta::mb_clipper::TIME_MESH_POINTS, OPTIMAL_ALIGN);
             size_t to_alloc         =
                 szof_channels +
                 szof_buffer +           // vBuffer
@@ -238,7 +238,7 @@ namespace lsp
                 szof_curve_buffer +     // vLinSigmoid
                 szof_curve_buffer +     // vLogSigmoid
                 szof_time_buffer +      // vTime
-                meta::clipper::BANDS_MAX * (
+                meta::mb_clipper::BANDS_MAX * (
                     szof_fft_buffer     // vTr
                 ) +
                 nChannels * (
@@ -246,7 +246,7 @@ namespace lsp
                     szof_buffer +       // vSc
                     szof_fft_buffer +   // vTr
                     szof_buffer +       // vInAnalyze
-                    meta::clipper::BANDS_MAX * (
+                    meta::mb_clipper::BANDS_MAX * (
                         szof_buffer +       // vInData
                         szof_buffer         // vData
                     )
@@ -254,7 +254,7 @@ namespace lsp
 
             // Initialize analyzer
             size_t an_id            = 0;
-            sCounter.set_frequency(meta::clipper::REFRESH_RATE, true);
+            sCounter.set_frequency(meta::mb_clipper::REFRESH_RATE, true);
 
             // Allocate memory-aligned data
             uint8_t *ptr            = alloc_aligned<uint8_t>(pData, to_alloc, OPTIMAL_ALIGN);
@@ -292,7 +292,7 @@ namespace lsp
                     return;
                 c->sEqualizer.set_mode(dspu::EQM_IIR);
 
-                if (!c->sIIRXOver.init(meta::clipper::BANDS_MAX, BUFFER_SIZE))
+                if (!c->sIIRXOver.init(meta::mb_clipper::BANDS_MAX, BUFFER_SIZE))
                     return;
 
                 c->sInGraph.construct();
@@ -300,7 +300,7 @@ namespace lsp
 
                 c->sDither.init();
 
-                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
                 {
                     band_t *b               = &c->vBands[j];
 
@@ -400,7 +400,7 @@ namespace lsp
                 c->pTimeMesh            = NULL;
             }
 
-            for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+            for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
             {
                 processor_t *p          = &vProc[j];
                 p->vTr                  = advance_ptr_bytes<float>(ptr, szof_fft_buffer);
@@ -434,7 +434,7 @@ namespace lsp
             pZoom               = trace_port(ports[port_id++]);
             pHpfSlope           = trace_port(ports[port_id++]);
             pHpfFreq            = trace_port(ports[port_id++]);
-            for (size_t i=0; i<meta::clipper::BANDS_MAX-1; ++i)
+            for (size_t i=0; i<meta::mb_clipper::BANDS_MAX-1; ++i)
             {
                 split_t *sp         = &vSplits[i];
                 sp->pFreq           = trace_port(ports[port_id++]);
@@ -451,7 +451,7 @@ namespace lsp
 
             // Bind processor ports
             lsp_trace("Binding processor ports");
-            for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+            for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
             {
                 processor_t *p          = &vProc[j];
 
@@ -514,7 +514,7 @@ namespace lsp
             {
                 channel_t *c            = &vChannels[i];
 
-                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
                 {
                     band_t *b               = &c->vBands[j];
 
@@ -556,30 +556,30 @@ namespace lsp
             }
 
             // Initialize curve (logarithmic) in range of -72 .. +24 db
-            float delta = (meta::clipper::ODP_CURVE_DB_MAX - meta::clipper::ODP_CURVE_DB_MIN) / (meta::clipper::CURVE_MESH_POINTS-1);
-            for (size_t i=0; i<meta::clipper::CURVE_MESH_POINTS; ++i)
-                vOdp[i]         = dspu::db_to_gain(meta::clipper::ODP_CURVE_DB_MIN + delta * i);
+            float delta = (meta::mb_clipper::ODP_CURVE_DB_MAX - meta::mb_clipper::ODP_CURVE_DB_MIN) / (meta::mb_clipper::CURVE_MESH_POINTS-1);
+            for (size_t i=0; i<meta::mb_clipper::CURVE_MESH_POINTS; ++i)
+                vOdp[i]         = dspu::db_to_gain(meta::mb_clipper::ODP_CURVE_DB_MIN + delta * i);
 
-            delta       = (meta::clipper::CLIP_CURVE_DB_MAX - meta::clipper::CLIP_CURVE_DB_MIN) / (meta::clipper::CURVE_MESH_POINTS-1);
-            for (size_t i=0; i<meta::clipper::CURVE_MESH_POINTS; ++i)
-                vLogSigmoid[i]  = dspu::db_to_gain(meta::clipper::CLIP_CURVE_DB_MIN + delta * i);
+            delta       = (meta::mb_clipper::CLIP_CURVE_DB_MAX - meta::mb_clipper::CLIP_CURVE_DB_MIN) / (meta::mb_clipper::CURVE_MESH_POINTS-1);
+            for (size_t i=0; i<meta::mb_clipper::CURVE_MESH_POINTS; ++i)
+                vLogSigmoid[i]  = dspu::db_to_gain(meta::mb_clipper::CLIP_CURVE_DB_MIN + delta * i);
 
-            delta       = (meta::clipper::CLIP_CURVE_X_MAX - meta::clipper::CLIP_CURVE_X_MIN) / (meta::clipper::CURVE_MESH_POINTS-1);
-            for (size_t i=0; i<meta::clipper::CURVE_MESH_POINTS; ++i)
-                vLinSigmoid[i]  = meta::clipper::CLIP_CURVE_X_MIN + delta * i;
+            delta       = (meta::mb_clipper::CLIP_CURVE_X_MAX - meta::mb_clipper::CLIP_CURVE_X_MIN) / (meta::mb_clipper::CURVE_MESH_POINTS-1);
+            for (size_t i=0; i<meta::mb_clipper::CURVE_MESH_POINTS; ++i)
+                vLinSigmoid[i]  = meta::mb_clipper::CLIP_CURVE_X_MIN + delta * i;
 
-            delta       = meta::clipper::TIME_HISTORY_MAX / (meta::clipper::TIME_MESH_POINTS - 1);
-            for (size_t i=0; i<meta::clipper::TIME_MESH_POINTS; ++i)
-                vTime[i]    = meta::clipper::TIME_HISTORY_MAX - i*delta;
+            delta       = meta::mb_clipper::TIME_HISTORY_MAX / (meta::mb_clipper::TIME_MESH_POINTS - 1);
+            for (size_t i=0; i<meta::mb_clipper::TIME_MESH_POINTS; ++i)
+                vTime[i]    = meta::mb_clipper::TIME_HISTORY_MAX - i*delta;
         }
 
-        void clipper::destroy()
+        void mb_clipper::destroy()
         {
             Module::destroy();
             do_destroy();
         }
 
-        void clipper::do_destroy()
+        void mb_clipper::do_destroy()
         {
             // Destroy channels
             // TODO: check that all objects have been destroyed properly
@@ -600,7 +600,7 @@ namespace lsp
                     c->sInGraph.destroy();
                     c->sOutGraph.destroy();
 
-                    for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                    for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
                     {
                         band_t *b       = &c->vBands[j];
 
@@ -631,25 +631,25 @@ namespace lsp
             free_aligned(pData);
         }
 
-        size_t clipper::select_fft_rank(size_t sample_rate)
+        size_t mb_clipper::select_fft_rank(size_t sample_rate)
         {
-            const size_t k = (sample_rate + meta::clipper::FFT_XOVER_FREQ_MIN/2) / meta::clipper::FFT_XOVER_FREQ_MIN;
+            const size_t k = (sample_rate + meta::mb_clipper::FFT_XOVER_FREQ_MIN/2) / meta::mb_clipper::FFT_XOVER_FREQ_MIN;
             const size_t n = int_log2(k);
-            return meta::clipper::FFT_XOVER_RANK_MIN + n;
+            return meta::mb_clipper::FFT_XOVER_RANK_MIN + n;
         }
 
-        void clipper::update_sample_rate(long sr)
+        void mb_clipper::update_sample_rate(long sr)
         {
             const size_t fft_rank           = select_fft_rank(sr);
             const size_t max_delay_fft      = (1 << fft_rank);
             const size_t max_odp_delay      = (
-                dspu::hz_to_samples(sr, meta::clipper::ODP_REACT1_MIN) * 0.5f +
-                dspu::hz_to_samples(sr, meta::clipper::ODP_REACT2_MIN) * 0.5f +
-                dspu::hz_to_samples(sr, meta::clipper::ODP_REACT3_MIN) * 0.5f +
-                dspu::hz_to_samples(sr, meta::clipper::ODP_REACT4_MIN) * 0.5f);
-            const size_t max_global_delay   = dspu::millis_to_samples(sr, meta::clipper::ODP_REACT1_MAX) * 0.5f;
+                dspu::hz_to_samples(sr, meta::mb_clipper::ODP_REACT1_MIN) * 0.5f +
+                dspu::hz_to_samples(sr, meta::mb_clipper::ODP_REACT2_MIN) * 0.5f +
+                dspu::hz_to_samples(sr, meta::mb_clipper::ODP_REACT3_MIN) * 0.5f +
+                dspu::hz_to_samples(sr, meta::mb_clipper::ODP_REACT4_MIN) * 0.5f);
+            const size_t max_global_delay   = dspu::millis_to_samples(sr, meta::mb_clipper::ODP_REACT1_MAX) * 0.5f;
             const size_t samples_per_dot    = dspu::seconds_to_samples(
-                sr, meta::clipper::TIME_HISTORY_MAX / meta::clipper::TIME_MESH_POINTS);
+                sr, meta::mb_clipper::TIME_HISTORY_MAX / meta::mb_clipper::TIME_MESH_POINTS);
 
             sCounter.set_sample_rate(sr, true);
 
@@ -660,54 +660,54 @@ namespace lsp
                 c->sBypass.init(sr);
                 c->sDryDelay.init(max_delay_fft + max_odp_delay + max_global_delay);
                 c->sScDelay.init(max_global_delay);
-                c->sSc.init(1, meta::clipper::ODP_REACT_MAX);
+                c->sSc.init(1, meta::mb_clipper::ODP_REACT_MAX);
                 c->sSc.set_sample_rate(sr);
                 c->sEqualizer.set_sample_rate(sr);
                 c->sIIRXOver.set_sample_rate(sr);
 
                 if (fft_rank != c->sFFTXOver.rank())
                 {
-                    c->sFFTXOver.init(fft_rank, meta::clipper::BANDS_MAX);
-                    for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                    c->sFFTXOver.init(fft_rank, meta::mb_clipper::BANDS_MAX);
+                    for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
                         c->sFFTXOver.set_handler(j, process_band, this, c);
                     c->sFFTXOver.set_rank(fft_rank);
                     c->sFFTXOver.set_phase(float(i) / float(nChannels));
                 }
                 c->sFFTXOver.set_sample_rate(sr);
-                c->sInGraph.init(meta::clipper::TIME_MESH_POINTS, samples_per_dot);
-                c->sOutGraph.init(meta::clipper::TIME_MESH_POINTS, samples_per_dot);
+                c->sInGraph.init(meta::mb_clipper::TIME_MESH_POINTS, samples_per_dot);
+                c->sOutGraph.init(meta::mb_clipper::TIME_MESH_POINTS, samples_per_dot);
 
-                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
                 {
                     band_t *b               = &c->vBands[j];
 
-                    b->sSc.init(1, 1000.0f / meta::clipper::ODP_REACT1_MIN);
+                    b->sSc.init(1, 1000.0f / meta::mb_clipper::ODP_REACT1_MIN);
                     b->sSc.set_sample_rate(sr);
                     b->sScDelay.init(max_odp_delay);
                     b->sInDelay.init(max_odp_delay);
                     b->sPreDelay.init(max_odp_delay);
                     b->sPostDelay.init(max_odp_delay);
-                    b->sInGraph.init(meta::clipper::TIME_MESH_POINTS, samples_per_dot);
-                    b->sOutGraph.init(meta::clipper::TIME_MESH_POINTS, samples_per_dot);
+                    b->sInGraph.init(meta::mb_clipper::TIME_MESH_POINTS, samples_per_dot);
+                    b->sOutGraph.init(meta::mb_clipper::TIME_MESH_POINTS, samples_per_dot);
                 }
             }
 
             // Commit sample rate to analyzer
             sAnalyzer.init(
                 nChannels * 2,
-                meta::clipper::FFT_RANK,
+                meta::mb_clipper::FFT_RANK,
                 MAX_SAMPLE_RATE,
-                meta::clipper::REFRESH_RATE,
+                meta::mb_clipper::REFRESH_RATE,
                 max_delay_fft + max_odp_delay);
-            sAnalyzer.set_rank(meta::clipper::FFT_RANK);
+            sAnalyzer.set_rank(meta::mb_clipper::FFT_RANK);
             sAnalyzer.set_envelope(dspu::envelope::WHITE_NOISE);
-            sAnalyzer.set_window(meta::clipper::FFT_WINDOW);
-            sAnalyzer.set_rate(meta::clipper::REFRESH_RATE);
+            sAnalyzer.set_window(meta::mb_clipper::FFT_WINDOW);
+            sAnalyzer.set_rate(meta::mb_clipper::REFRESH_RATE);
             sAnalyzer.set_sample_rate(sr);
 
             if (sAnalyzer.needs_reconfiguration())
             {
-                for (size_t i=0; i < meta::clipper::BANDS_MAX; ++i)
+                for (size_t i=0; i < meta::mb_clipper::BANDS_MAX; ++i)
                 {
                     processor_t *p          = &vProc[i];
                     p->nFlags              |= PF_DIRTY_BAND | PF_SYNC_BAND;
@@ -715,17 +715,17 @@ namespace lsp
             }
         }
 
-        inline size_t clipper::filter_slope(size_t slope)
+        inline size_t mb_clipper::filter_slope(size_t slope)
         {
             return slope;
         }
 
-        inline float clipper::fft_filter_slope(size_t slope)
+        inline float mb_clipper::fft_filter_slope(size_t slope)
         {
             return -24.0f * slope;
         }
 
-        bool clipper::update_odp_params(odp_params_t *params)
+        bool mb_clipper::update_odp_params(odp_params_t *params)
         {
             const float threshold   = dspu::db_to_gain(params->pThreshold->value());
             const float knee        = dspu::db_to_gain(params->pKnee->value());
@@ -740,7 +740,7 @@ namespace lsp
             return true;
         }
 
-        bool clipper::update_clip_params(clip_params_t *params)
+        bool mb_clipper::update_clip_params(clip_params_t *params)
         {
             dspu::sigmoid::function_t func = vSigmoidFunctions[size_t(params->pFunction->value())];
             const float threshold   = lsp_min(params->pThreshold->value(), 0.99f);
@@ -760,7 +760,7 @@ namespace lsp
             return true;
         }
 
-        void clipper::calc_odp_compressor(compressor_t *c, const odp_params_t *params)
+        void mb_clipper::calc_odp_compressor(compressor_t *c, const odp_params_t *params)
         {
             const float th  = params->fThreshold;
             const float kn  = params->fKnee;
@@ -782,7 +782,7 @@ namespace lsp
             c->a            = (k - (2.0*dy)*dx1)*dx2;
         }
 
-        float clipper::odp_curve(const compressor_t *c, float x)
+        float mb_clipper::odp_curve(const compressor_t *c, float x)
         {
             if (x >= c->x2)
                 return c->x0;
@@ -793,7 +793,7 @@ namespace lsp
             return ((v * c->a + c->b) * v + c->c)*v + c->x1;
         }
 
-        float clipper::odp_gain(const compressor_t *c, float x)
+        float mb_clipper::odp_gain(const compressor_t *c, float x)
         {
             if (x >= c->x2)
                 return c->x0 / x;
@@ -804,19 +804,19 @@ namespace lsp
             return (((v * c->a + c->b) * v + c->c)*v + c->x1)/x;
         }
 
-        void clipper::odp_curve(float *dst, const float *x, const compressor_t *c, size_t count)
+        void mb_clipper::odp_curve(float *dst, const float *x, const compressor_t *c, size_t count)
         {
             for (size_t i=0; i<count; ++i)
                 dst[i]      = odp_curve(c, x[i]);
         }
 
-        void clipper::odp_gain(float *dst, const float *x, const compressor_t *c, size_t count)
+        void mb_clipper::odp_gain(float *dst, const float *x, const compressor_t *c, size_t count)
         {
             for (size_t i=0; i<count; ++i)
                 dst[i]      = odp_gain(c, x[i]);
         }
 
-        void clipper::odp_link(float *dst, const float *src, float link, size_t count)
+        void mb_clipper::odp_link(float *dst, const float *src, float link, size_t count)
         {
             const float rlink = 1.0f - link;
             for (size_t i=0; i<count; ++i)
@@ -826,7 +826,7 @@ namespace lsp
             }
         }
 
-        float clipper::clip_curve(const clip_params_t *p, float x)
+        float mb_clipper::clip_curve(const clip_params_t *p, float x)
         {
             float s = x * p->fPumping;
             if (s > p->fThreshold)
@@ -843,32 +843,32 @@ namespace lsp
             return s;
         }
 
-        void clipper::clip_curve(float *dst, const float *x, const clip_params_t *p, size_t count)
+        void mb_clipper::clip_curve(float *dst, const float *x, const clip_params_t *p, size_t count)
         {
             for (size_t i=0; i<count; ++i)
                 dst[i]      = clip_curve(p, x[i]);
         }
 
-        size_t clipper::decode_dithering(size_t mode)
+        size_t mb_clipper::decode_dithering(size_t mode)
         {
             switch (mode)
             {
-                case meta::clipper::DITHER_7BIT:        return 7;
-                case meta::clipper::DITHER_8BIT:        return 8;
-                case meta::clipper::DITHER_11BIT:       return 11;
-                case meta::clipper::DITHER_12BIT:       return 12;
-                case meta::clipper::DITHER_15BIT:       return 15;
-                case meta::clipper::DITHER_16BIT:       return 16;
-                case meta::clipper::DITHER_23BIT:       return 23;
-                case meta::clipper::DITHER_24BIT:       return 24;
-                case meta::clipper::DITHER_NONE:
+                case meta::mb_clipper::DITHER_7BIT:        return 7;
+                case meta::mb_clipper::DITHER_8BIT:        return 8;
+                case meta::mb_clipper::DITHER_11BIT:       return 11;
+                case meta::mb_clipper::DITHER_12BIT:       return 12;
+                case meta::mb_clipper::DITHER_15BIT:       return 15;
+                case meta::mb_clipper::DITHER_16BIT:       return 16;
+                case meta::mb_clipper::DITHER_23BIT:       return 23;
+                case meta::mb_clipper::DITHER_24BIT:       return 24;
+                case meta::mb_clipper::DITHER_NONE:
                 default:
                     return 0;
             }
             return 0;
         }
 
-        void clipper::update_settings()
+        void mb_clipper::update_settings()
         {
             bool bypass             = pBypass->value() >= 0.5f;
             fThresh                 = dspu::db_to_gain(-pThresh->value());
@@ -889,8 +889,8 @@ namespace lsp
             }
 
             // Configure split frequencies
-            const size_t num_splits = (pExtraBandOn->value() >= 0.5f) ? meta::clipper::BANDS_MAX-1 : meta::clipper::BANDS_MAX-2;
-            for (size_t i=0; i<meta::clipper::BANDS_MAX-1; ++i)
+            const size_t num_splits = (pExtraBandOn->value() >= 0.5f) ? meta::mb_clipper::BANDS_MAX-1 : meta::mb_clipper::BANDS_MAX-2;
+            for (size_t i=0; i<meta::mb_clipper::BANDS_MAX-1; ++i)
             {
                 split_t *sp             = &vSplits[i];
                 sp->fFreq               = sp->pFreq->value();
@@ -899,7 +899,7 @@ namespace lsp
 
             // Check if we have solo option for bands and ansysis optios for channels
             bool has_solo   = false;
-            for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+            for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
             {
                 processor_t *p          = &vProc[j];
                 p->nFlags              &= uint32_t(~PF_ENABLED);
@@ -935,7 +935,7 @@ namespace lsp
                     const size_t lpf_slope  = filter_slope(pLpfSlope->value());
 
                     // Configure split points for crossover
-                    for (size_t j=0; j<meta::clipper::BANDS_MAX-1; ++j)
+                    for (size_t j=0; j<meta::mb_clipper::BANDS_MAX-1; ++j)
                     {
                         split_t *sp         = &vSplits[j];
 
@@ -969,9 +969,9 @@ namespace lsp
                     // Obtain new equalizer curve if needed
                     if ((i == 0) && (c->sEqualizer.configuration_changed()))
                     {
-                        for (size_t offset=0; offset<meta::clipper::FFT_MESH_POINTS; )
+                        for (size_t offset=0; offset<meta::mb_clipper::FFT_MESH_POINTS; )
                         {
-                            size_t count    = lsp_min(BUFFER_SIZE >> 1, meta::clipper::FFT_MESH_POINTS - offset);
+                            size_t count    = lsp_min(BUFFER_SIZE >> 1, meta::mb_clipper::FFT_MESH_POINTS - offset);
                             c->sEqualizer.freq_chart(vBuffer, &vFreqs[offset], count);
                             dsp::pcomplex_mod(&vTrEq[offset], vBuffer, count);
                             offset         += count;
@@ -988,7 +988,7 @@ namespace lsp
                     const float lpf_slope   = fft_filter_slope(pLpfSlope->value());
 
                     // Configure split points for crossover
-                    for (size_t j=0; j < meta::clipper::BANDS_MAX; ++j)
+                    for (size_t j=0; j < meta::mb_clipper::BANDS_MAX; ++j)
                     {
 //                        band_t *b       = &c->vBands[i];
 
@@ -1034,7 +1034,7 @@ namespace lsp
             }
 
             // Configure clipping
-            for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+            for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
             {
                 processor_t *p          = &vProc[j];
 
@@ -1078,7 +1078,7 @@ namespace lsp
 
                 // Adjust RMS compensation delay for each band
                 size_t band_latency     = 0;
-                for (size_t j=0; j < meta::clipper::BANDS_MAX; ++j)
+                for (size_t j=0; j < meta::mb_clipper::BANDS_MAX; ++j)
                 {
                     band_t *b               = &c->vBands[j];
                     processor_t *p          = &vProc[j];
@@ -1103,7 +1103,7 @@ namespace lsp
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c            = &vChannels[i];
-                for (size_t j=0; j < meta::clipper::BANDS_MAX; ++j)
+                for (size_t j=0; j < meta::mb_clipper::BANDS_MAX; ++j)
                 {
                     band_t *b       = &c->vBands[j];
                     b->sPostDelay.set_delay(max_band_latency - b->sPreDelay.delay() - b->sInDelay.delay());
@@ -1139,13 +1139,13 @@ namespace lsp
             if (sAnalyzer.needs_reconfiguration())
             {
                 sAnalyzer.reconfigure();
-                sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, meta::clipper::FFT_MESH_POINTS);
+                sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, meta::mb_clipper::FFT_MESH_POINTS);
             }
 
             // Mark crossover bands out of sync
             if (sync_band_curves)
             {
-                for (size_t i=0; i < meta::clipper::BANDS_MAX; ++i)
+                for (size_t i=0; i < meta::mb_clipper::BANDS_MAX; ++i)
                 {
                     processor_t *b          = &vProc[i];
                     b->nFlags              |= PF_DIRTY_BAND | PF_SYNC_BAND;
@@ -1164,7 +1164,7 @@ namespace lsp
                 lsp_trace("CHANNEL %d:", int(i));
 
                 // Adjust RMS compensation delay for each band
-                for (size_t j=0; j < meta::clipper::BANDS_MAX; ++j)
+                for (size_t j=0; j < meta::mb_clipper::BANDS_MAX; ++j)
                 {
                     band_t *b               = &c->vBands[j];
                     lsp_trace("  BAND %d:", int(j));
@@ -1178,9 +1178,9 @@ namespace lsp
         #endif /* LSP_TRACE */
         }
 
-        void clipper::process_band(void *object, void *subject, size_t band, const float *data, size_t sample, size_t count)
+        void mb_clipper::process_band(void *object, void *subject, size_t band, const float *data, size_t sample, size_t count)
         {
-            clipper *self           = static_cast<clipper *>(object);
+            mb_clipper *self           = static_cast<mb_clipper *>(object);
             channel_t *c            = static_cast<channel_t *>(subject);
             band_t *b               = &c->vBands[band];
             processor_t *p          = &self->vProc[band];
@@ -1189,7 +1189,7 @@ namespace lsp
             dsp::mul_k3(&b->vData[sample], data, p->fPreamp * self->fThresh, count);
         }
 
-        void clipper::bind_input_buffers()
+        void mb_clipper::bind_input_buffers()
         {
             for (size_t i=0; i<nChannels; ++i)
             {
@@ -1213,7 +1213,7 @@ namespace lsp
                 c->fClipOut         = GAIN_AMP_M_INF_DB;
                 c->fClipRed         = GAIN_AMP_P_72_DB;
 
-                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
                 {
                     band_t *b           = &c->vBands[j];
 
@@ -1232,7 +1232,7 @@ namespace lsp
             }
         }
 
-        void clipper::advance_buffers(size_t samples)
+        void mb_clipper::advance_buffers(size_t samples)
         {
             for (size_t i=0; i<nChannels; ++i)
             {
@@ -1243,7 +1243,7 @@ namespace lsp
             }
         }
 
-        void clipper::split_bands(size_t samples)
+        void mb_clipper::split_bands(size_t samples)
         {
             if (enXOverMode == XOVER_IIR)
             {
@@ -1273,7 +1273,7 @@ namespace lsp
             {
                 channel_t *c            = &vChannels[i];
 
-                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
                 {
                     band_t *b               = &c->vBands[j];
                     processor_t *p          = &vProc[j];
@@ -1283,7 +1283,7 @@ namespace lsp
             }
         }
 
-        void clipper::process_bands(size_t samples)
+        void mb_clipper::process_bands(size_t samples)
         {
             if (nChannels > 1)
             {
@@ -1291,7 +1291,7 @@ namespace lsp
                 channel_t *l            = &vChannels[0];
                 channel_t *r            = &vChannels[1];
 
-                for (size_t i=0; i<meta::clipper::BANDS_MAX; ++i)
+                for (size_t i=0; i<meta::mb_clipper::BANDS_MAX; ++i)
                 {
                     band_t *lb              = &l->vBands[i];
                     band_t *rb              = &r->vBands[i];
@@ -1457,7 +1457,7 @@ namespace lsp
                 // Mono version
                 channel_t *c            = &vChannels[0];
 
-                for (size_t i=0; i<meta::clipper::BANDS_MAX; ++i)
+                for (size_t i=0; i<meta::mb_clipper::BANDS_MAX; ++i)
                 {
                     band_t *b               = &c->vBands[i];
                     processor_t *p          = &vProc[i];
@@ -1555,7 +1555,7 @@ namespace lsp
             }
         }
 
-        void clipper::process_output_clipper(size_t samples)
+        void mb_clipper::process_output_clipper(size_t samples)
         {
             if (nChannels > 1)
             {
@@ -1786,7 +1786,7 @@ namespace lsp
             }
         }
 
-        void clipper::merge_bands(size_t samples)
+        void mb_clipper::merge_bands(size_t samples)
         {
             for (size_t i=0; i<nChannels; ++i)
             {
@@ -1794,7 +1794,7 @@ namespace lsp
                 size_t merged = 0;
 
                 // Mix all bands together
-                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
                 {
                     band_t *b               = &c->vBands[j];
                     processor_t *p          = &vProc[j];
@@ -1816,7 +1816,7 @@ namespace lsp
             }
         }
 
-        void clipper::perform_analysis(size_t samples)
+        void mb_clipper::perform_analysis(size_t samples)
         {
             // Prepare processing
             const float *bufs[4] = { NULL, NULL, NULL, NULL };
@@ -1834,7 +1834,7 @@ namespace lsp
             sAnalyzer.process(bufs, samples);
         }
 
-        void clipper::output_meters()
+        void mb_clipper::output_meters()
         {
             for (size_t i=0; i<nChannels; ++i)
             {
@@ -1855,7 +1855,7 @@ namespace lsp
                 c->pClipOut->set_value(c->fClipOut);
                 c->pClipRed->set_value(c->fClipRed);
 
-                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
                 {
                     band_t *b       = &c->vBands[j];
 
@@ -1874,12 +1874,12 @@ namespace lsp
             }
         }
 
-        void clipper::output_mesh_curves(size_t samples)
+        void mb_clipper::output_mesh_curves(size_t samples)
         {
             plug::mesh_t *mesh  = NULL;
 
             // Update processor curves if needed
-            for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+            for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
             {
                 channel_t *c        = &vChannels[0];
                 processor_t *p      = &vProc[j];
@@ -1887,9 +1887,9 @@ namespace lsp
                 {
                     if (enXOverMode == XOVER_IIR)
                     {
-                        for (size_t offset=0; offset<meta::clipper::FFT_MESH_POINTS; )
+                        for (size_t offset=0; offset<meta::mb_clipper::FFT_MESH_POINTS; )
                         {
-                            size_t count    = lsp_min(BUFFER_SIZE >> 1, meta::clipper::FFT_MESH_POINTS - offset);
+                            size_t count    = lsp_min(BUFFER_SIZE >> 1, meta::mb_clipper::FFT_MESH_POINTS - offset);
 
                             c->sIIRXOver.freq_chart(j, vBuffer, &vFreqs[offset], count);
                             dsp::pcomplex_mod(vBuffer, vBuffer, count);
@@ -1900,9 +1900,9 @@ namespace lsp
                     }
                     else // (enXOverMode == XOVER_FFT)
                     {
-                        for (size_t offset=0; offset<meta::clipper::FFT_MESH_POINTS; )
+                        for (size_t offset=0; offset<meta::mb_clipper::FFT_MESH_POINTS; )
                         {
-                            size_t count    = lsp_min(BUFFER_SIZE, meta::clipper::FFT_MESH_POINTS - offset);
+                            size_t count    = lsp_min(BUFFER_SIZE, meta::mb_clipper::FFT_MESH_POINTS - offset);
                             c->sFFTXOver.freq_chart(j, &p->vTr[offset], &vFreqs[offset], count);
                             offset         += count;
                         }
@@ -1919,14 +1919,14 @@ namespace lsp
                     {
                         // Add extra points
                         mesh->pvData[0][0] = SPEC_FREQ_MIN*0.5f;
-                        mesh->pvData[0][meta::clipper::FFT_MESH_POINTS+1] = SPEC_FREQ_MAX * 2.0f;
+                        mesh->pvData[0][meta::mb_clipper::FFT_MESH_POINTS+1] = SPEC_FREQ_MAX * 2.0f;
                         mesh->pvData[1][0] = 0.0f;
-                        mesh->pvData[1][meta::clipper::FFT_MESH_POINTS+1] = 0.0f;
+                        mesh->pvData[1][meta::mb_clipper::FFT_MESH_POINTS+1] = 0.0f;
 
                         // Fill mesh
-                        dsp::copy(&mesh->pvData[0][1], vFreqs, meta::clipper::FFT_MESH_POINTS);
-                        dsp::copy(&mesh->pvData[1][1], p->vTr, meta::clipper::FFT_MESH_POINTS);
-                        mesh->data(2, meta::clipper::FFT_MESH_POINTS + 2);
+                        dsp::copy(&mesh->pvData[0][1], vFreqs, meta::mb_clipper::FFT_MESH_POINTS);
+                        dsp::copy(&mesh->pvData[1][1], p->vTr, meta::mb_clipper::FFT_MESH_POINTS);
+                        mesh->data(2, meta::mb_clipper::FFT_MESH_POINTS + 2);
 
                         // Mark mesh as synchronized
                         p->nFlags      &= uint32_t(~PF_SYNC_BAND);
@@ -1939,9 +1939,9 @@ namespace lsp
                     mesh                = (p->sOdp.pCurveMesh != NULL) ? p->sOdp.pCurveMesh->buffer<plug::mesh_t>() : NULL;
                     if ((mesh != NULL) && (mesh->isEmpty()))
                     {
-                        dsp::copy(mesh->pvData[0], vOdp, meta::clipper::CURVE_MESH_POINTS);
-                        odp_curve(mesh->pvData[1], vOdp, &p->sComp, meta::clipper::CURVE_MESH_POINTS);
-                        mesh->data(2, meta::clipper::CURVE_MESH_POINTS);
+                        dsp::copy(mesh->pvData[0], vOdp, meta::mb_clipper::CURVE_MESH_POINTS);
+                        odp_curve(mesh->pvData[1], vOdp, &p->sComp, meta::mb_clipper::CURVE_MESH_POINTS);
+                        mesh->data(2, meta::mb_clipper::CURVE_MESH_POINTS);
 
                         // Mark mesh as synchronized
                         p->nFlags      &= uint32_t(~PF_SYNC_ODP);
@@ -1954,11 +1954,11 @@ namespace lsp
                     mesh                = (p->sClip.pCurveMesh != NULL) ? p->sClip.pCurveMesh->buffer<plug::mesh_t>() : NULL;
                     if ((mesh != NULL) && (mesh->isEmpty()))
                     {
-                        dsp::copy(mesh->pvData[0], vLinSigmoid, meta::clipper::CURVE_MESH_POINTS);
-                        clip_curve(mesh->pvData[1], vLinSigmoid, &p->sClip, meta::clipper::CURVE_MESH_POINTS);
-                        dsp::copy(mesh->pvData[2], vLogSigmoid, meta::clipper::CURVE_MESH_POINTS);
-                        clip_curve(mesh->pvData[3], vLogSigmoid, &p->sClip, meta::clipper::CURVE_MESH_POINTS);
-                        mesh->data(4, meta::clipper::CURVE_MESH_POINTS);
+                        dsp::copy(mesh->pvData[0], vLinSigmoid, meta::mb_clipper::CURVE_MESH_POINTS);
+                        clip_curve(mesh->pvData[1], vLinSigmoid, &p->sClip, meta::mb_clipper::CURVE_MESH_POINTS);
+                        dsp::copy(mesh->pvData[2], vLogSigmoid, meta::mb_clipper::CURVE_MESH_POINTS);
+                        clip_curve(mesh->pvData[3], vLogSigmoid, &p->sClip, meta::mb_clipper::CURVE_MESH_POINTS);
+                        mesh->data(4, meta::mb_clipper::CURVE_MESH_POINTS);
 
                         // Mark mesh as synchronized
                         p->nFlags      &= uint32_t(~PF_SYNC_CLIP);
@@ -1972,9 +1972,9 @@ namespace lsp
                 mesh                = (sOdp.pCurveMesh != NULL) ? sOdp.pCurveMesh->buffer<plug::mesh_t>() : NULL;
                 if ((mesh != NULL) && (mesh->isEmpty()))
                 {
-                    dsp::copy(mesh->pvData[0], vOdp, meta::clipper::CURVE_MESH_POINTS);
-                    odp_curve(mesh->pvData[1], vOdp, &sComp, meta::clipper::CURVE_MESH_POINTS);
-                    mesh->data(2, meta::clipper::CURVE_MESH_POINTS);
+                    dsp::copy(mesh->pvData[0], vOdp, meta::mb_clipper::CURVE_MESH_POINTS);
+                    odp_curve(mesh->pvData[1], vOdp, &sComp, meta::mb_clipper::CURVE_MESH_POINTS);
+                    mesh->data(2, meta::mb_clipper::CURVE_MESH_POINTS);
 
                     // Mark mesh as synchronized
                     nFlags             &= uint32_t(~GF_SYNC_ODP);
@@ -1987,11 +1987,11 @@ namespace lsp
                 mesh                = (sClip.pCurveMesh != NULL) ? sClip.pCurveMesh->buffer<plug::mesh_t>() : NULL;
                 if ((mesh != NULL) && (mesh->isEmpty()))
                 {
-                    dsp::copy(mesh->pvData[0], vLinSigmoid, meta::clipper::CURVE_MESH_POINTS);
-                    clip_curve(mesh->pvData[1], vLinSigmoid, &sClip, meta::clipper::CURVE_MESH_POINTS);
-                    dsp::copy(mesh->pvData[2], vLogSigmoid, meta::clipper::CURVE_MESH_POINTS);
-                    clip_curve(mesh->pvData[3], vLogSigmoid, &sClip, meta::clipper::CURVE_MESH_POINTS);
-                    mesh->data(4, meta::clipper::CURVE_MESH_POINTS);
+                    dsp::copy(mesh->pvData[0], vLinSigmoid, meta::mb_clipper::CURVE_MESH_POINTS);
+                    clip_curve(mesh->pvData[1], vLinSigmoid, &sClip, meta::mb_clipper::CURVE_MESH_POINTS);
+                    dsp::copy(mesh->pvData[2], vLogSigmoid, meta::mb_clipper::CURVE_MESH_POINTS);
+                    clip_curve(mesh->pvData[3], vLogSigmoid, &sClip, meta::mb_clipper::CURVE_MESH_POINTS);
+                    mesh->data(4, meta::mb_clipper::CURVE_MESH_POINTS);
 
                     // Mark mesh as synchronized
                     nFlags             &= uint32_t(~GF_SYNC_CLIP);
@@ -2006,12 +2006,12 @@ namespace lsp
                 // Update transfer curve for crossover if needed
                 if (sCounter.fired())
                 {
-                    for (size_t offset=0; offset<meta::clipper::FFT_MESH_POINTS; )
+                    for (size_t offset=0; offset<meta::mb_clipper::FFT_MESH_POINTS; )
                     {
-                        size_t count    = lsp_min(BUFFER_SIZE, meta::clipper::FFT_MESH_POINTS - offset);
+                        size_t count    = lsp_min(BUFFER_SIZE, meta::mb_clipper::FFT_MESH_POINTS - offset);
                         size_t bands    = 0;
 
-                        for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                        for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
                         {
                             band_t *b       = &c->vBands[j];
                             processor_t *p  = &vProc[j];
@@ -2039,11 +2039,11 @@ namespace lsp
                 if ((mesh != NULL) && (mesh->isEmpty()))
                 {
                     // Copy frequency points
-                    dsp::copy(mesh->pvData[0], vFreqs, meta::clipper::FFT_MESH_POINTS);
-                    dsp::copy(mesh->pvData[1], c->vTr, meta::clipper::FFT_MESH_POINTS);
+                    dsp::copy(mesh->pvData[0], vFreqs, meta::mb_clipper::FFT_MESH_POINTS);
+                    dsp::copy(mesh->pvData[1], c->vTr, meta::mb_clipper::FFT_MESH_POINTS);
 
                     // Mark mesh containing data
-                    mesh->data(2, meta::clipper::FFT_MESH_POINTS);
+                    mesh->data(2, meta::mb_clipper::FFT_MESH_POINTS);
                 }
 
                 // Output FFT curve for input
@@ -2054,16 +2054,16 @@ namespace lsp
                     {
                         // Add extra points
                         mesh->pvData[0][0] = SPEC_FREQ_MIN * 0.5f;
-                        mesh->pvData[0][meta::clipper::FFT_MESH_POINTS+1] = SPEC_FREQ_MAX * 2.0f;
+                        mesh->pvData[0][meta::mb_clipper::FFT_MESH_POINTS+1] = SPEC_FREQ_MAX * 2.0f;
                         mesh->pvData[1][0] = 0.0f;
-                        mesh->pvData[1][meta::clipper::FFT_MESH_POINTS+1] = 0.0f;
+                        mesh->pvData[1][meta::mb_clipper::FFT_MESH_POINTS+1] = 0.0f;
 
                         // Copy frequency points
-                        dsp::copy(&mesh->pvData[0][1], vFreqs, meta::clipper::FFT_MESH_POINTS);
-                        sAnalyzer.get_spectrum(c->nAnInChannel, &mesh->pvData[1][1], vIndexes, meta::clipper::FFT_MESH_POINTS);
+                        dsp::copy(&mesh->pvData[0][1], vFreqs, meta::mb_clipper::FFT_MESH_POINTS);
+                        sAnalyzer.get_spectrum(c->nAnInChannel, &mesh->pvData[1][1], vIndexes, meta::mb_clipper::FFT_MESH_POINTS);
 
                         // Mark mesh containing data
-                        mesh->data(2, meta::clipper::FFT_MESH_POINTS + 2);
+                        mesh->data(2, meta::mb_clipper::FFT_MESH_POINTS + 2);
                     }
                     else
                         mesh->data(2, 0);
@@ -2076,11 +2076,11 @@ namespace lsp
                     if (sAnalyzer.channel_active(c->nAnOutChannel))
                     {
                         // Copy frequency points
-                        dsp::copy(mesh->pvData[0], vFreqs, meta::clipper::FFT_MESH_POINTS);
-                        sAnalyzer.get_spectrum(c->nAnOutChannel, mesh->pvData[1], vIndexes, meta::clipper::FFT_MESH_POINTS);
+                        dsp::copy(mesh->pvData[0], vFreqs, meta::mb_clipper::FFT_MESH_POINTS);
+                        sAnalyzer.get_spectrum(c->nAnOutChannel, mesh->pvData[1], vIndexes, meta::mb_clipper::FFT_MESH_POINTS);
 
                         // Mark mesh containing data
-                        mesh->data(2, meta::clipper::FFT_MESH_POINTS);
+                        mesh->data(2, meta::mb_clipper::FFT_MESH_POINTS);
                     }
                     else
                         mesh->data(2, 0);
@@ -2098,15 +2098,15 @@ namespace lsp
                         float *out      = mesh->pvData[2];
                         float *red      = mesh->pvData[3];
 
-                        dsp::copy(&t[2], vTime, meta::clipper::TIME_MESH_POINTS);
-                        dsp::copy(&in[2], c->sInGraph.data(), meta::clipper::TIME_MESH_POINTS);
-                        dsp::copy(&out[2], c->sOutGraph.data(), meta::clipper::TIME_MESH_POINTS);
+                        dsp::copy(&t[2], vTime, meta::mb_clipper::TIME_MESH_POINTS);
+                        dsp::copy(&in[2], c->sInGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
+                        dsp::copy(&out[2], c->sOutGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
 
-                        for (size_t k=2; k<meta::clipper::TIME_MESH_POINTS + 2; ++k)
+                        for (size_t k=2; k<meta::mb_clipper::TIME_MESH_POINTS + 2; ++k)
                             red[k]      = lsp_max(out[k], GAIN_AMP_M_120_DB) / lsp_max(in[k], GAIN_AMP_M_120_DB);
 
                         // Generate extra points
-                        t[0]            = t[2] + meta::clipper::TIME_HISTORY_GAP;
+                        t[0]            = t[2] + meta::mb_clipper::TIME_HISTORY_GAP;
                         t[1]            = t[0];
                         in[0]           = 0.0f;
                         in[1]           = in[2];
@@ -2115,12 +2115,12 @@ namespace lsp
                         red[0]          = red[2];
                         red[1]          = red[2];
 
-                        t              += meta::clipper::TIME_MESH_POINTS + 2;
-                        in             += meta::clipper::TIME_MESH_POINTS + 2;
-                        out            += meta::clipper::TIME_MESH_POINTS + 2;
-                        red            += meta::clipper::TIME_MESH_POINTS + 2;
+                        t              += meta::mb_clipper::TIME_MESH_POINTS + 2;
+                        in             += meta::mb_clipper::TIME_MESH_POINTS + 2;
+                        out            += meta::mb_clipper::TIME_MESH_POINTS + 2;
+                        red            += meta::mb_clipper::TIME_MESH_POINTS + 2;
 
-                        t[0]            = t[-1] - meta::clipper::TIME_HISTORY_GAP;
+                        t[0]            = t[-1] - meta::mb_clipper::TIME_HISTORY_GAP;
                         t[1]            = t[0];
                         in[0]           = in[-1];
                         in[1]           = 0.0f;
@@ -2130,14 +2130,14 @@ namespace lsp
                         red[1]          = red[-1];
 
                         // Notify mesh contains data
-                        mesh->data(4, meta::clipper::TIME_MESH_POINTS + 4);
+                        mesh->data(4, meta::mb_clipper::TIME_MESH_POINTS + 4);
                     }
                     else
                         mesh->data(4, 0);
                 }
 
                 // Output oscilloscope graphs for band
-                for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+                for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
                 {
                     band_t *b           = &c->vBands[j];
                     processor_t *p      = &vProc[j];
@@ -2154,15 +2154,15 @@ namespace lsp
                             float *out      = mesh->pvData[2];
                             float *red      = mesh->pvData[3];
 
-                            dsp::copy(&t[2], vTime, meta::clipper::TIME_MESH_POINTS);
-                            dsp::copy(&in[2], b->sInGraph.data(), meta::clipper::TIME_MESH_POINTS);
-                            dsp::copy(&out[2], b->sOutGraph.data(), meta::clipper::TIME_MESH_POINTS);
+                            dsp::copy(&t[2], vTime, meta::mb_clipper::TIME_MESH_POINTS);
+                            dsp::copy(&in[2], b->sInGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
+                            dsp::copy(&out[2], b->sOutGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
 
-                            for (size_t k=2; k<meta::clipper::TIME_MESH_POINTS + 2; ++k)
+                            for (size_t k=2; k<meta::mb_clipper::TIME_MESH_POINTS + 2; ++k)
                                 red[k]      = lsp_max(out[k], GAIN_AMP_M_120_DB) / lsp_max(in[k], GAIN_AMP_M_120_DB);
 
                             // Generate extra points
-                            t[0]            = t[2] + meta::clipper::TIME_HISTORY_GAP;
+                            t[0]            = t[2] + meta::mb_clipper::TIME_HISTORY_GAP;
                             t[1]            = t[0];
                             in[0]           = 0.0f;
                             in[1]           = in[2];
@@ -2171,12 +2171,12 @@ namespace lsp
                             red[0]          = red[2];
                             red[1]          = red[2];
 
-                            t              += meta::clipper::TIME_MESH_POINTS + 2;
-                            in             += meta::clipper::TIME_MESH_POINTS + 2;
-                            out            += meta::clipper::TIME_MESH_POINTS + 2;
-                            red            += meta::clipper::TIME_MESH_POINTS + 2;
+                            t              += meta::mb_clipper::TIME_MESH_POINTS + 2;
+                            in             += meta::mb_clipper::TIME_MESH_POINTS + 2;
+                            out            += meta::mb_clipper::TIME_MESH_POINTS + 2;
+                            red            += meta::mb_clipper::TIME_MESH_POINTS + 2;
 
-                            t[0]            = t[-1] - meta::clipper::TIME_HISTORY_GAP;
+                            t[0]            = t[-1] - meta::mb_clipper::TIME_HISTORY_GAP;
                             t[1]            = t[0];
                             in[0]           = in[-1];
                             in[1]           = 0.0f;
@@ -2186,7 +2186,7 @@ namespace lsp
                             red[1]          = red[-1];
 
                             // Notify mesh contains data
-                            mesh->data(4, meta::clipper::TIME_MESH_POINTS + 4);
+                            mesh->data(4, meta::mb_clipper::TIME_MESH_POINTS + 4);
                         }
                         else
                             mesh->data(4, 0);
@@ -2195,7 +2195,7 @@ namespace lsp
             }
         }
 
-        void clipper::output_signal(size_t samples)
+        void mb_clipper::output_signal(size_t samples)
         {
             // Process the signal
             for (size_t i=0; i<nChannels; ++i)
@@ -2209,7 +2209,7 @@ namespace lsp
             }
         }
 
-        void clipper::process(size_t samples)
+        void mb_clipper::process(size_t samples)
         {
             bind_input_buffers();
 
@@ -2241,10 +2241,10 @@ namespace lsp
             sCounter.commit();
         }
 
-        void clipper::ui_activated()
+        void mb_clipper::ui_activated()
         {
             // Force meshes to become synchronized with UI
-            for (size_t j=0; j<meta::clipper::BANDS_MAX; ++j)
+            for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
             {
                 processor_t *p      = &vProc[j];
                 p->nFlags          |= PF_SYNC_ALL;
@@ -2252,7 +2252,7 @@ namespace lsp
             nFlags             |= GF_SYNC_ALL;
         }
 
-        bool clipper::inline_display(plug::ICanvas *cv, size_t width, size_t height)
+        bool mb_clipper::inline_display(plug::ICanvas *cv, size_t width, size_t height)
         {
             // Check proportions
             if (height > (M_RGOLD_RATIO * width))
@@ -2327,7 +2327,7 @@ namespace lsp
 
                 for (size_t j=0; j<width; ++j)
                 {
-                    size_t k        = (j*meta::clipper::FFT_MESH_POINTS)/width;
+                    size_t k        = (j*meta::mb_clipper::FFT_MESH_POINTS)/width;
                     b->v[0][j+1]    = vFreqs[k];
                     b->v[3][j+1]    = c->vTr[k];
                 }
@@ -2346,7 +2346,7 @@ namespace lsp
             return true;
         }
 
-        void clipper::dump(dspu::IStateDumper *v) const
+        void mb_clipper::dump(dspu::IStateDumper *v) const
         {
             plug::Module::dump(v);
 

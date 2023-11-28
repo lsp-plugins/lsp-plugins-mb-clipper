@@ -1,24 +1,11 @@
 {
-	"clipper": {
+	"mb_clipper": {
 		"band": {
 			"1": "Полоса 1",
 			"2": "Полоса 2",
 			"3": "Полоса 3",
 			"4": "Полоса 4"
 		},
-		"output": "Выход",
-		"sigmoid": {
-			"arctangent": "Арктангенс",
-			"circle": "Окружность",
-			"error_function": "Ошибка Гаусса",
-			"guidermannian": "Функция Гудермана",
-			"hardclip": "Жёсткий срез",
-			"hyperbolic_tangent": "Гиперболический тангенс",
-			"logistic": "Логистическая",
-			"parabolic": "Параболическая",
-			"sine": "Синус",
-			"smootherstep": "Smootherstep",
-			"smoothstep": "Smoothstep"
-		}
+		"output": "Выход"
 	}
 }
