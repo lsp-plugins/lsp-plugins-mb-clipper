@@ -287,6 +287,7 @@ namespace lsp
 
                 dspu::Analyzer      sAnalyzer;          // FFT analyzer
                 dspu::Counter       sCounter;           // Counter
+                dspu::LoudnessMeter sOutMeter;          // Output LUFS meter
                 split_t             vSplits[meta::mb_clipper::BANDS_MAX-1];
                 processor_t         vProc[meta::mb_clipper::BANDS_MAX];      // Processor
                 compressor_t        sComp;              // Simple compressor
@@ -298,6 +299,7 @@ namespace lsp
                 xover_mode_t        enXOverMode;        // Crossover mode
                 float               fInGain;            // Input gain
                 float               fOutGain;           // Output gain
+                float               fOutLufs;           // Output LUFS
                 float               fThresh;            // Threshold
                 float               fStereoLink;        // Stereo link
                 float               fZoom;              // Zoom
@@ -316,6 +318,7 @@ namespace lsp
                 plug::IPort        *pBypass;            // Bypass
                 plug::IPort        *pGainIn;            // Input gain
                 plug::IPort        *pGainOut;           // Output gain
+                plug::IPort        *pLufsOut;           // Output LUFS meter
                 plug::IPort        *pThresh;            // Threshold
                 plug::IPort        *pBoosting;          // Boosting mode
                 plug::IPort        *pStereoLink;        // Stereo linking for output clipper

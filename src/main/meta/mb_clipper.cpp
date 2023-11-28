@@ -113,6 +113,7 @@ namespace lsp
         CONTROL("lufs_th", "Input LUFS limiter threshold", U_LUFS, mb_clipper::LUFS_THRESH), \
         LUFS_METER("lufs_il", "Input LUFS value", 24.0f), \
         METER_OUT_GAIN("lufs_gr", "Input LUFS gain reduction", GAIN_AMP_0_DB), \
+        LUFS_METER("lufs_ol", "Output LUFS value", 24.0f), \
         CONTROL("thresh", "Clipping threshold", U_DB, mb_clipper::THRESHOLD), \
         SWITCH("boost", "Boosting mode", 1.0f), \
         COMBO("mode", "Crossover operating mode", 1, clipper_xover_modes), \
@@ -289,7 +290,7 @@ namespace lsp
             LSP_LV2_URI("mb_clipper_mono"),
             LSP_LV2UI_URI("mb_clipper_mono"),
             "CL1M",
-            LSP_LADSPA_CLIPPER_BASE + 0,
+            LSP_LADSPA_MB_CLIPPER_BASE + 0,
             LSP_LADSPA_URI("mb_clipper_mono"),
             LSP_CLAP_URI("mb_clipper_mono"),
             LSP_PLUGINS_MB_CLIPPER_VERSION,
@@ -313,7 +314,7 @@ namespace lsp
             LSP_LV2_URI("mb_clipper_stereo"),
             LSP_LV2UI_URI("mb_clipper_stereo"),
             "CL1S",
-            LSP_LADSPA_CLIPPER_BASE + 1,
+            LSP_LADSPA_MB_CLIPPER_BASE + 1,
             LSP_LADSPA_URI("mb_clipper_stereo"),
             LSP_CLAP_URI("mb_clipper_stereo"),
             LSP_PLUGINS_MB_CLIPPER_VERSION,

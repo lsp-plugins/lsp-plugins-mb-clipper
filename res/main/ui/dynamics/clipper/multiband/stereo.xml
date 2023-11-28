@@ -1,6 +1,6 @@
 <plugin resizable="true">
 	<vbox spacing="4">
-		<grid rows="2" cols="5" vspacing="4" hspacing="4" expand="true">
+		<grid rows="2" cols="7" vspacing="4" hspacing="4" expand="true">
 			<group ui:inject="GraphGroup" ipadding="0" expand="true" fill="true" text="labels.graphs.spectrum">
 				<graph width.min="640" height.min="320" expand="true" fill="true">
 					<origin hpos="-1" vpos="-1" visible="false"/>
@@ -147,6 +147,15 @@
 					</ledmeter>
 				</vbox>
 			</cell>
+			<!-- LUFS in -->
+			<cell rows="2">
+				<vbox vexpand="true" bg.color="bg_schema">
+					<label text="LUFS" pad.b="3" pad.t="3"/>
+					<ledmeter vexpand="true" angle="1">
+						<ledchannel id="lufs_il" min="-72" max="6" type="peak" log="false" value.color="blue"/>
+					</ledmeter>
+				</vbox>
+			</cell>
 			<!-- meter out -->
 			<cell rows="2">
 				<vbox vexpand="true" bg.color="bg_schema">
@@ -154,6 +163,15 @@
 					<ledmeter vexpand="true" angle="1">
 						<ledchannel id="osm_l" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left"/>
 						<ledchannel id="osm_r" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right"/>
+					</ledmeter>
+				</vbox>
+			</cell>
+			<!-- LUFS out -->
+			<cell rows="2">
+				<vbox vexpand="true" bg.color="bg_schema">
+					<label text="LUFS" pad.b="3" pad.t="3"/>
+					<ledmeter vexpand="true" angle="1">
+						<ledchannel id="lufs_ol" min="-72" max="6" type="peak" log="false" value.color="blue"/>
 					</ledmeter>
 				</vbox>
 			</cell>

@@ -194,6 +194,7 @@ namespace lsp
 
             fInGain                 = GAIN_AMP_0_DB;
             fOutGain                = GAIN_AMP_0_DB;
+            fOutLufs                = GAIN_AMP_M_INF_DB;
             fThresh                 = GAIN_AMP_0_DB;
             fStereoLink             = 0.0f;
             fZoom                   = GAIN_AMP_0_DB;
@@ -212,6 +213,7 @@ namespace lsp
             pBypass                 = NULL;
             pGainIn                 = NULL;
             pGainOut                = NULL;
+            pLufsOut                = NULL;
             pThresh                 = NULL;
             pBoosting               = NULL;
             pStereoLink             = NULL;
@@ -281,6 +283,18 @@ namespace lsp
             sInLufs.sGain.construct();
             sOutLufs.sMeter.construct();
             sOutLufs.sGain.construct();
+
+            sOutMeter.construct();
+            sOutMeter.init(nChannels, meta::mb_clipper::LUFS_MEASUREMENT_PERIOD);
+            sOutMeter.set_period(meta::mb_clipper::LUFS_MEASUREMENT_PERIOD);
+            sOutMeter.set_weighting(dspu::bs::WEIGHT_K);
+            if (nChannels > 1)
+            {
+                sOutMeter.set_designation(0, dspu::bs::CHANNEL_LEFT);
+                sOutMeter.set_designation(1, dspu::bs::CHANNEL_RIGHT);
+            }
+            else
+                sOutMeter.set_designation(0, dspu::bs::CHANNEL_CENTER);
 
             sCounter.set_frequency(meta::mb_clipper::REFRESH_RATE, true);
             sInLufs.sMeter.init(nChannels, meta::mb_clipper::LUFS_MEASUREMENT_PERIOD);
@@ -496,6 +510,7 @@ namespace lsp
             sInLufs.pThreshold  = trace_port(ports[port_id++]);
             sInLufs.pIn         = trace_port(ports[port_id++]);
             sInLufs.pRed        = trace_port(ports[port_id++]);
+            pLufsOut            = trace_port(ports[port_id++]);
             pThresh             = trace_port(ports[port_id++]);
             pBoosting           = trace_port(ports[port_id++]);
             pXOverMode          = trace_port(ports[port_id++]);
@@ -735,6 +750,7 @@ namespace lsp
             sInLufs.sGain.set_sample_rate(sr);
             sOutLufs.sMeter.set_sample_rate(sr);
             sOutLufs.sGain.set_sample_rate(sr);
+            sOutMeter.set_sample_rate(sr);
 
             for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
             {
@@ -1296,6 +1312,8 @@ namespace lsp
 
             sOutLufs.fIn        = GAIN_AMP_M_INF_DB;
             sOutLufs.fRed       = GAIN_AMP_P_72_DB;
+
+            fOutLufs            = GAIN_AMP_M_INF_DB;
 
             for (size_t i=0; i<nChannels; ++i)
             {
@@ -2069,6 +2087,8 @@ namespace lsp
             sOutLufs.pIn->set_value(dspu::gain_to_lufs(sOutLufs.fIn));
             sOutLufs.pRed->set_value(sOutLufs.fRed);
 
+            pLufsOut->set_value(dspu::gain_to_lufs(fOutLufs));
+
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c    = &vChannels[i];
@@ -2445,9 +2465,15 @@ namespace lsp
 
                 dsp::mul_k2(c->vData, fOutGain, samples);
                 c->sDither.process(c->vData, c->vData, samples);
+                sOutMeter.bind(i, NULL, c->vData);
+
                 c->sDryDelay.process(vBuffer, c->vIn, samples);
                 c->sBypass.process(c->vOut, vBuffer, c->vData, samples);
             }
+
+            // Measure output loudness
+            sOutMeter.process(vBuffer, samples);
+            fOutLufs            = lsp_max(fOutLufs, dsp::abs_max(vBuffer, samples));
         }
 
         void mb_clipper::process(size_t samples)
