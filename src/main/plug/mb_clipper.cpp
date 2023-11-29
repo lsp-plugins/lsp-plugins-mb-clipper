@@ -2614,35 +2614,288 @@ namespace lsp
             return true;
         }
 
+        void mb_clipper::dump(dspu::IStateDumper *v, const split_t *s)
+        {
+            v->begin_object(s, sizeof(split_t));
+            {
+                v->write("fFreq", s->fFreq);
+                v->write("fOdpLink", s->fOdpLink);
+                v->write("pFreq", s->pFreq);
+                v->write("pOdpLink", s->pOdpLink);
+            }
+            v->end_object();
+        }
+
+        void mb_clipper::dump(dspu::IStateDumper *v, const channel_t *c)
+        {
+            v->begin_object(c, sizeof(channel_t));
+            {
+                v->write_object("sBypass", &c->sBypass);
+                v->write_object("sDryDelay", &c->sDryDelay);
+                v->write_object("sScDelay", &c->sScDelay);
+                v->write_object("sSc", &c->sSc);
+                v->write_object("sEqualizer", &c->sEqualizer);
+                v->write_object("sIIRXOver", &c->sIIRXOver);
+                v->write_object("sFFTXOver", &c->sFFTXOver);
+                v->write_object("sDither", &c->sDither);
+                v->write_object("sInGraph", &c->sInGraph);
+                v->write_object("sOutGraph", &c->sOutGraph);
+
+                v->begin_array("vBands", c->vBands, meta::mb_clipper::BANDS_MAX);
+                for (size_t i=0; i<meta::mb_clipper::BANDS_MAX; ++i)
+                    dump(v, &c->vBands[i]);
+                v->end_array();
+
+                v->write("nAnInChannel", c->nAnInChannel);
+                v->write("nAnOutChannel", c->nAnOutChannel);
+                v->write("nFlags", c->nFlags);
+
+                v->write("fGainIn", c->fGainIn);
+                v->write("fGainOut", c->fGainOut);
+                v->write("fIn", c->fIn);
+                v->write("fOut", c->fOut);
+                v->write("fRed", c->fRed);
+                v->write("fOdpIn", c->fOdpIn);
+                v->write("fOdpOut", c->fOdpOut);
+                v->write("fOdpRed", c->fOdpRed);
+                v->write("fClipIn", c->fClipIn);
+                v->write("fClipOut", c->fClipOut);
+                v->write("fClipRed", c->fClipRed);
+
+                v->write("vIn", c->vIn);
+                v->write("vOut", c->vOut);
+                v->write("vData", c->vData);
+                v->write("vSc", c->vSc);
+                v->write("vTr", c->vTr);
+                v->write("vInAnalyze", c->vInAnalyze);
+
+                v->write("pDataIn", c->pDataIn);
+                v->write("pDataOut", c->pDataOut);
+                v->write("pFftInSwitch", c->pFftInSwitch);
+                v->write("pFftOutSwitch", c->pFftOutSwitch);
+                v->write("pFftInMesh", c->pFftInMesh);
+                v->write("pFftOutMesh", c->pFftOutMesh);
+                v->write("pFreqMesh", c->pFreqMesh);
+
+                v->write("pGainIn", c->pGainIn);
+                v->write("pGainOut", c->pGainOut);
+                v->write("pIn", c->pIn);
+                v->write("pOut", c->pOut);
+                v->write("pRed", c->pRed);
+                v->write("pOdpIn", c->pOdpIn);
+                v->write("pOdpOut", c->pOdpOut);
+                v->write("pOdpRed", c->pOdpRed);
+                v->write("pClipIn", c->pClipIn);
+                v->write("pClipOut", c->pClipOut);
+                v->write("pClipRed", c->pClipRed);
+                v->write("pTimeMesh", c->pTimeMesh);
+            }
+            v->end_object();
+        }
+
+        void mb_clipper::dump(dspu::IStateDumper *v, const processor_t *p)
+        {
+            v->begin_object(p, sizeof(processor_t));
+            {
+                dump(v, "sComp", &p->sComp);
+                dump(v, "sOdp", &p->sOdp);
+                dump(v, "sClip", &p->sClip);
+                dump(v, "sLufs", &p->sLufs);
+
+                v->write("nFlags", p->nFlags);
+                v->write("fPreamp", p->fPreamp);
+                v->write("fStereoLink", p->fStereoLink);
+                v->write("fMakeup", p->fMakeup);
+
+                v->write("vTr", p->vTr);
+
+                v->write("pSolo", p->pSolo);
+                v->write("pMute", p->pMute);
+                v->write("pPreamp", p->pPreamp);
+                v->write("pStereoLink", p->pStereoLink);
+                v->write("pMakeup", p->pMakeup);
+                v->write("pFreqChart", p->pFreqChart);
+            }
+            v->end_object();
+        }
+
+        void mb_clipper::dump(dspu::IStateDumper *v, const band_t *b)
+        {
+            v->begin_object(b, sizeof(band_t));
+            {
+                v->write_object("sSc", &b->sSc);
+                v->write_object("sScDelay", &b->sScDelay);
+                v->write_object("sInDelay", &b->sInDelay);
+                v->write_object("sPreDelay", &b->sPreDelay);
+                v->write_object("sPostDelay", &b->sPostDelay);
+                v->write_object("sInGraph", &b->sInGraph);
+                v->write_object("sOutGraph", &b->sOutGraph);
+
+
+                v->write("vInData", b->vInData);
+                v->write("vData", b->vData);
+
+                v->write("fIn", b->fIn);
+                v->write("fOut", b->fOut);
+                v->write("fRed", b->fRed);
+                v->write("fOdpIn", b->fOdpIn);
+                v->write("fOdpOut", b->fOdpOut);
+                v->write("fOdpRed", b->fOdpRed);
+                v->write("fClipIn", b->fClipIn);
+                v->write("fClipOut", b->fClipOut);
+                v->write("fClipRed", b->fClipRed);
+
+                v->write("pIn", b->pIn);
+                v->write("pOut", b->pOut);
+                v->write("pRed", b->pRed);
+                v->write("pOdpIn", b->pOdpIn);
+                v->write("pOdpOut", b->pOdpOut);
+                v->write("pOdpRed", b->pOdpRed);
+                v->write("pClipIn", b->pClipIn);
+                v->write("pClipOut", b->pClipOut);
+                v->write("pClipRed", b->pClipRed);
+                v->write("pTimeMesh", b->pTimeMesh);
+            }
+            v->end_object();
+        }
+
+        void mb_clipper::dump(dspu::IStateDumper *v, const char *name, const compressor_t *c)
+        {
+            v->begin_object(name, c, sizeof(compressor_t));
+            {
+                v->write("x0", c->x0);
+                v->write("x1", c->x1);
+                v->write("x2", c->x2);
+                v->write("t", c->t);
+                v->write("a", c->a);
+                v->write("b", c->b);
+                v->write("c", c->c);
+            }
+            v->end_object();
+        }
+
+        void mb_clipper::dump(dspu::IStateDumper *v, const char *name, const odp_params_t *p)
+        {
+            v->begin_object(name, p, sizeof(odp_params_t));
+            {
+                v->write("fThreshold", p->fThreshold);
+                v->write("fKnee", p->fKnee);
+
+                v->write("pOn", p->pOn);
+                v->write("pThreshold", p->pThreshold);
+                v->write("pKnee", p->pKnee);
+                v->write("pResonance", p->pResonance);
+                v->write("pCurveMesh", p->pCurveMesh);
+            }
+            v->end_object();
+        }
+
+        void mb_clipper::dump(dspu::IStateDumper *v, const char *name, const clip_params_t *p)
+        {
+            v->begin_object(name, p, sizeof(clip_params_t));
+            {
+                v->write("pFunc", p->pFunc);
+                v->write("fThreshold", p->fThreshold);
+                v->write("fPumping", p->fPumping);
+                v->write("fScaling", p->fScaling);
+                v->write("fKnee", p->fKnee);
+
+                v->write("pOn", p->pOn);
+                v->write("pFunction", p->pFunction);
+                v->write("pThreshold", p->pThreshold);
+                v->write("pPumping", p->pPumping);
+                v->write("pCurveMesh", p->pCurveMesh);
+            }
+            v->end_object();
+        }
+
+        void mb_clipper::dump(dspu::IStateDumper *v, const char *name, const lufs_limiter_t *l)
+        {
+            v->begin_object(name, l, sizeof(lufs_limiter_t));
+            {
+                v->write_object("sMeter", &l->sMeter);
+                v->write_object("sGain", &l->sGain);
+
+                v->write("fIn", l->fIn);
+                v->write("fRed", l->fRed);
+
+                v->write("pOn", l->pOn);
+                v->write("pIn", l->pIn);
+                v->write("pRed", l->pRed);
+                v->write("pThreshold", l->pThreshold);
+            }
+            v->end_object();
+        }
+
         void mb_clipper::dump(dspu::IStateDumper *v) const
         {
             plug::Module::dump(v);
 
-            // TODO
-            // It is very useful to dump plugin state for debug purposes
             v->write("nChannels", nChannels);
             v->begin_array("vChannels", vChannels, nChannels);
             for (size_t i=0; i<nChannels; ++i)
-            {
-                channel_t *c            = &vChannels[i];
-
-                v->begin_object(c, sizeof(channel_t));
-                {
-                    v->write_object("sBypass", &c->sBypass);
-
-                    v->write("vIn", c->vIn);
-                    v->write("vOut", c->vOut);
-
-                    v->write("pDataIn", c->pDataIn);
-                    v->write("pDataOut", c->pDataOut);
-                }
-                v->end_object();
-            }
+                dump(v, &vChannels[i]);
             v->end_array();
+
+            v->write_object("sAnalyzer", &sAnalyzer);
+            v->write_object("sCounter", &sCounter);
+            v->write_object("sOutMeter", &sOutMeter);
+
+            v->begin_array("vSplits", vSplits, meta::mb_clipper::BANDS_MAX-1);
+            for (size_t i=0; i<meta::mb_clipper::BANDS_MAX-1; ++i)
+                dump(v, &vSplits[i]);
+            v->end_array();
+
+            v->begin_array("vProc", vProc, meta::mb_clipper::BANDS_MAX);
+            for (size_t i=0; i<meta::mb_clipper::BANDS_MAX-1; ++i)
+                dump(v, &vProc[i]);
+            v->end_array();
+
+            dump(v, "sComp", &sComp);
+            dump(v, "sOdp", &sOdp);
+            dump(v, "sClip", &sClip);
+            dump(v, "sInLufs", &sInLufs);
+            dump(v, "sOutLufs", &sOutLufs);
+
+            v->write("enXOverMode", enXOverMode);
+            v->write("fInGain", fInGain);
+            v->write("fOutGain", fOutGain);
+            v->write("fOutLufs", fOutLufs);
+            v->write("fThresh", fThresh);
+            v->write("fStereoLink", fStereoLink);
+            v->write("fZoom", fZoom);
+            v->write("nFlags", nFlags);
+
+            v->write("vBuffer", vBuffer);
+            v->write("vFreqs", vFreqs);
+            v->write("vIndexes", vIndexes);
+            v->write("vTrEq", vTrEq);
+            v->write("vOdp", vOdp);
+            v->write("vLinSigmoid", vLinSigmoid);
+            v->write("vLogSigmoid", vLogSigmoid);
+            v->write("vTime", vTime);
+            v->write("pIDisplay", pIDisplay);
 
             v->write("pBypass", pBypass);
             v->write("pGainIn", pGainIn);
             v->write("pGainOut", pGainOut);
+            v->write("pLufsOut", pLufsOut);
+            v->write("pThresh", pThresh);
+            v->write("pBoosting", pBoosting);
+            v->write("pStereoLink", pStereoLink);
+            v->write("pXOverMode", pXOverMode);
+            v->write("pXOverSlope", pXOverSlope);
+            v->write("pFftReactivity", pFftReactivity);
+            v->write("pFftShift", pFftShift);
+            v->write("pZoom", pZoom);
+            v->write("pHpfSlope", pHpfSlope);
+            v->write("pHpfFreq", pHpfFreq);
+            v->write("pLpfSlope", pLpfSlope);
+            v->write("pLpfFreq", pLpfFreq);
+            v->write("pExtraBandOn", pExtraBandOn);
+            v->write("pOutClipperOn", pOutClipperOn);
+            v->write("pDithering", pDithering);
+            v->write("pFilterCurves", pFilterCurves);
 
             v->write("pData", pData);
         }

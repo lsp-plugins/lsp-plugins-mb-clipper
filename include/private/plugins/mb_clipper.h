@@ -359,6 +359,15 @@ namespace lsp
 
                 static size_t           decode_dithering(size_t mode);
 
+                static void             dump(dspu::IStateDumper *v, const channel_t *c);
+                static void             dump(dspu::IStateDumper *v, const split_t *s);
+                static void             dump(dspu::IStateDumper *v, const processor_t *p);
+                static void             dump(dspu::IStateDumper *v, const band_t *b);
+                static void             dump(dspu::IStateDumper *v, const char *name, const compressor_t *c);
+                static void             dump(dspu::IStateDumper *v, const char *name, const odp_params_t *p);
+                static void             dump(dspu::IStateDumper *v, const char *name, const clip_params_t *p);
+                static void             dump(dspu::IStateDumper *v, const char *name, const lufs_limiter_t *l);
+
             protected:
                 void                    do_destroy();
                 void                    bind_input_buffers();
