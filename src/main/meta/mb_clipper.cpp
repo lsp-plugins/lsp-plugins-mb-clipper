@@ -277,7 +277,7 @@ namespace lsp
             "Multiband Clipper",
             B_DYNAMICS,
             "", // TODO: provide ID of the video on YouTube
-            "Advanced multiband peak clipping tool to maximize output loudness"
+            "Advanced multiband peak clipping tool for maximization of output loudness"
         };
 
         const plugin_t mb_clipper_mono =

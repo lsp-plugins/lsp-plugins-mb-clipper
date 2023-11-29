@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=TODO: Template Plugin
-GenericName=TODO: Template Plugin
-Comment=TODO: add description what plugin does
+Name=Multiband Clipper Mono
+GenericName=Multiband Clipper
+Comment=Advanced multiband peak clipping tool for maximization of output loudness (mono version)
 Exec=lsp-plugins-mb-clipper-mono
 Icon=lsp-plugins
 Terminal=false

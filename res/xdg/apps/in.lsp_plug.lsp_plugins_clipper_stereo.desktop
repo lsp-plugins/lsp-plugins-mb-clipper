@@ -1,10 +1,10 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=TODO: Template Plugin
-GenericName=TODO: Template Plugin
-Comment=TODO: add description what plugin does
-Exec=lsp-plugins-mb-clipper-stereo
+Name=Multiband Clipper Stereo
+GenericName=Multiband Clipper
+Comment=Advanced multiband peak clipping tool for maximization of output loudness (stereo version)
+Exec=lsp-plugins-mb-clipper-mono
 Icon=lsp-plugins
 Terminal=false
 StartupNotify=false
