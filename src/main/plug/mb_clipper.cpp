@@ -676,7 +676,6 @@ namespace lsp
         void mb_clipper::do_destroy()
         {
             // Destroy channels
-            // TODO: check that all objects have been destroyed properly
             if (vChannels != NULL)
             {
                 for (size_t i=0; i<nChannels; ++i)
