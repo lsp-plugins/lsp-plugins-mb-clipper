@@ -45,7 +45,7 @@ namespace lsp
     namespace plugins
     {
         /**
-         * Base class for the latency compensation delay
+         * Multiband clipper plugin
          */
         class mb_clipper: public plug::Module
         {
