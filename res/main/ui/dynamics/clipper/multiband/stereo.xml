@@ -126,109 +126,76 @@
 					<value id="zoom" width="40"/>
 				</vbox>
 			</cell>
-<!-- meters -->
+
+			<!-- meters -->
+			<grid cols="7" rows="4" vexpand="true" ipadding="0" bg.color="bg_schema">
+				<!-- row 1 -->
+				<cell cols="3">
+					<label text="labels.units.lufs" pad.b="3" pad.t="3"/>
+				</cell>
+				<cell rows="4">
+					<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+				</cell>
+				<cell cols="3">
+					<label text="labels.units.db" pad.b="3" pad.t="3"/>
+				</cell>
+				<!-- row 2 -->
+				<cell cols="3">
+					<hsep pad.v="2" bg.color="bg" vreduce="true"/>
+				</cell>
+
+				<cell cols="3">
+					<hsep pad.v="2" bg.color="bg" vreduce="true"/>
+				</cell>
+
+				<label text="labels.chan.in" pad.b="3" pad.t="3"/>
+				<cell rows="2"><void pad.h="2" bg.color="bg" hreduce="true"/></cell>
+				<label text="labels.chan.out" pad.b="3" pad.t="3"/>
+				<label text="labels.chan.in" pad.b="3" pad.t="3"/>
+				<cell rows="2"><void pad.h="2" bg.color="bg" hreduce="true"/></cell>
+				<label text="labels.chan.out" pad.b="3" pad.t="3"/>
+
+				<ledmeter vexpand="true" angle="1">
+					<ledchannel id="lufs_il" min="-72" max="6" type="peak" log="false" value.color="blue"/>
+				</ledmeter>
+
+				<ledmeter vexpand="true" angle="1">
+					<ledchannel id="lufs_ol" min="-72" max="6" type="peak" log="false" value.color="blue"/>
+				</ledmeter>
+
+				<ledmeter vexpand="true" angle="1">
+					<ledchannel id="ism_l" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left_in"/>
+					<ledchannel id="ism_r" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right_in"/>
+				</ledmeter>
+
+				<ledmeter vexpand="true" angle="1">
+					<ledchannel id="osm_l" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left"/>
+					<ledchannel id="osm_r" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right"/>
+				</ledmeter>
+
+			</grid>
+
+			<!-- signal -->
 			<cell rows="2">
-				<grid cols="7" rows="4" vexpand="true" ipadding="0" bg.color="bg_schema">
-<!-- row 1 -->
-					<cell cols="3">
-						<label text="labels.units.lufs" pad.b="3" pad.t="3"/>
-					</cell>
-					<cell rows="4">
-						<vsep pad.h="2" bg.color="bg" hreduce="true"/>
-					</cell>
-					<cell cols="3">
-						<label text="labels.units.db" pad.b="3" pad.t="3"/>
-					</cell>
-<!-- row 2 -->
-					<cell cols="3">
-						<hsep pad.v="2" bg.color="bg" vreduce="true"/>
-					</cell>
-
-					<cell cols="3">
-						<hsep pad.v="2" bg.color="bg" vreduce="true"/>
-					</cell>
-
-					<label text="labels.chan.in" pad.b="3" pad.t="3"/>
-					<cell rows="2"><void pad.h="2" bg.color="bg" hreduce="true"/></cell>
-					<label text="labels.chan.out" pad.b="3" pad.t="3"/>
-					<label text="labels.chan.in" pad.b="3" pad.t="3"/>
-					<cell rows="2"><void pad.h="2" bg.color="bg" hreduce="true"/></cell>
-					<label text="labels.chan.out" pad.b="3" pad.t="3"/>
-
-					<ledmeter vexpand="true" angle="1">
-						<ledchannel id="lufs_il" min="-72" max="6" type="peak" log="false" value.color="blue"/>
-					</ledmeter>
-
-					<ledmeter vexpand="true" angle="1">
-						<ledchannel id="lufs_ol" min="-72" max="6" type="peak" log="false" value.color="blue"/>
-					</ledmeter>
-
-					<ledmeter vexpand="true" angle="1">
-						<ledchannel id="ism_l" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left_in"/>
-						<ledchannel id="ism_r" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right_in"/>
-					</ledmeter>
-
-					<ledmeter vexpand="true" angle="1">
-						<ledchannel id="osm_l" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left"/>
-						<ledchannel id="osm_r" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right"/>
-					</ledmeter>
-
-				</grid>
-			</cell>
-
-			<cell rows="2">
-				<!-- Signal -->
 				<vbox spacing="4">
-					<group text="groups.signal" expand="true" ipadding="0">
-						<grid rows="9" cols="3" hspacing="4">
-							<knob id="g_in" size="20" pad.r="4" pad.l="6"/>
-							<cell cols="2" pad.r="4">
-								<vbox vfill="false">
-									<label text="labels.input" halign="0"/>
-									<value id="g_in" sline="true" halign="0"/>
-								</vbox>
-							</cell>
-							<cell cols="3"><hsep pad.v="2" bg.color="bg" vreduce="true"/></cell>
-
-							<hbox pad.r="4" pad.l="6">
-								<knob id="lufs_th" ui:inject="Knob_meter_threshold" meter.max=":lufs_il" visibility=":lufs_on"/>
-								<knob id="lufs_th" scolor="cycle_inactive" visibility="!:lufs_on"/>
-							</hbox>
-							<vbox vfill="false" pad.r="4">
-								<label text="labels.units.lufs" halign="0"/>
-								<value id="lufs_th" width.min="50" sline="true" halign="0"/>
+					<group text="groups.signal">
+						<grid rows="2" cols="2" hspacing="4">
+							<knob id="g_in" pad.r="4"/>
+							<vbox vfill="false">
+								<label text="labels.input" halign="0"/>
+								<value id="g_in" sline="true" halign="0"/>
 							</vbox>
-							<cell rows="2" pad.r="4">
-								<ledmeter vexpand="true" angle="1">
-									<ledchannel id="lufs_gr" min="-24 db" max="0 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":lufs_on" value.color="blue"/>
-								</ledmeter>
-							</cell>
-							<cell cols="2" pad.r="4" pad.l="6"><button id="lufs_on" pad.h="6" height="18" width="70" text="Lufs Limit" hfill="true" ui:inject="Button_violet_8"/></cell>
 
-							<cell cols="3"><hsep pad.v="2" bg.color="bg" vreduce="true"/></cell>
-
-							<knob id="thresh" scolor="thresh" pad.l="6" pad.r="4"/>
-							<cell cols="2" pad.r="4">
-								<vbox vfill="false">
-									<label text="labels.threshold" halign="0"/>
-									<value id="thresh" width.min="50" sline="true" halign="0"/>
-								</vbox>
-							</cell>
-							<cell cols="3" pad.h="4"><button id="boost" pad.h="6" height="18" width="70" text="labels.boost_" ui:inject="Button_violet_8"/></cell>
-
-							<cell cols="3"><hsep pad.v="2" bg.color="bg" vreduce="true"/></cell>
-
-							<knob id="g_out" pad.l="6" pad.r="4"/>
-							<cell cols="2" pad.r="4">
-								<vbox vfill="false">
-									<label text="labels.output" expand="true" halign="0"/>
-									<value id="g_out" width.min="50" sline="true" halign="0"/>
-								</vbox>
-							</cell>
+							<knob id="g_out" pad.r="4"/>
+							<vbox vfill="false">
+								<label text="labels.output" expand="true" halign="0"/>
+								<value id="g_out" width.min="50" sline="true" halign="0"/>
+							</vbox>
 						</grid>
 					</group>
+
 					<!-- Analysis -->
-					<group text="groups.analysis" expand="true" ipadding="0">
+					<group text="groups.analysis" ipadding="0">
 						<vbox>
 							<grid rows="4" cols="2">
 								<align halign="-1" pad.t="4" pad.l="6">
@@ -263,12 +230,25 @@
 							</grid>
 						</vbox>
 					</group>
+
+					<group text="global threshold" ipadding="0">						
+						<grid rows="2" cols="2" hspacing="4">
+							<cell cols="2">
+								<button id="boost" pad.h="6" height="18" text="labels.boost_" ui:inject="Button_violet_8"/>
+							</cell>
+							<knob id="thresh" pad.r="4"/>
+							<vbox vfill="false">
+								<label text="labels.threshold" halign="0"/>
+								<value id="thresh" sline="true" halign="0"/>
+							</vbox>
+						</grid>
+					</group>
 				</vbox>
 			</cell>
 
 			<!-- bottom line -->
-			<vbox>
-				<hbox vreduce="true">
+			<vbox vreduce="true">
+				<hbox >
 					<hbox spacing="4" vreduce="true" bg.color="bg_schema" pad.h="6">
 						<label text="labels.mode:"/>
 						<combo id="mode" pad.r="8" pad.v="4"/>
@@ -284,9 +264,9 @@
 						<button id="oclip" text="labels.chan.output" size="22" ui:inject="Button_cyan"/>
 					</hbox>
 				</hbox>
-				<hsep pad.v="2" bg.color="bg" vreduce="true"/>
+				<hsep pad.v="2" bg.color="bg"/>
 
-				<group text="Crossover" vexpand="false" ipadding="0">
+				<group text="Crossover" ipadding="0">
 					<grid rows="3" cols="8">
 						<!-- Row 1 -->
 						<label text="labels.flt.HPF"/>
@@ -340,7 +320,34 @@
 					</grid>
 				</group>
 			</vbox>
+
+			<grid cols="3" rows="6" vexpand="false" bg.color="bg_schema" ipadding="0" transpose="true">
+				<!-- row 1 -->
+				<cell cols="3"><void height="20"/></cell>
+				<!-- row 2 -->
+				<cell cols="3"><hsep pad.v="2" bg.color="bg" vreduce="true"/></cell>
+				<cell rows="4">
+					<ledmeter fill="false" vexpand="true" angle="1">
+						<ledchannel id="lufs_gr" min="-24 db" max="0 db" log="true" balance="0 db" balance.visibility="true" type="peak" activity=":lufs_on" value.color="blue"/>
+					</ledmeter>
+				</cell>
+				<!-- row3 col 1 -->
+				<cell rows="4">
+					<void pad.h="2" bg.color="bg" hreduce="true"/>
+				</cell>
+				<!-- col 3-->
+				<label text="labels.units.lufs"/>
+				<button id="lufs_on" pad.h="6" height="18" text="Limit" hfill="true" ui:inject="Button_violet_8"/>
+				<hbox >
+					<knob id="lufs_th" ui:inject="Knob_meter_threshold" meter.max=":lufs_il" visibility=":lufs_on"/>
+					<knob id="lufs_th" scolor="cycle_inactive" visibility="!:lufs_on"/>
+				</hbox>
+				<value id="lufs_th" width.min="50"/>
+
+			</grid>
+
 		</grid>
+
 		<tabs id="tsel">
 			<!-- Band 1-4 tabs -->
 			<ui:for id="i" first="1" count="4">
