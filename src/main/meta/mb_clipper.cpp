@@ -129,7 +129,7 @@ namespace lsp
         LOG_CONTROL("ol_2", "Overdrive protection link 2", U_GAIN_AMP, mb_clipper::ODP_LINK), \
         LOG_CONTROL("xf_3", "Split frequency 3", U_HZ, mb_clipper::SPLIT3), \
         LOG_CONTROL("ol_3", "Overdrive protection link 3", U_GAIN_AMP, mb_clipper::ODP_LINK), \
-        COMBO("lpf_m", "High-pass pre-filter mode", 0, clipper_prefilter_slopes), \
+        COMBO("lpf_m", "Low-pass pre-filter mode", 0, clipper_prefilter_slopes), \
         LOG_CONTROL("lpf_f", "Low-pass pre-filter frequency", U_HZ, mb_clipper::LPF_FREQ), \
         SWITCH("ebe", "Enable extra band", 0), \
         SWITCH("oclip", "Enable output clipper", 1), \
