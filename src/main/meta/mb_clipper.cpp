@@ -275,7 +275,7 @@ namespace lsp
         {
             "mb_clipper",
             "Multiband Clipper",
-            B_DYNAMICS,
+            B_MB_DYNAMICS,
             "", // TODO: provide ID of the video on YouTube
             "Advanced multiband peak clipping tool for maximization of output loudness"
         };
