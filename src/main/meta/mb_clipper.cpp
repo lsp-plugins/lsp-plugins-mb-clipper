@@ -70,7 +70,7 @@ namespace lsp
             { "Band 2",             "mb_clipper.band.2"                     },
             { "Band 3",             "mb_clipper.band.3"                     },
             { "Band 4",             "mb_clipper.band.4"                     },
-            { "Output",             "mb_clipper.output"                     },
+            { "Output Clipper",     "mb_clipper.output_clipper"             },
             { NULL, NULL }
         };
 
