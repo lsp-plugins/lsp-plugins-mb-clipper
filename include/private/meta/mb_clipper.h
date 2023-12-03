@@ -59,7 +59,7 @@ namespace lsp
             static constexpr float  THRESHOLD_MIN           = -48.0f;
             static constexpr float  THRESHOLD_MAX           = 0.0f;
             static constexpr float  THRESHOLD_DFL           = 0.0f;
-            static constexpr float  THRESHOLD_STEP          = 0.05f;
+            static constexpr float  THRESHOLD_STEP          = 0.02f;
 
             static constexpr float  REACT_TIME_MIN          = 0.000f;
             static constexpr float  REACT_TIME_MAX          = 1.000f;
@@ -74,27 +74,27 @@ namespace lsp
             static constexpr float  SPLIT1_MIN              = 20.0f;
             static constexpr float  SPLIT1_MAX              = 250.0f;
             static constexpr float  SPLIT1_DFL              = 125.0f;
-            static constexpr float  SPLIT1_STEP             = 0.0025f;
+            static constexpr float  SPLIT1_STEP             = 0.0004f;
 
             static constexpr float  SPLIT2_MIN              = SPLIT1_MAX + 25.0f;
             static constexpr float  SPLIT2_MAX              = 5000.0f;
             static constexpr float  SPLIT2_DFL              = 4500.0f;
-            static constexpr float  SPLIT2_STEP             = 0.0025f;
+            static constexpr float  SPLIT2_STEP             = 0.0004f;
 
             static constexpr float  SPLIT3_MIN              = SPLIT2_MAX + 250.0f;
             static constexpr float  SPLIT3_MAX              = 14000.0f;
             static constexpr float  SPLIT3_DFL              = 7500.0f;
-            static constexpr float  SPLIT3_STEP             = 0.001f;
+            static constexpr float  SPLIT3_STEP             = 0.0003f;
 
             static constexpr float  HPF_FREQ_MIN            = 10.0f;
             static constexpr float  HPF_FREQ_MAX            = 60.0f;
             static constexpr float  HPF_FREQ_DFL            = 30.0f;
-            static constexpr float  HPF_FREQ_STEP           = 0.0025f;
+            static constexpr float  HPF_FREQ_STEP           = 0.0003f;
 
             static constexpr float  LPF_FREQ_MIN            = 10000.0f;
             static constexpr float  LPF_FREQ_MAX            = 20000.0f;
             static constexpr float  LPF_FREQ_DFL            = 12500.0f;
-            static constexpr float  LPF_FREQ_STEP           = 0.0025f;
+            static constexpr float  LPF_FREQ_STEP           = 0.0001f;
 
             static constexpr float  STEREO_LINK_MIN         = 0.0f;
             static constexpr float  STEREO_LINK_MAX         = 100.0f;
