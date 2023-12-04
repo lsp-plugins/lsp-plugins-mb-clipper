@@ -312,12 +312,12 @@
 						</grid>
 
 						<!-- lpf -->
-						<ui:with bg.bright=":hpf_m ieq 0 ? :const_bg_darken : 1.0" bright=":hpf_m ieq 0 ? 0.75 : 1.0">
+						<ui:with bg.bright=":lpf_m ieq 0 ? :const_bg_darken : 1.0" bright=":lpf_m ieq 0 ? 0.75 : 1.0">
 							<vbox pad.v="4">
 								<label text="labels.flt.LPF" pad.b="4"/>
 								<combo id="lpf_m" pad.h="6" pad.b="4"/>
 								<hbox fill="false">
-									<knob id="lpf_f" scolor=":hpf_m ieq 0 ? 'cycle_inactive' : 'kscale'"/>
+									<knob id="lpf_f" scolor=":lpf_m ieq 0 ? 'cycle_inactive' : 'kscale'"/>
 									<value id="lpf_f" width="35"/>
 								</hbox>
 							</vbox>
@@ -397,7 +397,7 @@
 								<ui:with bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0">
 									<ledmeter vexpand="true" angle="1">
 										<ledchannel
-											id="lufs_gr"
+											id="lg_${i}"
 											min="-24 db"
 											max="0 db"
 											log="true"
