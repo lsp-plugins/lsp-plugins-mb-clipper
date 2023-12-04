@@ -1830,7 +1830,7 @@ namespace lsp
                 sOutLufs.fIn            = lsp_max(sOutLufs.fIn, vBuffer[max_index]);
 
                 // Apply LUFS limiter
-                if (nFlags & GF_IN_LIMITER)
+                if ((nFlags & (GF_IN_LIMITER | GF_OUT_CLIP)) == (GF_IN_LIMITER | GF_OUT_CLIP))
                 {
                     sOutLufs.sGain.process(vBuffer, vBuffer, samples);
                     sOutLufs.fRed           = lsp_min(sOutLufs.fRed, vBuffer[max_index]);
@@ -1961,6 +1961,24 @@ namespace lsp
                 const size_t idx_in     = dsp::abs_max_index(c->vData, samples);
                 const float in          = fabsf(c->vData[idx_in]);
                 c->sInGraph.process(c->vData, samples);
+
+                // Measure input loudness
+                sOutLufs.sMeter.bind(0, NULL, c->vData);
+                sOutLufs.sMeter.process(vBuffer, samples);
+
+                size_t max_index        = dsp::abs_max_index(vBuffer, samples);
+                sOutLufs.fIn            = lsp_max(sOutLufs.fIn, vBuffer[max_index]);
+
+                // Apply LUFS limiter
+                if ((nFlags & (GF_IN_LIMITER | GF_OUT_CLIP)) == (GF_IN_LIMITER | GF_OUT_CLIP))
+                {
+                    sOutLufs.sGain.process(vBuffer, vBuffer, samples);
+                    sOutLufs.fRed           = lsp_min(sOutLufs.fRed, vBuffer[max_index]);
+
+                    dsp::mul2(c->vData, vBuffer, samples);
+                }
+                else
+                    sOutLufs.fRed           = GAIN_AMP_0_DB;
 
                 // Overdrive protection
                 if ((nFlags & (GF_ODP_ENABLED | GF_OUT_CLIP)) == (GF_ODP_ENABLED | GF_OUT_CLIP))
