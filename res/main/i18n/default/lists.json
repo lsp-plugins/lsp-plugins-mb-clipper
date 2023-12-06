@@ -6,6 +6,10 @@
 			"3": "Band 3",
 			"4": "Band 4"
 		},
+		"notes": {
+			"full": "{@frequency} Hz\n{@note}{@octave}{@cents}",			
+			"unknown": "{@frequency} Hz"
+		},
 		"output_clipper": "Output Clipper"
 	}
 }

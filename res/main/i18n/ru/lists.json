@@ -6,6 +6,10 @@
 			"3": "Полоса 3",
 			"4": "Полоса 4"
 		},
+		"notes": {
+			"full": "{@frequency} Гц\n{@note}{@octave}{@cents}",			
+			"unknown": "{@frequency} Гц"
+		},
 		"output_clipper": "Выходной Клиппер"
 	}
 }

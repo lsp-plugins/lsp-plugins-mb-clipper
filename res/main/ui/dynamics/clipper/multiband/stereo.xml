@@ -57,9 +57,9 @@
 						hrcolor="graph_marker_cycle">
 
 						<marker v="10" color.hue="0" hcolor.hue="0" rborder="16" hrborder="16" rcolor.hue="0" hrcolor.hue="0"/>
-						<marker id="xf_1" editable="true" pointer="hsize" color.hue="0" hcolor.hue="0" lborder="16" hlborder="16" lcolor.hue="0" hlcolor.hue="0" rborder="16" hrborder="16" rcolor.hue="0.25" hrcolor.hue="0.25"/>
-						<marker id="xf_2" editable="true" pointer="hsize" color.hue="0.25" hcolor.hue="0.25" lborder="16" hlborder="16" lcolor.hue="0.25" hlcolor.hue="0.25" rborder="16" hrborder="16" rcolor.hue="0.5" hrcolor.hue="0.5"/>
-						<marker id="xf_3" editable="true" pointer="hsize" color.hue="0.5" hcolor.hue="0.5" lborder="16" hlborder="16" lcolor.hue="0.5" hlcolor.hue="0.5" rborder="16" hrborder="16" rcolor.hue="0.75" hrcolor.hue="0.75" visibility=":ebe"/>
+						<marker id="xf_1" ui:id="split_marker_1" editable="true" pointer="hsize" color.hue="0" hcolor.hue="0" lborder="16" hlborder="16" lcolor.hue="0" hlcolor.hue="0" rborder="16" hrborder="16" rcolor.hue="0.25" hrcolor.hue="0.25"/>
+						<marker id="xf_2" ui:id="split_marker_2" editable="true" pointer="hsize" color.hue="0.25" hcolor.hue="0.25" lborder="16" hlborder="16" lcolor.hue="0.25" hlcolor.hue="0.25" rborder="16" hrborder="16" rcolor.hue="0.5" hrcolor.hue="0.5"/>
+						<marker id="xf_3" ui:id="split_marker_3" editable="true" pointer="hsize" color.hue="0.5" hcolor.hue="0.5" lborder="16" hlborder="16" lcolor.hue="0.5" hlcolor.hue="0.5" rborder="16" hrborder="16" rcolor.hue="0.75" hrcolor.hue="0.75" visibility=":ebe"/>
 						<marker v="24000" color.hue="(:ebe) ? 0.75 : 0.5" hcolor.hue="(:ebe) ? 0.75 : 0.5" lborder="16" hlborder="16" lcolor.hue="(:ebe) ? 0.75 : 0.5" hlcolor.hue="(:ebe) ? 0.75 : 0.5"/>
 					</ui:with>
 
@@ -116,6 +116,12 @@
 							<text y="${g} db" text="${g}" visibility=":zoom le -15 db"/>
 						</ui:for>
 					</ui:with>
+
+					<ui:for id="i" first="1" count="3">
+						<ui:with ox="0" oy="2" y="1" valign="-1" color="graph_marker_cycle" visibility="false" pad.h="4" font.bold="true">
+							<text ui:id="split_note_${i}" x=":xf_${i}" halign="(:xf_${i} lt 500) ? 1 : -1" text.halign="(:xf_${i} lt 500) ? -1 : 1" color.hue="${(:i-1) * 0.25}"/>
+						</ui:with>
+					</ui:for>
 				</graph>
 			</group>
 			<!-- zoom -->
