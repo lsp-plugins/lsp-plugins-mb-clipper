@@ -59,7 +59,22 @@
 						<marker v="10" color.hue="0" hcolor.hue="0" rborder="16" hrborder="16" rcolor.hue="0" hrcolor.hue="0"/>
 						<marker id="xf_1" ui:id="split_marker_1" editable="true" pointer="hsize" color.hue="0" hcolor.hue="0" lborder="16" hlborder="16" lcolor.hue="0" hlcolor.hue="0" rborder="16" hrborder="16" rcolor.hue="0.25" hrcolor.hue="0.25"/>
 						<marker id="xf_2" ui:id="split_marker_2" editable="true" pointer="hsize" color.hue="0.25" hcolor.hue="0.25" lborder="16" hlborder="16" lcolor.hue="0.25" hlcolor.hue="0.25" rborder="16" hrborder="16" rcolor.hue="0.5" hrcolor.hue="0.5"/>
-						<marker id="xf_3" ui:id="split_marker_3" editable="true" pointer="hsize" color.hue="0.5" hcolor.hue="0.5" lborder="16" hlborder="16" lcolor.hue="0.5" hlcolor.hue="0.5" rborder="16" hrborder="16" rcolor.hue="0.75" hrcolor.hue="0.75" visibility=":ebe"/>
+						<marker
+							id="xf_3"
+							ui:id="split_marker_3"
+							editable="true"
+							pointer="hsize"
+							color.hue="0.5"
+							hcolor.hue="0.5"
+							lborder="16"
+							hlborder="16"
+							lcolor.hue="0.5"
+							hlcolor.hue="0.5"
+							rborder="16"
+							hrborder="16"
+							rcolor.hue="0.75"
+							hrcolor.hue="0.75"
+							visibility=":ebe"/>
 						<marker v="24000" color.hue="(:ebe) ? 0.75 : 0.5" hcolor.hue="(:ebe) ? 0.75 : 0.5" lborder="16" hlborder="16" lcolor.hue="(:ebe) ? 0.75 : 0.5" hlcolor.hue="(:ebe) ? 0.75 : 0.5"/>
 					</ui:with>
 
@@ -199,10 +214,7 @@
 					<group text="groups.global_threshold">
 						<grid rows="2" cols="2" hspacing="4">
 							<cell cols="2" pad.t="4" pad.b="6">
-								<hbox>
-									<button id="boost" height="18" hfill="true" text="labels.boost_" visibility=":boost" ui:inject="Button_violet"/>
-									<button id="boost" height="18" hfill="true" text="labels.boost_" visibility="!:boost" ui:inject="Button_inactive"/>
-								</hbox>
+								<button id="boost" height="18" hfill="true" text="labels.boost_" ui:inject="Button_violet"/>
 							</cell>
 							<knob id="thresh" scolor="threshold" pad.r="4"/>
 							<vbox vfill="false">
@@ -457,7 +469,7 @@
 					<!-- graph and knobs overdrive protection -->
 					<vbox>
 						<hbox>
-							<ui:with bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0">
+							<ui:with bg.bright="(!${act_band}) or !:op_${i} ? :const_bg_darken : 1.0" bright="(!${act_band}) or !:op_${i} ? 0.75 : 1.0">
 								<group ui:inject="GraphGroup" ipadding="0" expand="true" fill="true" text="labels.graphs.overdrive_protection">
 									<!-- Overdrive protection graph -->
 									<graph width.min="265" height.min="215" expand="true" fill="true">
@@ -558,7 +570,7 @@
 							</ui:with>
 							<void pad.h="2" bg.color="bg" hreduce="true"/>
 							<!-- ODP gain reduction meter -->
-							<ui:with bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0">
+							<ui:with bg.bright="(!${act_band}) or !:op_${i} ? :const_bg_darken : 1.0" bright="(!${act_band}) or !:op_${i} ? 0.75 : 1.0">
 								<vbox>
 									<label text="labels.odp" padding="4"/>
 									<ledmeter vexpand="true" angle="1">
@@ -579,7 +591,7 @@
 						</hbox>
 						<void pad.v="2" bg.color="bg" vreduce="true"/>
 						<!-- controls -->
-						<ui:with bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0">
+						<ui:with bg.bright="(!${act_band}) or !:op_${i} ? :const_bg_darken : 1.0" bright="(!${act_band}) or !:op_${i} ? 0.75 : 1.0">
 							<hbox pad.v="4">
 								<!-- thres -->
 								<hbox fill="false" pad.l="6" pad.r="10">
@@ -619,7 +631,7 @@
 
 					<vbox>
 						<hbox>
-							<ui:with bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0">
+							<ui:with bg.bright="(!${act_band}) or !:ce_${i} ? :const_bg_darken : 1.0" bright="(!${act_band}) or !:ce_${i} ? 0.75 : 1.0">
 								<group ui:inject="GraphGroup" ipadding="0" expand="true" fill="true" text="labels.graphs.clipping">
 									<vbox>
 										<!-- Clipper function graph linear -->
@@ -818,7 +830,7 @@
 							</ui:with>
 							<void pad.h="2" bg.color="bg" hreduce="true"/>
 							<!-- Clipper gain reduction meter -->
-							<ui:with bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0">
+							<ui:with bg.bright="(!${act_band}) or !:ce_${i} ? :const_bg_darken : 1.0" bright="(!${act_band}) or !:ce_${i} ? 0.75 : 1.0">
 								<vbox>
 									<label text="labels.clp" padding="4"/>
 									<ledmeter vexpand="true" angle="1">
@@ -841,7 +853,7 @@
 						<void pad.v="2" bg.color="bg" vreduce="true"/>
 
 						<!-- controls -->
-						<ui:with bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0">
+						<ui:with bg.bright="(!${act_band}) or !:ce_${i} ? :const_bg_darken : 1.0" bright="(!${act_band}) or !:ce_${i} ? 0.75 : 1.0">
 							<hbox pad.v="4">
 								<void hexpand="true" hfill="true"/>
 								<!-- thres -->
@@ -1103,7 +1115,7 @@
 				<!-- graph and knobs overdrive protection -->
 				<vbox>
 					<hbox>
-						<ui:with bg.bright="!(:oclip) ? :const_bg_darken : 1.0" bright="!(:oclip) ? 0.75 : 1.0">
+						<ui:with bg.bright="!(:oclip) or !:op ? :const_bg_darken : 1.0" bright="!(:oclip) or !:op ? 0.75 : 1.0">
 							<group ui:inject="GraphGroup" ipadding="0" expand="true" fill="true" text="labels.graphs.overdrive_protection">
 								<!-- Overdrive protection graph -->
 								<graph width.min="265" height.min="215" expand="true" fill="true">
@@ -1204,7 +1216,7 @@
 						</ui:with>
 						<void pad.h="2" bg.color="bg" hreduce="true"/>
 						<!-- ODP gain reduction meter -->
-						<ui:with bg.bright="!(:oclip) ? :const_bg_darken : 1.0" bright="!(:oclip) ? 0.75 : 1.0">
+						<ui:with bg.bright="!(:oclip) or !:op ? :const_bg_darken : 1.0" bright="!(:oclip) or !:op ? 0.75 : 1.0">
 							<vbox>
 								<label text="labels.odp" padding="4"/>
 								<ledmeter vexpand="true" angle="1">
@@ -1225,7 +1237,7 @@
 					</hbox>
 					<void pad.v="2" bg.color="bg" vreduce="true"/>
 					<!-- controls -->
-					<ui:with bg.bright="!(:oclip) ? :const_bg_darken : 1.0" bright="!(:oclip) ? 0.75 : 1.0">
+					<ui:with bg.bright="!(:oclip) or !:op ? :const_bg_darken : 1.0" bright="!(:oclip) or !:op ? 0.75 : 1.0">
 						<hbox pad.v="4">
 							<!-- thres -->
 							<hbox fill="false" pad.l="6" pad.r="10">
@@ -1256,7 +1268,7 @@
 
 				<vbox>
 					<hbox>
-						<ui:with bg.bright="!(:oclip) ? :const_bg_darken : 1.0" bright="!(:oclip) ? 0.75 : 1.0">
+						<ui:with bg.bright="!(:oclip) or !:ce ? :const_bg_darken : 1.0" bright="!(:oclip) or !:ce ? 0.75 : 1.0">
 							<group ui:inject="GraphGroup" ipadding="0" expand="true" fill="true" text="labels.graphs.clipping">
 								<vbox>
 									<!-- Clipper function graph linear -->
@@ -1454,7 +1466,7 @@
 						</ui:with>
 						<void pad.h="2" bg.color="bg" hreduce="true"/>
 						<!-- Clipper gain reduction meter -->
-						<ui:with bg.bright="!(:oclip) ? :const_bg_darken : 1.0" bright="!(:oclip) ? 0.75 : 1.0">
+						<ui:with bg.bright="!(:oclip) or !:ce ? :const_bg_darken : 1.0" bright="!(:oclip) or !:ce ? 0.75 : 1.0">
 							<vbox>
 								<label text="labels.clp" padding="4"/>
 								<ledmeter vexpand="true" angle="1">
@@ -1477,7 +1489,7 @@
 					<void pad.v="2" bg.color="bg" vreduce="true"/>
 
 					<!-- controls -->
-					<ui:with bg.bright="!(:oclip) ? :const_bg_darken : 1.0" bright="!(:oclip) ? 0.75 : 1.0">
+					<ui:with bg.bright="!(:oclip) or !:ce ? :const_bg_darken : 1.0" bright="!(:oclip) or !:ce ? 0.75 : 1.0">
 						<hbox pad.v="4">
 							<void hexpand="true" hfill="true"/>
 							<!-- thres -->
