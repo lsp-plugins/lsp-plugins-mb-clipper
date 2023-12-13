@@ -284,6 +284,7 @@ namespace lsp
         {
             "Multiband Clipper Mono",
             "Multiband Clipper Mono",
+            "MB Clipper Mono",
             "MBCL1M",
             &developers::v_sadovnikov,
             "mb_clipper_mono",
@@ -308,6 +309,7 @@ namespace lsp
         {
             "Multiband Clipper Stereo",
             "Multiband Clipper Stereo",
+            "MB Clipper Stereo",
             "MBCL1S",
             &developers::v_sadovnikov,
             "mb_clipper_stereo",
