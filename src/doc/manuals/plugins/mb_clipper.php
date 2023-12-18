@@ -52,7 +52,7 @@
 <p><b>Global Threshold</b> section:</p>
 <ul>
 	<li><b>Boost</b> - allows to additionally boost the processed signal to compensate threshold level lower than 0 dB.</li>
-	<li><b>Threshold</b> - allows to adjust lower than 0 dB clipping threshold.</li>	
+	<li><b>Threshold</b> - allows to adjust lower than 0 dB clipping threshold.</li>
 </ul>
 
 <p><b>Analysis</b> section:</p>
@@ -89,8 +89,8 @@
 <ul>
 	<li><b>Preamp</b> - allows to control input gain level of the specific band.</li>
 	<li><b>LUFS Limit</b> button - allows to enable loudness limiting for the specific band.</li>
-	<li><b>LUFS Limit</b> knob - allows to set maximum allowed loudness of the signal at the input.</li>
-	<li><b>LUFS Limit</b> meter - the amount of gain reduction applied to the input signal while reducing loudness.</li>
+	<li><b>LUFS Limit</b> knob - allows to set maximum allowed loudness of the signal at the input of the band.</li>
+	<li><b>LUFS Limit</b> meter - the amount of gain reduction applied to the input signal of the band while reducing loudness.</li>
 	<li><b>Act</b> - enables additional fourth band.</li>
 	<li><b>Solo</b> - enables solo mode for the selected band.</li>
 	<li><b>Mute</b> - mutes the selected band.</li>
@@ -104,6 +104,7 @@
 	<li><b>ODP Link</b> - knob that controls the side-chaining of the current band by the previous one.</li>
 	<li><b>Clip Thresh</b> - the threshold of the clipping function. Signals below the threshold have constant amplification.</li>
 	<li><b>Clip Pumping</b> - additional way to pump the loudness of the band by applying exra amplification and keeping peaks not greater than 0 dB.</li>
+	<li><b>Clip Meter</b> - the amount of gain reduction applied at the clipping stage.</li>
 	<li><b>Resonance</b> - sets up ODP compression time by selecting the dominating frequency in the signal.</li>
 	<?php if ($m == 's') { ?>
 	<li><b>Stereo Link</b> - allows to control how the left channel of ODP compressor affects the right channel and vice verse.</li>
@@ -116,9 +117,9 @@
 
 <p><b>Output Clipper</b> tab:</p>
 <ul>
-	<li><b>LUFS Limit</b> button - allows to enable loudness limiting for the specific band.</li>
-	<li><b>LUFS Limit</b> knob - allows to set maximum allowed loudness of the signal at the input.</li>
-	<li><b>LUFS Limit</b> meter - the amount of gain reduction applied to the input signal while reducing loudness.</li>
+	<li><b>LUFS Limit</b> button - allows to enable loudness limiting at the input of the output clipper.</li>
+	<li><b>LUFS Limit</b> knob - allows to set maximum allowed loudness at the input of the output clipper.</li>
+	<li><b>LUFS Limit</b> meter - the amount of gain reduction applied to the input of the output clipper signal while reducing loudness.</li>
 	<li><b>Active</b> - enables output clipper.</li>
 	<li><b>ODP</b> - enabled overdrive protection compressor.</li>
 	<li><b>Clipping</b> - enables clipping function applied to the signal.</li>
@@ -129,6 +130,7 @@
 	<li><b>ODP Meter</b> - the amount of gain reduction applied to the signal while compressing it's peaks.</li>
 	<li><b>Clip Thresh</b> - the threshold of the clipping function. Signals below the threshold have constant amplification.</li>
 	<li><b>Clip Pumping</b> - additional way to pump the loudness of the band by applying exra amplification and keeping peaks not greater than 0 dB.</li>
+	<li><b>Clip Meter</b> - the amount of gain reduction applied at the clipping stage.</li>
 	<li><b>Reactivity</b> - sets up the reactivity of the ODP compressor.</li>
 	<?php if ($m == 's') { ?>
 	<li><b>Stereo Link</b> - allows to control how the left channel of ODP compressor affects the right channel and vice verse.</li>
