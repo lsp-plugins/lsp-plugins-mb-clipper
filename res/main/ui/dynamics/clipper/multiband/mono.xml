@@ -614,13 +614,15 @@
 								</hbox>
 
 								<!-- link -->
-								<hbox fill="false" pad.l="10" pad.r="6" visibility="${:i igt 1}">
-									<knob id="ol_${:i-1}" scolor=":op_${i} and ${act_band} ? 'green' : 'cycle_inactive'"/>
-									<vbox vfill="false" width="50" pad.l="4">
-										<label text="labels.odp_link" halign="0"/>
-										<value id="ol_${:i-1}" sline="true" halign="0"/>
-									</vbox>
-								</hbox>
+								<ui:with bright="1.0">
+									<hbox fill="false" pad.l="10" pad.r="6" visibility="${:i igt 1}">
+										<knob id="ol_${:i-1}" scolor="${act_band} ? 'green' : 'cycle_inactive'"/>
+										<vbox vfill="false" width="50" pad.l="4">
+											<label text="labels.odp_link" halign="0"/>
+											<value id="ol_${:i-1}" sline="true" halign="0"/>
+										</vbox>
+									</hbox>
+								</ui:with>
 
 								<void hexpand="true" hfill="true"/>
 							</hbox>
