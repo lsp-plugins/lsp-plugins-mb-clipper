@@ -1,0 +1,1854 @@
+<plugin resizable="true">
+	<vbox spacing="4">
+		<grid rows="2" cols="4" vspacing="4" hspacing="4" expand="true">
+			<group ui:inject="GraphGroup" ipadding="0" expand="true" fill="true" text="labels.graphs.spectrum">
+				<graph width.min="640" height.min="200" expand="true" fill="true">
+					<origin hpos="-1" vpos="-1" visible="false"/>
+
+					<!-- Additional grid -->
+					<ui:with color="graph_alt_1">
+						<ui:for id="f" first="20" last="90" step="10">
+							<marker v="${:f}"/>
+							<marker v="${:f*10}"/>
+							<marker v="${:f*100}"/>
+						</ui:for>
+						<marker v="20000"/>
+						<ui:with ox="1" oy="0">
+							<marker v="+12 db"/>
+							<marker v="-12 db"/>
+							<marker v="-36 db"/>
+							<marker v="-60 db"/>
+
+							<ui:for id="g" first="-42" last="6" step="12">
+								<marker v="${g} db" visibility=":zoom le -9 db"/>
+							</ui:for>
+							<ui:for id="g" first="-21" last="3" step="6">
+								<marker v="${g} db" visibility=":zoom le -15 db"/>
+							</ui:for>
+						</ui:with>
+					</ui:with>
+
+					<!-- Secondary grid -->
+					<ui:with color="graph_sec">
+						<marker v="100"/>
+						<marker v="1000"/>
+						<marker v="10000"/>
+						<marker value="0 db" ox="1" oy="0"/>
+						<marker value="-24 db" ox="1" oy="0"/>
+						<marker value="-48 db" ox="1" oy="0"/>
+					</ui:with>
+
+					<!-- Band split markers -->
+					<ui:with
+						width="2"
+						hwidth="2"
+						fill="0.5"
+						color.a="0.2"
+						hcolor.a="0.1"
+						lcolor.a="0.8"
+						hlcolor.a="0.6"
+						rcolor.a="0.8"
+						hrcolor.a="0.6"
+						color="graph_marker_cycle"
+						hcolor="graph_marker_cycle"
+						lcolor="graph_marker_cycle"
+						hlcolor="graph_marker_cycle"
+						rcolor="graph_marker_cycle"
+						hrcolor="graph_marker_cycle">
+
+						<marker v="10" color.hue="0" hcolor.hue="0" rborder="16" hrborder="16" rcolor.hue="0" hrcolor.hue="0"/>
+						<marker id="xf_1" ui:id="split_marker_1" editable="true" pointer="hsize" color.hue="0" hcolor.hue="0" lborder="16" hlborder="16" lcolor.hue="0" hlcolor.hue="0" rborder="16" hrborder="16" rcolor.hue="0.25" hrcolor.hue="0.25"/>
+						<marker id="xf_2" ui:id="split_marker_2" editable="true" pointer="hsize" color.hue="0.25" hcolor.hue="0.25" lborder="16" hlborder="16" lcolor.hue="0.25" hlcolor.hue="0.25" rborder="16" hrborder="16" rcolor.hue="0.5" hrcolor.hue="0.5"/>
+						<marker
+							id="xf_3"
+							ui:id="split_marker_3"
+							editable="true"
+							pointer="hsize"
+							color.hue="0.5"
+							hcolor.hue="0.5"
+							lborder="16"
+							hlborder="16"
+							lcolor.hue="0.5"
+							hlcolor.hue="0.5"
+							rborder="16"
+							hrborder="16"
+							rcolor.hue="0.75"
+							hrcolor.hue="0.75"
+							visibility=":ebe"/>
+						<marker v="24000" color.hue="(:ebe) ? 0.75 : 0.5" hcolor.hue="(:ebe) ? 0.75 : 0.5" lborder="16" hlborder="16" lcolor.hue="(:ebe) ? 0.75 : 0.5" hlcolor.hue="(:ebe) ? 0.75 : 0.5"/>
+					</ui:with>
+
+					<!-- Meshes -->
+					<ui:for id="i" first="1" count="4">
+						<mesh id="bfc_${i}" width="2" fill="true" smooth="true" color="graph_mesh_cycle" color.hue="${(:i-1) * 0.25}" fcolor="graph_mesh_cycle" fcolor.hue="${(:i-1) * 0.25}" color.a="0.6" fcolor.a="0.9" visibility="${(:i lt 4) ? ':flt' : ':flt and :ebe'}"/>
+					</ui:for>
+
+					<mesh id="ifg_l" oy=":_ui_zoomable_spectrum_graph ? 1 : 3" width="0" color="left_in" color.a="0.8" fcolor.a="0.8" fill="true" fcolor="left_in" visibility=":ife_l"/>
+					<mesh id="ifg_r" oy=":_ui_zoomable_spectrum_graph ? 1 : 3" width="0" color="right_in" color.a="0.8" fcolor.a="0.8" fill="true" fcolor="right_in" visibility=":ife_r"/>
+					<mesh id="ofg_l" oy=":_ui_zoomable_spectrum_graph ? 1 : 3" width="2" color="left" visibility=":ofe_l"/>
+					<mesh id="ofg_r" oy=":_ui_zoomable_spectrum_graph ? 1 : 3" width="2" color="right" visibility=":ofe_r"/>
+
+					<mesh id="grc_l" width="3" color="left" smooth="true"/>
+					<mesh id="grc_r" width="3" color="right" smooth="true"/>
+
+					<!-- Boundaries -->
+					<marker v="1" ox="2" oy="0" color="graph_prim" visibility="false"/>
+					<marker v="24000" color="graph_prim" visibility="false"/>
+
+					<!-- Axis -->
+					<axis min="10" max="24000" angle="0.0" log="true" visibility="false"/>
+					<axis min="-72 db / (:zoom ** 3)" max="24 db * :zoom" color="graph_prim" angle="0.5" log="true"/>
+					<axis min="-1" max="1" visibility="false" angle="0.5"/>
+					<axis min="-72 db" max="24 db" color="graph_prim" angle="0.5" log="true" visibility="false"/>
+
+					<!-- Text -->
+					<ui:with ox="0" oy="2" y="0" halign="1" valign="1">
+						<text x="10" text="graph.units.hz"/>
+						<text x="20" text="20"/>
+						<text x="30" text="30"/>
+						<text x="50" text="50"/>
+						<text x="100" text="100"/>
+						<text x="200" text="200"/>
+						<text x="300" text="300"/>
+						<text x="500" text="500"/>
+						<text x="1000" text="graph.values.x_k" text:value="1"/>
+						<text x="2000" text="graph.values.x_k" text:value="2"/>
+						<text x="3000" text="graph.values.x_k" text:value="3"/>
+						<text x="5000" text="graph.values.x_k" text:value="5"/>
+						<text x="10000" text="graph.values.x_k" text:value="10"/>
+						<text x="20000" text="graph.values.x_k" text:value="20"/>
+					</ui:with>
+
+					<ui:with x="10" halign="1" valign="1">
+						<ui:for id="g" first="-60" last="12" step="12">
+							<text y="${g} db" text="${g}"/>
+						</ui:for>
+						<text y="0 db" ox="0" oy="2" text="graph.units.db" valign="-1"/>
+						<ui:for id="g" first="-42" last="6" step="12">
+							<text y="${g} db" text="${g}" visibility=":zoom le -9 db"/>
+						</ui:for>
+						<ui:for id="g" first="-21" last="3" step="6">
+							<text y="${g} db" text="${g}" visibility=":zoom le -15 db"/>
+						</ui:for>
+					</ui:with>
+
+					<ui:for id="i" first="1" count="3">
+						<ui:with ox="0" oy="2" y="1" valign="-1" color="graph_marker_cycle" visibility="false" pad.h="4" font.bold="true">
+							<text ui:id="split_note_${i}" x=":xf_${i}" halign="(:xf_${i} lt 500) ? 1 : -1" text.halign="(:xf_${i} lt 500) ? -1 : 1" color.hue="${(:i-1) * 0.25}"/>
+						</ui:with>
+					</ui:for>
+				</graph>
+			</group>
+			<!-- zoom -->
+			<cell rows="2">
+				<vbox vexpand="true" bg.color="bg_schema">
+					<label font.name="lsp-icons" font.size="12" font.antialias="true" text="E" color="text_icon" pad.b="4" pad.t="4"/>
+					<fader id="zoom" angle="1" vexpand="true" bg.inherit="true" flat="true"/>
+					<value id="zoom" width="40"/>
+				</vbox>
+			</cell>
+
+			<!-- meters -->
+			<grid cols="7" rows="4" vexpand="true" vfill="true" ipadding="0" bg.color="bg_schema">
+				<!-- row 1 -->
+				<cell cols="3">
+					<label text="labels.units.lufs" pad.b="3" pad.t="3"/>
+				</cell>
+				<cell rows="4">
+					<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+				</cell>
+				<cell cols="3">
+					<label text="labels.units.db" pad.b="3" pad.t="3"/>
+				</cell>
+				<!-- row 2 -->
+				<cell cols="3">
+					<hsep pad.v="2" bg.color="bg" vreduce="true"/>
+				</cell>
+
+				<cell cols="3">
+					<hsep pad.v="2" bg.color="bg" vreduce="true"/>
+				</cell>
+
+				<label text="labels.chan.in" pad.b="3" pad.t="3"/>
+				<cell rows="2"><void pad.h="2" bg.color="bg" hreduce="true"/></cell>
+				<label text="labels.chan.out" pad.b="3" pad.t="3"/>
+				<label text="labels.chan.in" pad.b="3" pad.t="3"/>
+				<cell rows="2"><void pad.h="2" bg.color="bg" hreduce="true"/></cell>
+				<label text="labels.chan.out" pad.b="3" pad.t="3"/>
+
+				<ledmeter vexpand="true" angle="1">
+					<ledchannel id="lufs_il" min="-72" max="6" type="peak" log="false" value.color="lufs"/>
+				</ledmeter>
+
+				<ledmeter vexpand="true" angle="1">
+					<ledchannel id="lufs_ol" min="-72" max="6" type="peak" log="false" value.color="lufs"/>
+				</ledmeter>
+
+				<ledmeter vexpand="true" angle="1">
+					<ledchannel id="ism_l" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left_in"/>
+					<ledchannel id="ism_r" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right_in"/>
+				</ledmeter>
+
+				<ledmeter vexpand="true" angle="1">
+					<ledchannel id="osm_l" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="left"/>
+					<ledchannel id="osm_r" min="-72 db" max="12 db" log="true" type="rms_peak" peak.visibility="true" value.color="right"/>
+				</ledmeter>
+
+			</grid>
+
+			<!-- signal -->
+			<cell rows="2">
+				<vbox spacing="4">
+					<group text="groups.signal">
+						<grid rows="2" cols="2" hspacing="4">
+							<knob id="g_in" pad.r="4" pad.b="4"/>
+							<vbox vfill="false">
+								<label text="labels.input" halign="0"/>
+								<value id="g_in" sline="true" halign="0"/>
+							</vbox>
+
+							<knob id="g_out" pad.r="4"/>
+							<vbox vfill="false">
+								<label text="labels.output" expand="true" halign="0"/>
+								<value id="g_out" width.min="50" sline="true" halign="0"/>
+							</vbox>
+						</grid>
+					</group>
+
+					<!-- Global Threshold -->
+					<group text="groups.global_threshold">
+						<grid rows="2" cols="2" hspacing="4">
+							<cell cols="2" pad.t="4" pad.b="6">
+								<button id="boost" height="18" hfill="true" text="labels.boost_" ui:inject="Button_violet"/>
+							</cell>
+							<knob id="thresh" scolor="threshold" pad.r="4"/>
+							<vbox vfill="false">
+								<label text="labels.threshold" halign="0"/>
+								<value id="thresh" sline="true" halign="0"/>
+							</vbox>
+						</grid>
+					</group>
+
+					<!-- Analysis -->
+					<group text="groups.analysis" ipadding="0">
+						<vbox>
+							<grid rows="4" cols="2">
+								<align halign="-1" pad.t="4" pad.l="6">
+									<label text="labels.fft.fft_in"/>
+								</align>
+								<hbox spacing="4" pad.v="4" pad.h="6" hfill="false"><button id="ife_l" text="labels.chan.L_eft" size="19" ui:inject="Button_left_8"/>
+									<button id="ife_r" text="labels.chan.R_ight" size="19" ui:inject="Button_right_8"/></hbox>
+
+								<cell cols="2"><hsep pad.v="2" bg.color="bg" vreduce="true"/></cell>
+
+								<align halign="-1" pad.t="4" pad.l="6">
+									<label text="labels.fft.fft_out" halign="0"/>
+								</align>
+								<hbox spacing="4" pad.v="4" pad.h="6" hfill="false"><button id="ofe_l" text="labels.chan.L_eft" size="19" ui:inject="Button_left_8"/>
+									<button id="ofe_r" text="labels.chan.R_ight" size="19" ui:inject="Button_right_8"/></hbox>
+
+								<cell cols="2"><hsep pad.v="2" bg.color="bg" vreduce="true"/></cell>
+							</grid>
+
+							<grid rows="2" cols="2" transpose="false" expand="true" hspacing="4" pad.v="4">
+								<knob id="react" size="20" pad.r="4" pad.l="6" pad.b="4"/>
+								<vbox vfill="false" pad.r="6">
+									<label text="labels.metering.reactivity" halign="0"/>
+									<value id="react" width.min="50" sline="true" halign="0"/>
+								</vbox>
+
+								<knob id="shift" size="20" pad.r="4" pad.l="6" pad.b="4"/>
+								<vbox vfill="false" pad.r="6">
+									<label text="labels.metering.shift" halign="0"/>
+									<value id="shift" width.min="50" sline="true" halign="0"/>
+								</vbox>
+							</grid>
+						</vbox>
+					</group>
+
+				</vbox>
+			</cell>
+
+			<!-- bottom line -->
+			<vbox vreduce="true">
+				<hbox >
+					<hbox spacing="4" vreduce="true" bg.color="bg_schema" pad.h="6">
+						<label text="labels.mode:"/>
+						<combo id="mode" pad.r="8" pad.v="4"/>
+						<label text="labels.slope"/>
+						<combo id="slope" pad.r="8" pad.v="4"/>
+						<label text="labels.dither:"/>
+						<combo id="dither" pad.r="8" pad.v="4"/>
+						<button id="flt" text="labels.filters" size="22" ui:inject="Button_cyan"/>
+					</hbox>
+					<vsep pad.h="2" bg.color="bg" reduce="true"/>
+					<void hexpand="true" bg.color="bg_schema"/>
+					<vsep pad.h="2" bg.color="bg" reduce="true"/>
+					<hbox spacing="4" vreduce="true" bg.color="bg_schema" pad.h="6">
+						<button id="oclip" text="labels.output_clipper" size="22" ui:inject="Button_cyan"/>
+					</hbox>
+				</hbox>
+				<void pad.v="2" bg.color="bg"/>
+
+				<!-- Crossover block -->
+				<ui:set id="has_solo" value=":bs_1 or :bs_2 or :bs_3 or (:ebe and :bs_4)"/>
+				<group text="labels.crossover" ipadding="0">
+					<hbox>
+						<!-- hpf -->
+						<ui:with bg.bright=":hpf_m ieq 0 ? :const_bg_darken : 1.0" bright=":hpf_m ieq 0 ? 0.75 : 1.0">
+							<vbox >
+								<label text="labels.flt.HPF" pad.v="4"/>
+								<combo id="hpf_m" pad.h="6" pad.b="4"/>
+								<hbox fill="false" pad.b="4">
+									<knob id="hpf_f" scolor=":hpf_m ieq 0 ? 'cycle_inactive' : 'kscale'"/>
+									<value id="hpf_f" width="35"/>
+								</hbox>
+							</vbox>
+						</ui:with>
+						<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+
+						<!-- bands -->
+						<grid rows="3" cols="8" transpose="true">
+							<ui:for id="i" first="1" count="4">
+								<ui:set id="act_band" value="(!:bm_${i} and ((${has_solo}) ? :bs_${i} : true) and (:ebe or (${i} ilt 4)))"/>
+								<ui:with bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0">
+									<label text="labels.band_id" text:id="${i}" pad.t="4" pad.b="4"/>
+									<hbox pad.h="6" width.min="107" pad.b="6">
+										<ui:if test=":i ieq 4">
+											<button id="ebe" text="labels.act_ive" height="19" hfill="true" ui:inject="Button_cyan_8" pad.r="4"/>
+										</ui:if>
+										<button id="bs_${i}" text="labels.chan.solo" height="19" hfill="true" ui:inject="Button_green_8"/>
+										<button id="bm_${i}" text="labels.chan.mute" height="19" hfill="true" ui:inject="Button_red_8" pad.l="4"/>
+									</hbox>
+									<hbox fill="false" pad.b="4">
+										<ui:if test=":i ieq 1">
+											<knob id="xf_${:i-1}" editable="false" pointer="arrow" scolor="(!${act_band}) ? 'cycle_inactive' : 'cycle'" scolor.hue="(${(:i-1) * 0.125})"/>
+											<vbox fill="false" width="35">
+												<label text="0" halign="0"/>
+												<label text="units.hz" halign="0"/>
+											</vbox>
+										</ui:if>
+										<ui:if test=":i igt 1">
+											<knob id="xf_${:i-1}" scolor="(!${act_band}) ? 'cycle_inactive' : 'cycle'" scolor.hue="(${(:i-1) * 0.125})"/>
+											<value id="xf_${:i-1}" width="35"/>
+										</ui:if>
+									</hbox>
+								</ui:with>
+								<cell rows="3">
+									<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+								</cell>
+							</ui:for>
+						</grid>
+
+						<!-- lpf -->
+						<ui:with bg.bright=":lpf_m ieq 0 ? :const_bg_darken : 1.0" bright=":lpf_m ieq 0 ? 0.75 : 1.0">
+							<vbox pad.v="4">
+								<label text="labels.flt.LPF" pad.b="4"/>
+								<combo id="lpf_m" pad.h="6" pad.b="4"/>
+								<hbox fill="false">
+									<knob id="lpf_f" scolor=":lpf_m ieq 0 ? 'cycle_inactive' : 'kscale'"/>
+									<value id="lpf_f" width="35"/>
+								</hbox>
+							</vbox>
+						</ui:with>
+
+					</hbox>
+				</group>
+			</vbox>
+			<!-- global lufs limit -->
+			<grid cols="3" rows="5" vexpand="false" bg.color="bg_schema" ipadding="0" transpose="true">
+				<!-- row 1 -->
+				<cell cols="3"><void height="20"/></cell>
+				<!-- row 2 -->
+				<cell cols="3"><hsep pad.v="2" bg.color="bg" vreduce="true"/></cell>
+				<cell rows="3" vfill="true" vexpand="true">
+					<ledmeter vexpand="true" angle="1">
+						<ledchannel
+							id="lufs_gr"
+							min="-24 db"
+							max="0 db"
+							log="true"
+							balance="0 db"
+							balance.visibility="true"
+							type="peak"
+							value.color=":lufs_on ? 'dark_lufs' : 'cycle_inactive'"
+							yellow.color=":lufs_on ? 'meter_yellow' : 'cycle_inactive'"
+							balance.color=":lufs_on ? 'lufs' : 'cycle_inactive'"/>
+					</ledmeter>
+				</cell>
+				<!-- row3 col 1 -->
+				<cell rows="3">
+					<void pad.h="2" bg.color="bg" hreduce="true"/>
+				</cell>
+				<!-- col 3-->
+				<button id="lufs_on" pad.h="6" height="18" text="labels.lufs_limit" hfill="true" ui:inject="Button_lufs"/>
+				<hbox hexpand="true">
+					<knob id="lufs_th" ui:inject="Knob_meter_lufs" meter.max=":lufs_il" visibility=":lufs_on"/>
+					<knob id="lufs_th" scolor="cycle_inactive" visibility="!:lufs_on"/>
+				</hbox>
+				<value id="lufs_th" editable="false" width.min="50"/>
+
+			</grid>
+
+		</grid>
+
+		<tabs id="tsel">
+			<ui:for id="i" first="1" count="4">
+				<ui:set id="act_band" value="(!:bm_${i} and ((${has_solo}) ? :bs_${i} : true) and (:ebe or (${i} ilt 4)))"/>
+				<grid rows="3" cols="7" bg.color="bg_schema" ipadding="0" transpose="true">
+					<!-- preamp and lufs limit col -->
+					<cell rows="3">
+						<vbox>
+							<ui:with bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0">
+								<vbox fill="false">
+									<label text="labels.preamp"/>
+									<knob id="pa_${i}" pad.t="4" scolor="(!${act_band}) ? 'cycle_inactive' : 'kscale'"/>
+									<value id="pa_${i}" pad.v="4"/>
+								</vbox>
+							</ui:with>
+							<hsep pad.v="2" bg.color="bg" vreduce="true"/>
+							<hbox vexpand="true">
+								<ui:with bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0">
+									<vbox vfill="true">
+										<button id="lo_${i}" pad.h="6" pad.v="4" height="18" text="labels.lufs_limit" ui:inject="Button_lufs" visibility="${act_band}"/>
+										<button id="lo_${i}" pad.h="6" pad.v="4" height="18" text="labels.lufs_limit" ui:inject="Button_inactive" visibility="!${act_band}"/>
+										<hbox pad.t="4">
+											<knob id="lt_${i}" ui:inject="Knob_meter_lufs" meter.max=":li_${i}" visibility=":lo_${i} and ${act_band}"/>
+											<knob id="lt_${i}" scolor="cycle_inactive" visibility="!:lo_${i} or (!${act_band})"/>
+										</hbox>
+										<value id="lt_${i}" pad.v="4"/>
+										<void vexpand="true"/>
+									</vbox>
+								</ui:with>
+								<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+
+								<!-- LUFS gain reduction meter -->
+								<ui:with bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0">
+									<ledmeter vexpand="true" angle="1">
+										<ledchannel
+											id="lg_${i}"
+											min="-24 db"
+											max="0 db"
+											log="true"
+											balance="0 db"
+											balance.visibility="true"
+											type="peak"
+											value.color=":lo_${i} and ${act_band} ? 'dark_lufs' : 'cycle_inactive'"
+											yellow.color=":lo_${i} and ${act_band} ? 'meter_yellow' : 'cycle_inactive'"
+											balance.color=":lo_${i} and ${act_band} ? 'lufs' : 'cycle_inactive'"/>
+									</ledmeter>
+								</ui:with>
+							</hbox>
+
+						</vbox>
+					</cell>
+					<!-- separator -->
+					<cell rows="3">
+						<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+					</cell>
+					<!-- buutons line -->
+					<cell cols="3">
+						<ui:with bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0">
+							<hbox pad.v="4" pad.h="6">
+								<hbox hfill="false">
+									<ui:if test=":i ieq 4">
+										<button id="ebe" text="labels.act_ive" height="19" hfill="true" ui:inject="Button_cyan" pad.r="4"/>
+									</ui:if>
+									<button id="bs_${i}" text="labels.chan.solo" height="19" hfill="true" ui:inject="Button_green"/>
+									<button id="bm_${i}" text="labels.chan.mute" height="19" hfill="true" ui:inject="Button_red" pad.l="4"/>
+								</hbox>
+								<ui:with pad.r="4">
+									<void hexpand="true"/>
+									<button id="op_${i}" ui:inject="Button_green" text="labels.odp" visibility="${act_band}"/>
+									<button id="ce_${i}" text="labels.signal.clipping" pad.l="8" visibility="${act_band}"/>
+									<button id="clog" text="labels.log_scale" ui:inject="Button_yellow" visibility="${act_band}"/>
+
+									<button id="op_${i}" ui:inject="Button_inactive" text="labels.odp" visibility="!${act_band}"/>
+									<button id="ce_${i}" text="labels.signal.clipping" ui:inject="Button_inactive" pad.l="8" visibility="!${act_band}"/>
+									<button id="clog" text="labels.log_scale" ui:inject="Button_inactive" visibility="!${act_band}"/>
+
+									<label text="labels.function" pad.l="8"/>
+								</ui:with>
+								<combo id="cf_${i}"/>
+							</hbox>
+						</ui:with>
+					</cell>
+					<!-- separator -->
+					<cell cols="3">
+						<hsep pad.v="2" bg.color="bg" vreduce="true"/>
+					</cell>
+					<!-- graph and knobs overdrive protection -->
+					<vbox>
+						<hbox>
+							<ui:with bg.bright="(!${act_band}) or !:op_${i} ? :const_bg_darken : 1.0" bright="(!${act_band}) or !:op_${i} ? 0.75 : 1.0">
+								<group ui:inject="GraphGroup" ipadding="0" expand="true" fill="true" text="labels.graphs.overdrive_protection">
+									<!-- Overdrive protection graph -->
+									<graph width.min="265" height.min="215" expand="true" fill="true">
+										<origin hpos="-1" vpos="-1" visible="false"/>
+
+										<!-- Gray grid -->
+										<ui:for id="g" first="-15" last="3" step="6">
+											<marker v="${g} db" color="graph_alt_1"/>
+											<marker v="${g} db" ox="1" oy="0" color="graph_alt_1"/>
+										</ui:for>
+
+										<!-- Yellow grid -->
+										<ui:for id="g" first="-12" last="-6" step="6">
+											<marker v="${g} db" color="graph_sec"/>
+											<marker v="${g} db" ox="1" oy="0" color="graph_sec"/>
+										</ui:for>
+
+										<!-- Axes and boundaries -->
+										<marker v="1" ox="1" oy="0" dv="1" dx=":_a_width" dy=":_a_height" color="graph_alt_1" width="2" smooth="true"/>
+										<axis min="-18 db" max="6 db" color="graph_prim" angle="0.0" log="true" visibility="false"/>
+										<axis min="-18 db" max="6 db" color="graph_prim" angle="0.5" log="true" visibility="false"/>
+										<axis min="-18" max="6" zero="-18" color="graph_prim" angle="0.0" visibility="false"/>
+
+										<!-- 0 dB markers -->
+										<marker v="0 db" ox="0" oy="1" width="2" color="graph_prim"/>
+										<marker v="0 db" ox="1" oy="0" width="2" color="graph_prim"/>
+
+										<!-- Meshes -->
+										<mesh id="opc_${i}" width="3" color=":op_${i} and ${act_band}  ? 'green' : 'graph_prim'" smooth="true"/>
+										<dot x.id="odx_${i}l" y.id="ody_${i}l" color="left" bcolor="left" visibility=":op_${i} and ${act_band}"/>
+										<dot x.id="odx_${i}r" y.id="ody_${i}r" color="right" bcolor="right" visibility=":op_${i} and ${act_band}"/>
+
+										<!-- Markers -->
+										<marker
+											id="th_${i}"
+											ox="2"
+											width="2"
+											editable="true"
+											pointer="hsize"
+											visibility=":op_${i} and ${act_band}"
+											fill="0.5"
+											color.a="0.2"
+											hcolor.a="0.1"
+											lcolor.a="0.8"
+											hlcolor.a="0.6"
+											rcolor.a="0.8"
+											hrcolor.a="0.6"
+											color="threshold"
+											hcolor="threshold"
+											lcolor="threshold"
+											hlcolor="threshold"
+											rcolor="threshold"
+											hrcolor="threshold"/>
+										<marker
+											id="th_${i}"
+											ox="2"
+											width="2"
+											editable="true"
+											pointer="hsize"
+											visibility="!:op_${i} or !${act_band}"
+											fill="0.5"
+											color.a="0.2"
+											hcolor.a="0.1"
+											lcolor.a="0.8"
+											hlcolor.a="0.6"
+											rcolor.a="0.8"
+											hrcolor.a="0.6"
+											color="graph_prim"
+											hcolor="graph_prim"
+											lcolor="graph_prim"
+											hlcolor="graph_prim"
+											rcolor="graph_prim"
+											hrcolor="graph_prim"/>
+
+										<!-- Text -->
+										<text x="0 db" y="0 db" text="0" halign="1" valign="1"/>
+										<ui:with x="0 db" halign="1" valign="-1">
+											<text y="6 db" text="graph.units.db"/>
+											<text y="3 db" text="+3"/>
+											<text y="-3 db" text="-3"/>
+											<text y="-6 db" text="-6"/>
+											<text y="-9 db" text="-9"/>
+											<text y="-12 db" text="-12"/>
+											<text y="-15 db" text="-15"/>
+											<text y="-18 db" text="graph.axis.out" valign="1"/>
+										</ui:with>
+										<ui:with y="0 db" halign="-1" valign="1">
+											<text x="6 db" text="graph.units.db"/>
+											<text x="3 db" text="+3"/>
+											<text x="-3 db" text="-3"/>
+											<text x="-6 db" text="-6"/>
+											<text x="-9 db" text="-9"/>
+											<text x="-12 db" text="-12"/>
+											<text x="-15 db" text="-15"/>
+											<text x="-18 db" text="graph.axis.in" halign="1"/>
+										</ui:with>
+										<text x=":th_${i}" y="-18 db" ox="2" text="graph.values.x:db:f" text:value=":th_${i}" text.eval="true" color=":op_${i} and ${act_band}? 'threshold' : 'graph_prim'" halign="(:th_${i} lt -6) ? 1 : -1" valign="1"/>
+									</graph>
+
+								</group>
+							</ui:with>
+							<void pad.h="2" bg.color="bg" hreduce="true"/>
+							<!-- ODP gain reduction meter -->
+							<ui:with bg.bright="(!${act_band}) or !:op_${i} ? :const_bg_darken : 1.0" bright="(!${act_band}) or !:op_${i} ? 0.75 : 1.0">
+								<vbox>
+									<label text="labels.odp" padding="4"/>
+									<ledmeter vexpand="true" angle="1">
+										<ledchannel
+											id="odr_${i}l"
+											min="-12 db"
+											max="0 db"
+											log="true"
+											balance="0 db"
+											balance.visibility="true"
+											type="peak"
+											value.color=":op_${i} and ${act_band} ? 'dark_green' : 'cycle_inactive'"
+											yellow.color=":op_${i} and ${act_band} ? 'meter_yellow' : 'cycle_inactive'"
+											balance.color=":op_${i} and ${act_band} ? 'green' : 'cycle_inactive'"/>
+										<ledchannel
+											id="odr_${i}r"
+											min="-12 db"
+											max="0 db"
+											log="true"
+											balance="0 db"
+											balance.visibility="true"
+											type="peak"
+											value.color=":op_${i} and ${act_band} ? 'dark_green' : 'cycle_inactive'"
+											yellow.color=":op_${i} and ${act_band} ? 'meter_yellow' : 'cycle_inactive'"
+											balance.color=":op_${i} and ${act_band} ? 'green' : 'cycle_inactive'"/>
+									</ledmeter>
+								</vbox>
+							</ui:with>
+						</hbox>
+						<void pad.v="2" bg.color="bg" vreduce="true"/>
+						<!-- controls -->
+						<ui:with bg.bright="(!${act_band}) or !:op_${i} ? :const_bg_darken : 1.0" bright="(!${act_band}) or !:op_${i} ? 0.75 : 1.0">
+							<hbox pad.v="4">
+								<!-- thres -->
+								<hbox fill="false" pad.l="6" pad.r="10">
+									<knob id="th_${i}" scolor=":op_${i} and ${act_band} ? 'threshold' : 'cycle_inactive'"/>
+									<vbox vfill="false" width="50" pad.l="4">
+										<label text="labels.thresh_old" halign="0"/>
+										<value id="th_${i}" sline="true" halign="0"/>
+									</vbox>
+								</hbox>
+
+								<!-- knee -->
+								<hbox fill="false">
+									<knob id="kn_${i}" scolor=":op_${i} and ${act_band} ? 'green' : 'cycle_inactive'"/>
+									<vbox vfill="false" width="50" pad.l="4">
+										<label text="labels.knee" halign="-1"/>
+										<value id="kn_${i}" sline="true" halign="0"/>
+									</vbox>
+								</hbox>
+
+								<!-- link -->
+								<ui:with bright="1.0">
+									<hbox fill="false" pad.l="10" pad.r="6" visibility="${:i igt 1}">
+										<knob id="ol_${:i-1}" scolor="${act_band} ? 'green' : 'cycle_inactive'"/>
+										<vbox vfill="false" width="50" pad.l="4">
+											<label text="labels.odp_link" halign="0"/>
+											<value id="ol_${:i-1}" sline="true" halign="0"/>
+										</vbox>
+									</hbox>
+								</ui:with>
+
+								<void hexpand="true" hfill="true"/>
+							</hbox>
+						</ui:with>
+					</vbox>
+
+					<cell rows="2">
+						<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+					</cell>
+
+					<vbox>
+						<hbox>
+							<ui:with bg.bright="(!${act_band}) or !:ce_${i} ? :const_bg_darken : 1.0" bright="(!${act_band}) or !:ce_${i} ? 0.75 : 1.0">
+								<group ui:inject="GraphGroup" ipadding="0" expand="true" fill="true" text="labels.graphs.clipping">
+									<vbox>
+										<!-- Clipper function graph linear -->
+										<graph width.min="265" height.min="215" expand="true" fill="true" visibility="!:clog">
+											<origin hpos="-0.8" vpos="-2.0/3.0" visible="false"/>
+											<origin hpos="-1" vpos="0" visible="false"/>
+
+											<ui:with ox="0" oy="1">
+												<marker v="0.25" color="graph_alt_1"/>
+												<marker v="0.75" color="graph_alt_1"/>
+												<marker v="1.25" color="graph_alt_1"/>
+												<marker v="1.75" color="graph_alt_1"/>
+											</ui:with>
+											<ui:with ox="1" oy="0">
+												<marker v="0.25" color="graph_alt_1"/>
+												<marker v="0.75" color="graph_alt_1"/>
+											</ui:with>
+
+											<ui:with ox="0" oy="1">
+												<marker v="0.5" color="graph_sec"/>
+												<marker v="1" color="graph_sec"/>
+												<marker v="1.5" color="graph_sec"/>
+												<marker v="2" color="graph_sec"/>
+											</ui:with>
+											<ui:with ox="1" oy="0">
+												<marker v="0.5" color="graph_sec"/>
+												<marker v="1" color="graph_sec"/>
+											</ui:with>
+
+											<!-- Axes and boundaries -->
+											<marker v="1" ox="1" oy="0" dv="1" dx=":_a_width * 0.6" dy=":_a_height" color="graph_alt_1" width="2" smooth="true"/>
+											<axis min="-0.25" max="2.25" color="graph_prim" angle="0.0" width="2"/>
+											<axis min="-0.25" max="1.25" color="graph_prim" angle="0.5" width="2"/>
+											<axis o="1" min="-0.25" max="2.25" color="graph_prim" angle="0.0" zero="-0.25" visibility="false"/>
+
+											<!-- Meshes -->
+											<mesh id="cfc_${i}" x.index="0" y.index="1" width="3" color=":ce_${i} and ${act_band}? 'graph_mesh': 'graph_prim'" smooth="true"/>
+											<dot x.id="cfx_${i}l" y.id="cfy_${i}l" color="left" bcolor="left" visibility=":ce_${i} and ${act_band}"/>
+											<dot x.id="cfx_${i}r" y.id="cfy_${i}r" color="right" bcolor="right" visibility=":ce_${i} and ${act_band}"/>
+
+											<!-- Markers -->
+											<marker
+												id="ct_${i}"
+												o="1"
+												ox="2"
+												width="2"
+												editable="true"
+												pointer="hsize"
+												visibility=":ce_${i} and ${act_band}"
+												fill="0.5"
+												color.a="0.2"
+												hcolor.a="0.1"
+												lcolor.a="0.8"
+												hlcolor.a="0.6"
+												rcolor.a="0.8"
+												hrcolor.a="0.6"
+												color="threshold"
+												hcolor="threshold"
+												lcolor="threshold"
+												hlcolor="threshold"
+												rcolor="threshold"
+												hrcolor="threshold"/>
+											<marker
+												id="ct_${i}"
+												o="1"
+												ox="2"
+												width="2"
+												editable="true"
+												pointer="hsize"
+												visibility="!:ce_${i} or !${act_band}"
+												fill="0.5"
+												color.a="0.2"
+												hcolor.a="0.1"
+												lcolor.a="0.8"
+												hlcolor.a="0.6"
+												rcolor.a="0.8"
+												hrcolor.a="0.6"
+												color="graph_prim"
+												hcolor="graph_prim"
+												lcolor="graph_prim"
+												hlcolor="graph_prim"
+												rcolor="graph_prim"
+												hrcolor="graph_prim"/>
+
+											<!-- Text -->
+											<ui:with x="0" halign="-1" valign="-1">
+												<text y="0.5" text="0.5"/>
+												<text y="1" text="1"/>
+												<text y="1.25" text="graph.axis.out" valign="-1"/>
+											</ui:with>
+											<ui:with y="0" halign="1" valign="-1">
+												<text x="0" text="0"/>
+												<text x="0.5" text="0.5"/>
+												<text x="1.0" text="1"/>
+												<text x="1.5" text="1.5"/>
+												<text x="2.0" text="2"/>
+												<text x="2.25" text="graph.axis.in" halign="-1"/>
+											</ui:with>
+											<text x=":ct_${i}" y="1.25" text="graph.values.x::f" text:value=":ct_${i}" text.eval="true" color=":ce_${i} and ${act_band}? 'threshold' : 'graph_prim'" halign="1" valign="-1"/>
+											<text x=":ct_${i}" y="-0.25" text="graph.values.x:db:f" text:value="20 * lg :ct_${i}" text.eval="true" color=":ce_${i} and ${act_band}? 'threshold' : 'graph_prim'" halign="1" valign="1"/>
+										</graph>
+
+										<!-- Clipper function graph logarithmic -->
+										<graph width.min="265" height.min="215" expand="true" fill="true" visibility=":clog">
+											<origin hpos="-1" vpos="-1" visible="false"/>
+
+											<!-- Gray grid -->
+											<ui:for id="g" first="-30" last="6" step="12">
+												<marker v="${g} db" color="graph_alt_1"/>
+												<marker v="${g} db" ox="1" oy="0" color="graph_alt_1"/>
+											</ui:for>
+
+											<!-- Yellow grid -->
+											<ui:for id="g" first="-24" last="-12" step="12">
+												<marker v="${g} db" color="graph_sec"/>
+												<marker v="${g} db" ox="1" oy="0" color="graph_sec"/>
+											</ui:for>
+
+											<!-- Axes and boundaries -->
+											<marker v="1" ox="1" oy="0" dv="1" dx=":_a_width" dy=":_a_height" color="graph_alt_1" width="2" smooth="true"/>
+											<axis min="-36 db" max="12 db" color="graph_prim" angle="0.0" log="true" visibility="false"/>
+											<axis min="-36 db" max="12 db" color="graph_prim" angle="0.5" log="true" visibility="false"/>
+
+											<!-- 0 dB markers -->
+											<marker v="0 db" ox="0" oy="1" width="2" color="graph_prim"/>
+											<marker v="0 db" ox="1" oy="0" width="2" color="graph_prim"/>
+
+											<!-- Meshes -->
+											<mesh id="cfc_${i}" x.index="2" y.index="3" width="3" color=":ce_${i} and ${act_band}? 'graph_mesh': 'graph_prim'" smooth="true"/>
+											<dot x.id="cfx_${i}l" y.id="cfy_${i}l" color="left" bcolor="left" visibility=":ce_${i} and ${act_band}"/>
+											<dot x.id="cfx_${i}r" y.id="cfy_${i}r" color="right" bcolor="right" visibility=":ce_${i} and ${act_band}"/>
+
+											<!-- Markers -->
+											<marker
+												id="ct_${i}"
+												width="2"
+												editable="true"
+												pointer="hsize"
+												visibility=":ce_${i} and ${act_band}"
+												fill="0.5"
+												color.a="0.2"
+												hcolor.a="0.1"
+												lcolor.a="0.8"
+												hlcolor.a="0.6"
+												rcolor.a="0.8"
+												hrcolor.a="0.6"
+												color="threshold"
+												hcolor="threshold"
+												lcolor="threshold"
+												hlcolor="threshold"
+												rcolor="threshold"
+												hrcolor="threshold"/>
+											<marker
+												id="ct_${i}"
+												width="2"
+												editable="true"
+												pointer="hsize"
+												visibility="!:ce_${i} or !${act_band}"
+												fill="0.5"
+												color.a="0.2"
+												hcolor.a="0.1"
+												lcolor.a="0.8"
+												hlcolor.a="0.6"
+												rcolor.a="0.8"
+												hrcolor.a="0.6"
+												color="graph_prim"
+												hcolor="graph_prim"
+												lcolor="graph_prim"
+												hlcolor="graph_prim"
+												rcolor="graph_prim"
+												hrcolor="graph_prim"/>
+
+											<!-- Text -->
+											<text x="0 db" y="0 db" text="0" halign="1" valign="1"/>
+											<ui:with x="0 db" halign="1" valign="-1">
+												<text y="12 db" text="graph.units.db"/>
+												<text y="6 db" text="+6"/>
+												<text y="-6 db" text="-6"/>
+												<text y="-12 db" text="-12"/>
+												<text y="-18 db" text="-18"/>
+												<text y="-24 db" text="-24"/>
+												<text y="-30 db" text="-30"/>
+												<text y="-36 db" text="graph.axis.out" valign="1"/>
+											</ui:with>
+											<ui:with y="0 db" halign="-1" valign="1">
+												<text x="12 db" text="graph.units.db"/>
+												<text x="6 db" text="+6"/>
+												<text x="-6 db" text="-6"/>
+												<text x="-12 db" text="-12"/>
+												<text x="-18 db" text="-18"/>
+												<text x="-24 db" text="-24"/>
+												<text x="-30 db" text="-30"/>
+												<text x="-36 db" text="graph.axis.in" halign="1"/>
+											</ui:with>
+
+											<text x=":ct_${i}" y="12 db" text="graph.values.x::f" text:value=":ct_${i}" text.eval="true" color=":ce_${i} and ${act_band}? 'threshold' : 'graph_prim'" halign="(:ct_${i} lt -12 db) ? 1 : -1" valign="-1"/>
+											<text x=":ct_${i}" y="-36 db" text="graph.values.x:db:f" text:value="20 * lg :ct_${i}" text.eval="true" color=":ce_${i} and ${act_band}? 'threshold' : 'graph_prim'" halign="(:ct_${i} lt -12 db) ? 1 : -1" valign="1"/>
+										</graph>
+
+									</vbox>
+								</group>
+							</ui:with>
+							<void pad.h="2" bg.color="bg" hreduce="true"/>
+							<!-- Clipper gain reduction meter -->
+							<ui:with bg.bright="(!${act_band}) or !:ce_${i} ? :const_bg_darken : 1.0" bright="(!${act_band}) or !:ce_${i} ? 0.75 : 1.0">
+								<vbox>
+									<label text="labels.clp" padding="4"/>
+									<ledmeter vexpand="true" angle="1">
+										<ledchannel
+											id="cfr_${i}l"
+											min="-12 db"
+											max="12 db"
+											log="true"
+											balance="0 db"
+											balance.visibility="true"
+											type="peak"
+											value.color=":ce_${i} and ${act_band} ? 'blue' : 'cycle_inactive'"
+											yellow.color=":ce_${i} and ${act_band} ? 'meter_yellow' : 'cycle_inactive'"
+											balance.color=":ce_${i} and ${act_band} ? 'balance' : 'cycle_inactive'"/>
+										<ledchannel
+											id="cfr_${i}r"
+											min="-12 db"
+											max="12 db"
+											log="true"
+											balance="0 db"
+											balance.visibility="true"
+											type="peak"
+											value.color=":ce_${i} and ${act_band} ? 'blue' : 'cycle_inactive'"
+											yellow.color=":ce_${i} and ${act_band} ? 'meter_yellow' : 'cycle_inactive'"
+											balance.color=":ce_${i} and ${act_band} ? 'balance' : 'cycle_inactive'"/>
+									</ledmeter>
+								</vbox>
+							</ui:with>
+						</hbox>
+
+						<void pad.v="2" bg.color="bg" vreduce="true"/>
+
+						<!-- controls -->
+						<ui:with bg.bright="(!${act_band}) or !:ce_${i} ? :const_bg_darken : 1.0" bright="(!${act_band}) or !:ce_${i} ? 0.75 : 1.0">
+							<hbox pad.v="4">
+								<void hexpand="true" hfill="true"/>
+								<!-- thres -->
+								<hbox fill="false" pad.l="6" pad.r="10">
+									<knob id="ct_${i}" scolor=":ce_${i} and ${act_band} ? 'threshold' : 'cycle_inactive'"/>
+									<vbox vfill="false" width="50" pad.l="4">
+										<label text="labels.thresh_old" halign="0"/>
+										<value id="ct_${i}" sline="true" halign="0"/>
+									</vbox>
+								</hbox>
+
+								<!-- pumping -->
+								<hbox fill="false" pad.r="6">
+									<knob id="cp_${i}" scolor=":ce_${i} and ${act_band} ? 'kscale' : 'cycle_inactive'"/>
+									<vbox vfill="false" width="50" pad.l="4">
+										<label text="labels.pumping" halign="-1"/>
+										<value id="cp_${i}" sline="true" halign="0"/>
+									</vbox>
+								</hbox>
+							</hbox>
+						</ui:with>
+					</vbox>
+
+					<cell rows="3">
+						<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+					</cell>
+
+					<cell rows="3" hexpand="true" hfill="true">
+						<grid rows="5" cols="7" hexpand="true" hfill="true" ipadding="0">
+							<cell cols="7">
+								<!-- controls -->
+								<ui:with bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0">
+									<hbox pad.v="4" pad.h="6">
+										<void hfill="true" hexpand="true"/>
+										<knob id="rs_${i}" scolor="${act_band} ? 'kscale' : 'cycle_inactive'"/>
+										<vbox vfill="false" pad.l="4" pad.r="10" width="50">
+											<label text="labels.resonance" halign="0"/>
+											<value id="rs_${i}" sline="true" halign="0"/>
+										</vbox>
+
+										<knob id="bl_${i}" scolor="${act_band} ? 'kscale' : 'cycle_inactive'"/>
+										<vbox vfill="false" pad.l="4" pad.r="10" width="50">
+											<label text="labels.stereo_link" halign="0"/>
+											<value id="bl_${i}" sline="true" halign="0"/>
+										</vbox>
+
+										<knob id="mk_${i}" scolor="${act_band} ? 'kscale' : 'cycle_inactive'"/>
+										<vbox vfill="false" pad.l="4" width="50">
+											<label text="labels.makeup" halign="0"/>
+											<value id="mk_${i}" sline="true" halign="0"/>
+										</vbox>
+
+									</hbox>
+								</ui:with>
+							</cell>
+							<!-- separator -->
+							<cell cols="7"><hsep pad.v="2" bg.color="bg" vreduce="true"/></cell>
+							<!-- time graph and meters -->
+							<cell rows="3">
+								<ui:with bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0">
+									<group ui:inject="GraphGroup" ipadding="0" hexpand="true" hfill="true" text="labels.graphs.time">
+
+										<!-- Ocillogram graph -->
+										<graph width.min="312" height.min="192" hexpand="true" hfill="true">
+											<origin hpos="1" vpos="-1" visible="false"/>
+
+											<!-- Gray grid -->
+											<ui:with ox="0" oy="1">
+												<marker v="0.5" color="graph_alt_1"/>
+												<marker v="1.5" color="graph_alt_1"/>
+												<marker v="2.5" color="graph_alt_1"/>
+												<marker v="3.5" color="graph_alt_1"/>
+												<marker v="4.5" color="graph_alt_1"/>
+											</ui:with>
+
+											<!-- Yellow grid -->
+											<ui:with ox="0" oy="1">
+												<marker v="1" color="graph_sec"/>
+												<marker v="2" color="graph_sec"/>
+												<marker v="3" color="graph_sec"/>
+												<marker v="4" color="graph_sec"/>
+											</ui:with>
+											<ui:with ox="1" oy="0" color="graph_sec">
+												<ui:for id="v" first="-18" last="6" step="6">
+													<marker v="${v} db"/>
+												</ui:for>
+											</ui:with>
+
+											<!-- Meshes -->
+											<mesh id="ctg_${i}l" width="0" x.index="0" y.index="1" color="left_in" fcolor="left_in" fcolor.a="0.8" fill="true" visibility=":ilg_l"/>
+											<mesh id="ctg_${i}r" width="0" x.index="0" y.index="1" color="right_in" fcolor="right_in" fcolor.a="0.8" fill="true" visibility=":ilg_r"/>
+											<mesh id="ctg_${i}l" width="2" x.index="0" y.index="2" color="left" visibility=":olg_l"/>
+											<mesh id="ctg_${i}r" width="2" x.index="0" y.index="2" color="right" visibility=":olg_r"/>
+											<mesh id="ctg_${i}l" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":grg_l"/>
+											<mesh id="ctg_${i}r" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":grg_r"/>
+
+											<!-- Boundaries -->
+											<marker v="24 db" ox="1" oy="0" color="graph_prim" visibility="false"/>
+											<marker v="5" ox="0" oy="1" color="graph_prim" visibility="false"/>
+
+											<!-- Axis -->
+											<axis min="0" max="5" angle="1.0" log="false" color="graph_prim" visibility="false"/>
+											<axis min="-24 db" max="12 db" angle="0.5" log="true" color="graph_prim" visibility="false"/>
+
+											<!-- Text -->
+											<text x="5" y="-72 db" text="graph.units.s" halign="1" valign="1" color="graph_prim"/>
+											<ui:with y="-24 db" halign="1" valign="1" color="graph_prim">
+												<text x="0" text="0" halign="-1"/>
+												<text x="1" text="1"/>
+												<text x="2" text="2"/>
+												<text x="3" text="3"/>
+												<text x="4" text="4"/>
+												<text x="5" text="graph.units.s"/>
+											</ui:with>
+											<ui:with x="5" halign="1" valign="1" color="graph_prim">
+												<text y="12 db" text="graph.units.db" text:value="0" valign="-1"/>
+												<ui:for id="v" first="-18" last="6" step="6">
+													<text y="${v} db" text="${v}"/>
+												</ui:for>
+											</ui:with>
+										</graph>
+									</group>
+								</ui:with>
+							</cell>
+
+							<cell rows="3"><vsep pad.h="2" bg.color="bg" hreduce="true"/></cell>
+
+							<label text="labels.gain_" padding="4" bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0"/>
+							<cell rows="3"><vsep pad.h="2" bg.color="bg" hreduce="true"/></cell>
+							<label text="labels.chan.in" padding="4" bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0"/>
+							<cell rows="3"><vsep pad.h="2" bg.color="bg" hreduce="true"/></cell>
+							<label text="labels.chan.out" padding="4" bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0"/>
+							<ui:with bg.color="bg_schema" bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0">
+								<grid rows="2" cols="2" fill="false" hspacing="2">
+									<button id="grg_l" size="10" ui:inject="Button_blue" visibility="${act_band}" led="true"/>
+									<button id="grg_r" size="10" ui:inject="Button_blue" visibility="${act_band}" led="true"/>
+									<button id="grg_l" size="10" ui:inject="Button_inactive" visibility="!${act_band}" led="true"/>
+									<button id="grg_r" size="10" ui:inject="Button_inactive" visibility="!${act_band}" led="true"/>
+								</grid>
+
+								<grid rows="2" cols="2" fill="false" hspacing="2">
+									<button id="ilg_l" size="10" ui:inject="Button_left" visibility="${act_band}" led="true"/>
+									<button id="ilg_r" size="10" ui:inject="Button_right" visibility="${act_band}" led="true"/>
+									<button id="ilg_l" size="10" ui:inject="Button_inactive" visibility="!${act_band}" led="true"/>
+									<button id="ilg_r" size="10" ui:inject="Button_inactive" visibility="!${act_band}" led="true"/>
+								</grid>
+
+								<grid rows="2" cols="2" fill="false" hspacing="2">
+									<button id="olg_l" size="10" ui:inject="Button_left" visibility="${act_band}" led="true"/>
+									<button id="olg_r" size="10" ui:inject="Button_right" visibility="${act_band}" led="true"/>
+									<button id="olg_l" size="10" ui:inject="Button_inactive" visibility="!${act_band}" led="true"/>
+									<button id="olg_r" size="10" ui:inject="Button_inactive" visibility="!${act_band}" led="true"/>
+								</grid>
+
+								<!-- Band gain reduction meter -->
+								<ledmeter vexpand="true" vfill="true" angle="1">
+									<ledchannel
+										id="grm_${i}l"
+										min="-24 db"
+										max="12 db"
+										log="true"
+										balance="0 db"
+										balance.visibility="true"
+										type="peak"
+										activity=":grg_l"
+										value.color="${act_band} ? 'blue' : 'cycle_inactive'"
+										yellow.color="${act_band} ? 'meter_yellow' : 'cycle_inactive'"
+										balance.color="${act_band} ? 'balance' : 'cycle_inactive'"/>
+									<ledchannel
+										id="grm_${i}r"
+										min="-24 db"
+										max="12 db"
+										log="true"
+										balance="0 db"
+										balance.visibility="true"
+										type="peak"
+										activity=":grg_r"
+										value.color="${act_band} ? 'blue' : 'cycle_inactive'"
+										yellow.color="${act_band} ? 'meter_yellow' : 'cycle_inactive'"
+										balance.color="${act_band} ? 'balance' : 'cycle_inactive'"/>
+								</ledmeter>
+								<!-- Band input level -->
+								<ledmeter vexpand="true" vfill="true" angle="1">
+									<ledchannel
+										id="ilm_${i}l"
+										min="-60 db"
+										max="12 db"
+										log="true"
+										type="rms_peak"
+										peak.visibility="true"
+										activity=":ilg_l"
+										value.color="${act_band} ? 'left_in' : 'cycle_inactive'"
+										red.color="${act_band} ? 'red' : 'cycle_inactive'"
+										yellow.color="${act_band} ? 'meter_yellow' : 'cycle_inactive'"
+										balance.color="${act_band} ? 'balance' : 'cycle_inactive'"/>
+									<ledchannel
+										id="ilm_${i}r"
+										min="-60 db"
+										max="12 db"
+										log="true"
+										type="rms_peak"
+										peak.visibility="true"
+										activity=":ilg_r"
+										value.color="${act_band} ? 'right_in' : 'cycle_inactive'"
+										red.color="${act_band} ? 'red' : 'cycle_inactive'"
+										yellow.color="${act_band} ? 'meter_yellow' : 'cycle_inactive'"
+										balance.color="${act_band} ? 'balance' : 'cycle_inactive'"/>
+								</ledmeter>
+								<!-- Band output level -->
+								<ledmeter vexpand="true" vfill="true" angle="1">
+									<ledchannel
+										id="olm_${i}l"
+										min="-60 db"
+										max="12 db"
+										log="true"
+										type="rms_peak"
+										peak.visibility="true"
+										activity=":olg_l"
+										value.color="${act_band} ? 'left' : 'cycle_inactive'"
+										red.color="${act_band} ? 'red' : 'cycle_inactive'"
+										yellow.color="${act_band} ? 'meter_yellow' : 'cycle_inactive'"
+										balance.color="${act_band} ? 'balance' : 'cycle_inactive'"/>
+									<ledchannel
+										id="olm_${i}r"
+										min="-60 db"
+										max="12 db"
+										log="true"
+										type="rms_peak"
+										peak.visibility="true"
+										activity=":olg_r"
+										value.color="${act_band} ? 'right' : 'cycle_inactive'"
+										red.color="${act_band} ? 'red' : 'cycle_inactive'"
+										yellow.color="${act_band} ? 'meter_yellow' : 'cycle_inactive'"
+										balance.color="${act_band} ? 'balance' : 'cycle_inactive'"/>
+								</ledmeter>
+							</ui:with>
+						</grid>
+					</cell>
+				</grid>
+			</ui:for>
+
+			<!-- Output tab -->
+			<grid rows="3" cols="7" bg.color="bg_schema" ipadding="0" transpose="true">
+				<!-- preamp and lufs limit col -->
+				<cell rows="3">
+					<hbox vexpand="true">
+						<ui:with bg.bright="!(:oclip) ? :const_bg_darken : 1.0" bright="!(:oclip) ? 0.75 : 1.0">
+							<vbox vfill="true">
+								<button id="lo" pad.h="6" pad.v="4" height="18" text="labels.lufs_limit" ui:inject="Button_lufs" visibility=":oclip"/>
+								<button id="lo" pad.h="6" pad.v="4" height="18" text="labels.lufs_limit" ui:inject="Button_inactive" visibility="!(:oclip)"/>
+								<hbox pad.t="4">
+									<knob id="lt" ui:inject="Knob_meter_lufs" meter.max=":li" visibility=":lo and :oclip"/>
+									<knob id="lt" scolor="cycle_inactive" visibility="!:lo or !(:oclip)"/>
+								</hbox>
+								<value id="lt" pad.v="4"/>
+								<void vexpand="true"/>
+							</vbox>
+						</ui:with>
+						<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+
+						<!-- LUFS gain reduction meter -->
+						<ui:with bg.bright="!(:oclip) ? :const_bg_darken : 1.0" bright="!(:oclip) ? 0.75 : 1.0">
+							<ledmeter vexpand="true" angle="1">
+								<ledchannel
+									id="lg"
+									min="-24 db"
+									max="0 db"
+									log="true"
+									balance="0 db"
+									balance.visibility="true"
+									type="peak"
+									value.color=":lo and :oclip ? 'dark_lufs' : 'cycle_inactive'"
+									yellow.color=":lo and :oclip ? 'meter_yellow' : 'cycle_inactive'"
+									balance.color=":lo and :oclip ? 'lufs' : 'cycle_inactive'"/>
+							</ledmeter>
+						</ui:with>
+					</hbox>
+				</cell>
+				<!-- separator -->
+				<cell rows="3">
+					<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+				</cell>
+				<!-- buutons line -->
+				<cell cols="3">
+					<ui:with bg.bright="!(:oclip) ? :const_bg_darken : 1.0" bright="!(:oclip) ? 0.75 : 1.0">
+						<hbox pad.v="4" pad.h="6">
+							<button id="oclip" text="labels.active" size="22" ui:inject="Button_cyan"/>
+							<ui:with pad.r="4">
+								<void hexpand="true"/>
+								<button id="op" ui:inject="Button_green" text="labels.odp" visibility=":oclip"/>
+								<button id="ce" text="labels.signal.clipping" pad.l="8" visibility=":oclip"/>
+								<button id="clog" text="labels.log_scale" ui:inject="Button_yellow" visibility=":oclip"/>
+
+								<button id="op" ui:inject="Button_inactive" text="labels.odp" visibility="!(:oclip)"/>
+								<button id="ce" text="labels.signal.clipping" ui:inject="Button_inactive" pad.l="8" visibility="!(:oclip)"/>
+								<button id="clog" text="labels.log_scale" ui:inject="Button_inactive" visibility="!(:oclip)"/>
+
+								<label text="labels.function" pad.l="8"/>
+							</ui:with>
+							<combo id="cf"/>
+						</hbox>
+					</ui:with>
+				</cell>
+				<!-- separator -->
+				<cell cols="3">
+					<hsep pad.v="2" bg.color="bg" vreduce="true"/>
+				</cell>
+				<!-- graph and knobs overdrive protection -->
+				<vbox>
+					<hbox>
+						<ui:with bg.bright="!(:oclip) or !:op ? :const_bg_darken : 1.0" bright="!(:oclip) or !:op ? 0.75 : 1.0">
+							<group ui:inject="GraphGroup" ipadding="0" expand="true" fill="true" text="labels.graphs.overdrive_protection">
+								<!-- Overdrive protection graph -->
+								<graph width.min="265" height.min="215" expand="true" fill="true">
+									<origin hpos="-1" vpos="-1" visible="false"/>
+
+									<!-- Gray grid -->
+									<ui:for id="g" first="-15" last="3" step="6">
+										<marker v="${g} db" color="graph_alt_1"/>
+										<marker v="${g} db" ox="1" oy="0" color="graph_alt_1"/>
+									</ui:for>
+
+									<!-- Yellow grid -->
+									<ui:for id="g" first="-12" last="-6" step="6">
+										<marker v="${g} db" color="graph_sec"/>
+										<marker v="${g} db" ox="1" oy="0" color="graph_sec"/>
+									</ui:for>
+
+									<!-- Axes and boundaries -->
+									<marker v="1" ox="1" oy="0" dv="1" dx=":_a_width" dy=":_a_height" color="graph_alt_1" width="2" smooth="true"/>
+									<axis min="-18 db" max="6 db" color="graph_prim" angle="0.0" log="true" visibility="false"/>
+									<axis min="-18 db" max="6 db" color="graph_prim" angle="0.5" log="true" visibility="false"/>
+									<axis min="-18" max="6" zero="-18" color="graph_prim" angle="0.0" visibility="false"/>
+
+									<!-- 0 dB markers -->
+									<marker v="0 db" ox="0" oy="1" width="2" color="graph_prim"/>
+									<marker v="0 db" ox="1" oy="0" width="2" color="graph_prim"/>
+
+									<!-- Meshes -->
+									<mesh id="opc" width="3" color=":op and :oclip  ? 'green' : 'graph_prim'" smooth="true"/>
+									<dot x.id="odx_l" y.id="ody_l" color="left" bcolor="left" visibility=":op and :oclip"/>
+									<dot x.id="odx_r" y.id="ody_r" color="right" bcolor="right" visibility=":op and :oclip"/>
+
+									<!-- Markers -->
+									<marker
+										id="th"
+										ox="2"
+										width="2"
+										editable="true"
+										pointer="hsize"
+										visibility=":op and :oclip"
+										fill="0.5"
+										color.a="0.2"
+										hcolor.a="0.1"
+										lcolor.a="0.8"
+										hlcolor.a="0.6"
+										rcolor.a="0.8"
+										hrcolor.a="0.6"
+										color="threshold"
+										hcolor="threshold"
+										lcolor="threshold"
+										hlcolor="threshold"
+										rcolor="threshold"
+										hrcolor="threshold"/>
+									<marker
+										id="th"
+										ox="2"
+										width="2"
+										editable="true"
+										pointer="hsize"
+										visibility="!:op or !(:oclip)"
+										fill="0.5"
+										color.a="0.2"
+										hcolor.a="0.1"
+										lcolor.a="0.8"
+										hlcolor.a="0.6"
+										rcolor.a="0.8"
+										hrcolor.a="0.6"
+										color="graph_prim"
+										hcolor="graph_prim"
+										lcolor="graph_prim"
+										hlcolor="graph_prim"
+										rcolor="graph_prim"
+										hrcolor="graph_prim"/>
+
+									<!-- Text -->
+									<text x="0 db" y="0 db" text="0" halign="1" valign="1"/>
+									<ui:with x="0 db" halign="1" valign="-1">
+										<text y="6 db" text="graph.units.db"/>
+										<text y="3 db" text="+3"/>
+										<text y="-3 db" text="-3"/>
+										<text y="-6 db" text="-6"/>
+										<text y="-9 db" text="-9"/>
+										<text y="-12 db" text="-12"/>
+										<text y="-15 db" text="-15"/>
+										<text y="-18 db" text="graph.axis.out" valign="1"/>
+									</ui:with>
+									<ui:with y="0 db" halign="-1" valign="1">
+										<text x="6 db" text="graph.units.db"/>
+										<text x="3 db" text="+3"/>
+										<text x="-3 db" text="-3"/>
+										<text x="-6 db" text="-6"/>
+										<text x="-9 db" text="-9"/>
+										<text x="-12 db" text="-12"/>
+										<text x="-15 db" text="-15"/>
+										<text x="-18 db" text="graph.axis.in" halign="1"/>
+									</ui:with>
+									<text x=":th" y="-18 db" ox="2" text="graph.values.x:db:f" text:value=":th" text.eval="true" color=":op and :oclip? 'threshold' : 'graph_prim'" halign="(:th lt -6) ? 1 : -1" valign="1"/>
+								</graph>
+
+							</group>
+						</ui:with>
+						<void pad.h="2" bg.color="bg" hreduce="true"/>
+						<!-- ODP gain reduction meter -->
+						<ui:with bg.bright="!(:oclip) or !:op ? :const_bg_darken : 1.0" bright="!(:oclip) or !:op ? 0.75 : 1.0">
+							<vbox>
+								<label text="labels.odp" padding="4"/>
+								<ledmeter vexpand="true" angle="1">
+									<ledchannel
+										id="odr_l"
+										min="-12 db"
+										max="0 db"
+										log="true"
+										balance="0 db"
+										balance.visibility="true"
+										type="peak"
+										value.color=":op and :oclip ? 'dark_green' : 'cycle_inactive'"
+										yellow.color=":op and :oclip ? 'meter_yellow' : 'cycle_inactive'"
+										balance.color=":op and :oclip ? 'green' : 'cycle_inactive'"/>
+									<ledchannel
+										id="odr_r"
+										min="-12 db"
+										max="0 db"
+										log="true"
+										balance="0 db"
+										balance.visibility="true"
+										type="peak"
+										value.color=":op and :oclip ? 'dark_green' : 'cycle_inactive'"
+										yellow.color=":op and :oclip ? 'meter_yellow' : 'cycle_inactive'"
+										balance.color=":op and :oclip ? 'green' : 'cycle_inactive'"/>
+								</ledmeter>
+							</vbox>
+						</ui:with>
+					</hbox>
+					<void pad.v="2" bg.color="bg" vreduce="true"/>
+					<!-- controls -->
+					<ui:with bg.bright="!(:oclip) or !:op ? :const_bg_darken : 1.0" bright="!(:oclip) or !:op ? 0.75 : 1.0">
+						<hbox pad.v="4">
+							<!-- thres -->
+							<hbox fill="false" pad.l="6" pad.r="10">
+								<knob id="th" scolor=":op and :oclip ? 'threshold' : 'cycle_inactive'"/>
+								<vbox vfill="false" width="50" pad.l="4">
+									<label text="labels.thresh_old" halign="0"/>
+									<value id="th" sline="true" halign="0"/>
+								</vbox>
+							</hbox>
+
+							<!-- knee -->
+							<hbox fill="false">
+								<knob id="kn" scolor=":op and :oclip ? 'green' : 'cycle_inactive'"/>
+								<vbox vfill="false" width="50" pad.l="4">
+									<label text="labels.knee" halign="-1"/>
+									<value id="kn" sline="true" halign="0"/>
+								</vbox>
+							</hbox>
+
+							<void hexpand="true" hfill="true"/>
+						</hbox>
+					</ui:with>
+				</vbox>
+
+				<cell rows="2">
+					<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+				</cell>
+
+				<vbox>
+					<hbox>
+						<ui:with bg.bright="!(:oclip) or !:ce ? :const_bg_darken : 1.0" bright="!(:oclip) or !:ce ? 0.75 : 1.0">
+							<group ui:inject="GraphGroup" ipadding="0" expand="true" fill="true" text="labels.graphs.clipping">
+								<vbox>
+									<!-- Clipper function graph linear -->
+									<graph width.min="265" height.min="215" expand="true" fill="true" visibility="!:clog">
+										<origin hpos="-0.8" vpos="-2.0/3.0" visible="false"/>
+										<origin hpos="-1" vpos="0" visible="false"/>
+
+										<ui:with ox="0" oy="1">
+											<marker v="0.25" color="graph_alt_1"/>
+											<marker v="0.75" color="graph_alt_1"/>
+											<marker v="1.25" color="graph_alt_1"/>
+											<marker v="1.75" color="graph_alt_1"/>
+										</ui:with>
+										<ui:with ox="1" oy="0">
+											<marker v="0.25" color="graph_alt_1"/>
+											<marker v="0.75" color="graph_alt_1"/>
+										</ui:with>
+
+										<ui:with ox="0" oy="1">
+											<marker v="0.5" color="graph_sec"/>
+											<marker v="1" color="graph_sec"/>
+											<marker v="1.5" color="graph_sec"/>
+											<marker v="2" color="graph_sec"/>
+										</ui:with>
+										<ui:with ox="1" oy="0">
+											<marker v="0.5" color="graph_sec"/>
+											<marker v="1" color="graph_sec"/>
+										</ui:with>
+
+										<!-- Axes and boundaries -->
+										<marker v="1" ox="1" oy="0" dv="1" dx=":_a_width * 0.6" dy=":_a_height" color="graph_alt_1" width="2" smooth="true"/>
+										<axis min="-0.25" max="2.25" color="graph_prim" angle="0.0" width="2"/>
+										<axis min="-0.25" max="1.25" color="graph_prim" angle="0.5" width="2"/>
+										<axis o="1" min="-0.25" max="2.25" color="graph_prim" angle="0.0" zero="-0.25" visibility="false"/>
+
+										<!-- Meshes -->
+										<mesh id="cfc" x.index="0" y.index="1" width="3" color=":ce and :oclip? 'graph_mesh': 'graph_prim'" smooth="true"/>
+										<dot x.id="cfx_l" y.id="cfy_l" color="left" bcolor="left" visibility=":ce and :oclip"/>
+										<dot x.id="cfx_r" y.id="cfy_r" color="right" bcolor="right" visibility=":ce and :oclip"/>
+
+										<!-- Markers -->
+										<marker
+											id="ct"
+											o="1"
+											ox="2"
+											width="2"
+											editable="true"
+											pointer="hsize"
+											visibility=":ce and :oclip"
+											fill="0.5"
+											color.a="0.2"
+											hcolor.a="0.1"
+											lcolor.a="0.8"
+											hlcolor.a="0.6"
+											rcolor.a="0.8"
+											hrcolor.a="0.6"
+											color="threshold"
+											hcolor="threshold"
+											lcolor="threshold"
+											hlcolor="threshold"
+											rcolor="threshold"
+											hrcolor="threshold"/>
+										<marker
+											id="ct"
+											o="1"
+											ox="2"
+											width="2"
+											editable="true"
+											pointer="hsize"
+											visibility="!:ce or !(:oclip)"
+											fill="0.5"
+											color.a="0.2"
+											hcolor.a="0.1"
+											lcolor.a="0.8"
+											hlcolor.a="0.6"
+											rcolor.a="0.8"
+											hrcolor.a="0.6"
+											color="graph_prim"
+											hcolor="graph_prim"
+											lcolor="graph_prim"
+											hlcolor="graph_prim"
+											rcolor="graph_prim"
+											hrcolor="graph_prim"/>
+
+										<!-- Text -->
+										<ui:with x="0" halign="-1" valign="-1">
+											<text y="0.5" text="0.5"/>
+											<text y="1" text="1"/>
+											<text y="1.25" text="graph.axis.out" valign="-1"/>
+										</ui:with>
+										<ui:with y="0" halign="1" valign="-1">
+											<text x="0" text="0"/>
+											<text x="0.5" text="0.5"/>
+											<text x="1.0" text="1"/>
+											<text x="1.5" text="1.5"/>
+											<text x="2.0" text="2"/>
+											<text x="2.25" text="graph.axis.in" halign="-1"/>
+										</ui:with>
+										<text x=":ct" y="1.25" text="graph.values.x::f" text:value=":ct" text.eval="true" color=":ce and :oclip? 'threshold' : 'graph_prim'" halign="1" valign="-1"/>
+										<text x=":ct" y="-0.25" text="graph.values.x:db:f" text:value="20 * lg :ct" text.eval="true" color=":ce and :oclip? 'threshold' : 'graph_prim'" halign="1" valign="1"/>
+									</graph>
+
+									<!-- Clipper function graph logarithmic -->
+									<graph width.min="265" height.min="215" expand="true" fill="true" visibility=":clog">
+										<origin hpos="-1" vpos="-1" visible="false"/>
+
+										<!-- Gray grid -->
+										<ui:for id="g" first="-30" last="6" step="12">
+											<marker v="${g} db" color="graph_alt_1"/>
+											<marker v="${g} db" ox="1" oy="0" color="graph_alt_1"/>
+										</ui:for>
+
+										<!-- Yellow grid -->
+										<ui:for id="g" first="-24" last="-12" step="12">
+											<marker v="${g} db" color="graph_sec"/>
+											<marker v="${g} db" ox="1" oy="0" color="graph_sec"/>
+										</ui:for>
+
+										<!-- Axes and boundaries -->
+										<marker v="1" ox="1" oy="0" dv="1" dx=":_a_width" dy=":_a_height" color="graph_alt_1" width="2" smooth="true"/>
+										<axis min="-36 db" max="12 db" color="graph_prim" angle="0.0" log="true" visibility="false"/>
+										<axis min="-36 db" max="12 db" color="graph_prim" angle="0.5" log="true" visibility="false"/>
+
+										<!-- 0 dB markers -->
+										<marker v="0 db" ox="0" oy="1" width="2" color="graph_prim"/>
+										<marker v="0 db" ox="1" oy="0" width="2" color="graph_prim"/>
+
+										<!-- Meshes -->
+										<mesh id="cfc" x.index="2" y.index="3" width="3" color=":ce and :oclip? 'graph_mesh': 'graph_prim'" smooth="true"/>
+										<dot x.id="cfx_l" y.id="cfy_l" color="left" bcolor="left" visibility=":ce and :oclip"/>
+										<dot x.id="cfx_r" y.id="cfy_r" color="right" bcolor="right" visibility=":ce and :oclip"/>
+
+										<!-- Markers -->
+										<marker
+											id="ct"
+											width="2"
+											editable="true"
+											pointer="hsize"
+											visibility=":ce and :oclip"
+											fill="0.5"
+											color.a="0.2"
+											hcolor.a="0.1"
+											lcolor.a="0.8"
+											hlcolor.a="0.6"
+											rcolor.a="0.8"
+											hrcolor.a="0.6"
+											color="threshold"
+											hcolor="threshold"
+											lcolor="threshold"
+											hlcolor="threshold"
+											rcolor="threshold"
+											hrcolor="threshold"/>
+										<marker
+											id="ct"
+											width="2"
+											editable="true"
+											pointer="hsize"
+											visibility="!:ce or !(:oclip)"
+											fill="0.5"
+											color.a="0.2"
+											hcolor.a="0.1"
+											lcolor.a="0.8"
+											hlcolor.a="0.6"
+											rcolor.a="0.8"
+											hrcolor.a="0.6"
+											color="graph_prim"
+											hcolor="graph_prim"
+											lcolor="graph_prim"
+											hlcolor="graph_prim"
+											rcolor="graph_prim"
+											hrcolor="graph_prim"/>
+
+										<!-- Text -->
+										<text x="0 db" y="0 db" text="0" halign="1" valign="1"/>
+										<ui:with x="0 db" halign="1" valign="-1">
+											<text y="12 db" text="graph.units.db"/>
+											<text y="6 db" text="+6"/>
+											<text y="-6 db" text="-6"/>
+											<text y="-12 db" text="-12"/>
+											<text y="-18 db" text="-18"/>
+											<text y="-24 db" text="-24"/>
+											<text y="-30 db" text="-30"/>
+											<text y="-36 db" text="graph.axis.out" valign="1"/>
+										</ui:with>
+										<ui:with y="0 db" halign="-1" valign="1">
+											<text x="12 db" text="graph.units.db"/>
+											<text x="6 db" text="+6"/>
+											<text x="-6 db" text="-6"/>
+											<text x="-12 db" text="-12"/>
+											<text x="-18 db" text="-18"/>
+											<text x="-24 db" text="-24"/>
+											<text x="-30 db" text="-30"/>
+											<text x="-36 db" text="graph.axis.in" halign="1"/>
+										</ui:with>
+
+										<text x=":ct" y="12 db" text="graph.values.x::f" text:value=":ct" text.eval="true" color=":ce and :oclip? 'threshold' : 'graph_prim'" halign="(:ct lt -12 db) ? 1 : -1" valign="-1"/>
+										<text x=":ct" y="-36 db" text="graph.values.x:db:f" text:value="20 * lg :ct" text.eval="true" color=":ce and :oclip? 'threshold' : 'graph_prim'" halign="(:ct lt -12 db) ? 1 : -1" valign="1"/>
+									</graph>
+
+								</vbox>
+							</group>
+						</ui:with>
+						<void pad.h="2" bg.color="bg" hreduce="true"/>
+						<!-- Clipper gain reduction meter -->
+						<ui:with bg.bright="!(:oclip) or !:ce ? :const_bg_darken : 1.0" bright="!(:oclip) or !:ce ? 0.75 : 1.0">
+							<vbox>
+								<label text="labels.clp" padding="4"/>
+								<ledmeter vexpand="true" angle="1">
+									<ledchannel
+										id="cfr_l"
+										min="-12 db"
+										max="12 db"
+										log="true"
+										balance="0 db"
+										balance.visibility="true"
+										type="peak"
+										value.color=":ce and :oclip ? 'blue' : 'cycle_inactive'"
+										yellow.color=":ce and :oclip ? 'meter_yellow' : 'cycle_inactive'"
+										balance.color=":ce and :oclip ? 'balance' : 'cycle_inactive'"/>
+									<ledchannel
+										id="cfr_r"
+										min="-12 db"
+										max="12 db"
+										log="true"
+										balance="0 db"
+										balance.visibility="true"
+										type="peak"
+										value.color=":ce and :oclip ? 'blue' : 'cycle_inactive'"
+										yellow.color=":ce and :oclip ? 'meter_yellow' : 'cycle_inactive'"
+										balance.color=":ce and :oclip ? 'balance' : 'cycle_inactive'"/>
+								</ledmeter>
+							</vbox>
+						</ui:with>
+					</hbox>
+
+					<void pad.v="2" bg.color="bg" vreduce="true"/>
+
+					<!-- controls -->
+					<ui:with bg.bright="!(:oclip) or !:ce ? :const_bg_darken : 1.0" bright="!(:oclip) or !:ce ? 0.75 : 1.0">
+						<hbox pad.v="4">
+							<void hexpand="true" hfill="true"/>
+							<!-- thres -->
+							<hbox fill="false" pad.l="6" pad.r="10">
+								<knob id="ct" scolor=":ce and :oclip ? 'threshold' : 'cycle_inactive'"/>
+								<vbox vfill="false" width="50" pad.l="4">
+									<label text="labels.thresh_old" halign="0"/>
+									<value id="ct" sline="true" halign="0"/>
+								</vbox>
+							</hbox>
+
+							<!-- pumping -->
+							<hbox fill="false" pad.r="6">
+								<knob id="cp" scolor=":ce and :oclip ? 'kscale' : 'cycle_inactive'"/>
+								<vbox vfill="false" width="50" pad.l="4">
+									<label text="labels.pumping" halign="-1"/>
+									<value id="cp" sline="true" halign="0"/>
+								</vbox>
+							</hbox>
+						</hbox>
+					</ui:with>
+				</vbox>
+
+				<cell rows="3">
+					<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+				</cell>
+
+				<cell rows="3" hexpand="true" hfill="true">
+					<grid rows="5" cols="7" hexpand="true" hfill="true" ipadding="0">
+						<cell cols="7">
+							<!-- controls -->
+							<ui:with bg.bright="!(:oclip) ? :const_bg_darken : 1.0" bright="!(:oclip) ? 0.75 : 1.0">
+								<hbox pad.v="4" pad.h="6">
+									<void hfill="true" hexpand="true"/>
+									<knob id="or" scolor=":oclip ? 'kscale' : 'cycle_inactive'"/>
+									<vbox vfill="false" pad.l="4" pad.r="10" width="50">
+										<label text="labels.reactivity" halign="0"/>
+										<value id="or" sline="true" halign="0"/>
+									</vbox>
+
+									<knob id="slink" scolor=":oclip ? 'kscale' : 'cycle_inactive'"/>
+									<vbox vfill="false" pad.l="4" pad.r="10" width="50">
+										<label text="labels.stereo_link" halign="0"/>
+										<value id="slink" sline="true" halign="0"/>
+									</vbox>
+
+								</hbox>
+							</ui:with>
+						</cell>
+						<!-- separator -->
+						<cell cols="7"><hsep pad.v="2" bg.color="bg" vreduce="true"/></cell>
+						<!-- time graph and meters -->
+						<cell rows="3">
+							<ui:with bg.bright="!(:oclip) ? :const_bg_darken : 1.0" bright="!(:oclip) ? 0.75 : 1.0">
+								<group ui:inject="GraphGroup" ipadding="0" hexpand="true" hfill="true" text="labels.graphs.time">
+
+									<!-- Ocillogram graph -->
+									<graph width.min="312" height.min="192" hexpand="true" hfill="true">
+										<origin hpos="1" vpos="-1" visible="false"/>
+
+										<!-- Gray grid -->
+										<ui:with ox="0" oy="1">
+											<marker v="0.5" color="graph_alt_1"/>
+											<marker v="1.5" color="graph_alt_1"/>
+											<marker v="2.5" color="graph_alt_1"/>
+											<marker v="3.5" color="graph_alt_1"/>
+											<marker v="4.5" color="graph_alt_1"/>
+										</ui:with>
+
+										<!-- Yellow grid -->
+										<ui:with ox="0" oy="1">
+											<marker v="1" color="graph_sec"/>
+											<marker v="2" color="graph_sec"/>
+											<marker v="3" color="graph_sec"/>
+											<marker v="4" color="graph_sec"/>
+										</ui:with>
+										<ui:with ox="1" oy="0" color="graph_sec">
+											<ui:for id="v" first="-18" last="6" step="6">
+												<marker v="${v} db"/>
+											</ui:for>
+										</ui:with>
+
+										<!-- Meshes -->
+										<mesh id="ctg_l" width="0" x.index="0" y.index="1" color="left_in" fcolor="left_in" fcolor.a="0.8" fill="true" visibility=":ilg_l"/>
+										<mesh id="ctg_r" width="0" x.index="0" y.index="1" color="right_in" fcolor="right_in" fcolor.a="0.8" fill="true" visibility=":ilg_r"/>
+										<mesh id="ctg_l" width="2" x.index="0" y.index="2" color="left" visibility=":olg_l"/>
+										<mesh id="ctg_r" width="2" x.index="0" y.index="2" color="right" visibility=":olg_r"/>
+										<mesh id="ctg_l" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":grg_l"/>
+										<mesh id="ctg_r" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":grg_r"/>
+
+										<!-- Boundaries -->
+										<marker v="24 db" ox="1" oy="0" color="graph_prim" visibility="false"/>
+										<marker v="5" ox="0" oy="1" color="graph_prim" visibility="false"/>
+
+										<!-- Axis -->
+										<axis min="0" max="5" angle="1.0" log="false" color="graph_prim" visibility="false"/>
+										<axis min="-24 db" max="12 db" angle="0.5" log="true" color="graph_prim" visibility="false"/>
+
+										<!-- Text -->
+										<text x="5" y="-72 db" text="graph.units.s" halign="1" valign="1" color="graph_prim"/>
+										<ui:with y="-24 db" halign="1" valign="1" color="graph_prim">
+											<text x="0" text="0" halign="-1"/>
+											<text x="1" text="1"/>
+											<text x="2" text="2"/>
+											<text x="3" text="3"/>
+											<text x="4" text="4"/>
+											<text x="5" text="graph.units.s"/>
+										</ui:with>
+										<ui:with x="5" halign="1" valign="1" color="graph_prim">
+											<text y="12 db" text="graph.units.db" text:value="0" valign="-1"/>
+											<ui:for id="v" first="-18" last="6" step="6">
+												<text y="${v} db" text="${v}"/>
+											</ui:for>
+										</ui:with>
+									</graph>
+								</group>
+							</ui:with>
+						</cell>
+
+						<cell rows="3"><vsep pad.h="2" bg.color="bg" hreduce="true"/></cell>
+
+						<label text="labels.gain_" padding="4" bg.bright="!(:oclip) ? :const_bg_darken : 1.0" bright="!(:oclip) ? 0.75 : 1.0"/>
+						<cell rows="3"><vsep pad.h="2" bg.color="bg" hreduce="true"/></cell>
+						<label text="labels.chan.in" padding="4" bg.bright="!(:oclip) ? :const_bg_darken : 1.0" bright="!(:oclip) ? 0.75 : 1.0"/>
+						<cell rows="3"><vsep pad.h="2" bg.color="bg" hreduce="true"/></cell>
+						<label text="labels.chan.out" padding="4" bg.bright="!(:oclip) ? :const_bg_darken : 1.0" bright="!(:oclip) ? 0.75 : 1.0"/>
+						<ui:with bg.color="bg_schema" bg.bright="!(:oclip) ? :const_bg_darken : 1.0" bright="!(:oclip) ? 0.75 : 1.0">
+							<grid rows="2" cols="2" fill="false" hspacing="2">
+								<button id="grg_l" size="10" ui:inject="Button_blue" visibility=":oclip" led="true"/>
+								<button id="grg_r" size="10" ui:inject="Button_blue" visibility=":oclip" led="true"/>
+								<button id="grg_l" size="10" ui:inject="Button_inactive" visibility="!(:oclip)" led="true"/>
+								<button id="grg_r" size="10" ui:inject="Button_inactive" visibility="!(:oclip)" led="true"/>
+							</grid>
+
+							<grid rows="2" cols="2" fill="false" hspacing="2">
+								<button id="ilg_l" size="10" ui:inject="Button_left" visibility=":oclip" led="true"/>
+								<button id="ilg_r" size="10" ui:inject="Button_right" visibility=":oclip" led="true"/>
+								<button id="ilg_l" size="10" ui:inject="Button_inactive" visibility="!(:oclip)" led="true"/>
+								<button id="ilg_r" size="10" ui:inject="Button_inactive" visibility="!(:oclip)" led="true"/>
+							</grid>
+
+							<grid rows="2" cols="2" fill="false" hspacing="2">
+								<button id="olg_l" size="10" ui:inject="Button_left" visibility=":oclip" led="true"/>
+								<button id="olg_r" size="10" ui:inject="Button_right" visibility=":oclip" led="true"/>
+								<button id="olg_l" size="10" ui:inject="Button_inactive" visibility="!(:oclip)" led="true"/>
+								<button id="olg_r" size="10" ui:inject="Button_inactive" visibility="!(:oclip)" led="true"/>
+							</grid>
+
+							<!-- Band gain reduction meter -->
+							<ledmeter vexpand="true" vfill="true" angle="1">
+								<ledchannel
+									id="grm_l"
+									min="-24 db"
+									max="12 db"
+									log="true"
+									balance="0 db"
+									balance.visibility="true"
+									type="peak"
+									activity=":grg_l"
+									value.color=":oclip ? 'blue' : 'cycle_inactive'"
+									yellow.color=":oclip ? 'meter_yellow' : 'cycle_inactive'"
+									balance.color=":oclip ? 'balance' : 'cycle_inactive'"/>
+								<ledchannel
+									id="grm_r"
+									min="-24 db"
+									max="12 db"
+									log="true"
+									balance="0 db"
+									balance.visibility="true"
+									type="peak"
+									activity=":grg_r"
+									value.color=":oclip ? 'blue' : 'cycle_inactive'"
+									yellow.color=":oclip ? 'meter_yellow' : 'cycle_inactive'"
+									balance.color=":oclip ? 'balance' : 'cycle_inactive'"/>
+							</ledmeter>
+							<!-- Band input level -->
+							<ledmeter vexpand="true" vfill="true" angle="1">
+								<ledchannel
+									id="ilm_l"
+									min="-60 db"
+									max="12 db"
+									log="true"
+									type="rms_peak"
+									peak.visibility="true"
+									activity=":ilg_l"
+									value.color=":oclip ? 'left_in' : 'cycle_inactive'"
+									red.color=":oclip ? 'red' : 'cycle_inactive'"
+									yellow.color=":oclip ? 'meter_yellow' : 'cycle_inactive'"
+									balance.color=":oclip ? 'balance' : 'cycle_inactive'"/>
+								<ledchannel
+									id="ilm_r"
+									min="-60 db"
+									max="12 db"
+									log="true"
+									type="rms_peak"
+									peak.visibility="true"
+									activity=":ilg_r"
+									value.color=":oclip ? 'right_in' : 'cycle_inactive'"
+									red.color=":oclip ? 'red' : 'cycle_inactive'"
+									yellow.color=":oclip ? 'meter_yellow' : 'cycle_inactive'"
+									balance.color=":oclip ? 'balance' : 'cycle_inactive'"/>
+							</ledmeter>
+							<!-- Band output level -->
+							<ledmeter vexpand="true" vfill="true" angle="1">
+								<ledchannel
+									id="olm_l"
+									min="-60 db"
+									max="12 db"
+									log="true"
+									type="rms_peak"
+									peak.visibility="true"
+									activity=":olg_l"
+									value.color=":oclip ? 'left' : 'cycle_inactive'"
+									red.color=":oclip ? 'red' : 'cycle_inactive'"
+									yellow.color=":oclip ? 'meter_yellow' : 'cycle_inactive'"
+									balance.color=":oclip ? 'balance' : 'cycle_inactive'"/>
+								<ledchannel
+									id="olm_r"
+									min="-60 db"
+									max="12 db"
+									log="true"
+									type="rms_peak"
+									peak.visibility="true"
+									activity=":olg_r"
+									value.color=":oclip ? 'right' : 'cycle_inactive'"
+									red.color=":oclip ? 'red' : 'cycle_inactive'"
+									yellow.color=":oclip ? 'meter_yellow' : 'cycle_inactive'"
+									balance.color=":oclip ? 'balance' : 'cycle_inactive'"/>
+							</ledmeter>
+						</ui:with>
+					</grid>
+				</cell>
+			</grid>
+
+		</tabs>
+	</vbox>
+</plugin>
