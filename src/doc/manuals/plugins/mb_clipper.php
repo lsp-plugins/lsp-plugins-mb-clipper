@@ -59,8 +59,8 @@
 <ul>
 	<li><b>Reactivity</b> - the reactivity (smoothness) of the spectral analysis.</li>
 	<li><b>Shift</b> - allows to adjust the overall gain of the analysis.</li>
-	<li><b>FFT<?= $sm ?> In</b> - enables FFT curve graph of input signal on the spectrum graph.</li>
-	<li><b>FFT<?= $sm ?> Out</b> - enables FFT curve graph of output signal on the spectrum graph.</li>
+	<li><b>FFT In</b> - enables FFT curve graph of input signal on the spectrum graph.</li>
+	<li><b>FFT Out</b> - enables FFT curve graph of output signal on the spectrum graph.</li>
 	<li><b>Filters</b> - enables drawing tranfer function of each sidechain filter on the spectrum graph.</li>
 	<li><b>Surge</b> - enables surge protection mechanism.</li>
 </ul>
