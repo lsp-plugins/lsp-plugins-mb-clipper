@@ -2093,7 +2093,8 @@ namespace lsp
             }
 
             // Perform FFT analysis
-            sAnalyzer.process(bufs, samples);
+            if (sAnalyzer.activity())
+                sAnalyzer.process(bufs, samples);
         }
 
         void mb_clipper::output_meters()
