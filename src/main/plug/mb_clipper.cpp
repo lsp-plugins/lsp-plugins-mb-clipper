@@ -996,8 +996,8 @@ namespace lsp
             // Enable/disable input loudness limiter
             nFlags                  = lsp_setflag(nFlags, GF_IN_LIMITER, sInLufs.pOn->value() >= 0.5f);
             nFlags                  = lsp_setflag(nFlags, GF_IN_LIMITER, sOutLufs.pOn->value() >= 0.5f);
-            sInLufs.sGain.set_threshold(dspu::lufs_to_gain(sInLufs.pThreshold->value()));
-            sOutLufs.sGain.set_threshold(dspu::lufs_to_gain(sOutLufs.pThreshold->value()));
+            sInLufs.sGain.set_threshold(dspu::db_to_gain(sInLufs.pThreshold->value()));
+            sOutLufs.sGain.set_threshold(dspu::db_to_gain(sOutLufs.pThreshold->value()));
 
             // Configure split frequencies
             const size_t num_splits = (pExtraBandOn->value() >= 0.5f) ? meta::mb_clipper::BANDS_MAX-1 : meta::mb_clipper::BANDS_MAX-2;
@@ -1018,7 +1018,7 @@ namespace lsp
                 p->fMakeup              = dspu::db_to_gain(p->pMakeup->value());
 
                 p->nFlags               = lsp_setflag(p->nFlags, PF_LUFS_ENABLED, p->sLufs.pOn->value() >= 0.5f);
-                p->sLufs.sGain.set_threshold(dspu::lufs_to_gain(p->sLufs.pThreshold->value()));
+                p->sLufs.sGain.set_threshold(dspu::db_to_gain(p->sLufs.pThreshold->value()));
 
                 if ((p->pSolo->value() >= 0.5f) && (j <= num_splits))
                     has_solo                = true;
