@@ -830,6 +830,16 @@ namespace lsp
             return -24.0f * slope;
         }
 
+        inline size_t mb_clipper::crossover_slope(size_t slope)
+        {
+            return slope + 2;
+        }
+
+        inline float mb_clipper::fft_crossover_slope(size_t slope)
+        {
+            return -24.0f * (slope + 1.0f);
+        }
+
         bool mb_clipper::update_odp_params(odp_params_t *params)
         {
             const float threshold   = dspu::db_to_gain(params->pThreshold->value());
@@ -1045,7 +1055,7 @@ namespace lsp
                 if (enXOverMode == XOVER_IIR)
                 {
                     dspu::Crossover *xc     = &c->sIIRXOver;
-                    const size_t iir_slope  = filter_slope(pXOverSlope->value() + 1);
+                    const size_t iir_slope  = crossover_slope(pXOverSlope->value());
                     const size_t hpf_slope  = filter_slope(pHpfSlope->value());
                     const size_t lpf_slope  = filter_slope(pLpfSlope->value());
 
@@ -1098,7 +1108,7 @@ namespace lsp
                 else // (enXOverMode == XOVER_FFT)
                 {
                     dspu::FFTCrossover *xf  = &c->sFFTXOver;
-                    const float fft_slope   = fft_filter_slope(pXOverSlope->value() + 1);
+                    const float fft_slope   = fft_crossover_slope(pXOverSlope->value());
                     const float hpf_slope   = fft_filter_slope(pHpfSlope->value());
                     const float lpf_slope   = fft_filter_slope(pLpfSlope->value());
 
