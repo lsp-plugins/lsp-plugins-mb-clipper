@@ -18,6 +18,9 @@
 	<b>Input and output loudness measurments</b> allow to control loudness level of the signal in LUFS.
 </p>
 
+<p>The simlified schema of the device is shown on the figure below.</p>
+<?php out_image('graph/clipper-scheme', 'Simplified scheme of the audio processing') ?>
+
 <p><b>Controls:</b></p>
 <ul>
 	<li>
