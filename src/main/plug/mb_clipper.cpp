@@ -830,6 +830,16 @@ namespace lsp
             return -24.0f * slope;
         }
 
+        inline size_t mb_clipper::crossover_slope(size_t slope)
+        {
+            return slope + 2;
+        }
+
+        inline float mb_clipper::fft_crossover_slope(size_t slope)
+        {
+            return -24.0f * (slope + 1.0f);
+        }
+
         bool mb_clipper::update_odp_params(odp_params_t *params)
         {
             const float threshold   = dspu::db_to_gain(params->pThreshold->value());
@@ -996,8 +1006,8 @@ namespace lsp
             // Enable/disable input loudness limiter
             nFlags                  = lsp_setflag(nFlags, GF_IN_LIMITER, sInLufs.pOn->value() >= 0.5f);
             nFlags                  = lsp_setflag(nFlags, GF_IN_LIMITER, sOutLufs.pOn->value() >= 0.5f);
-            sInLufs.sGain.set_threshold(dspu::lufs_to_gain(sInLufs.pThreshold->value()));
-            sOutLufs.sGain.set_threshold(dspu::lufs_to_gain(sOutLufs.pThreshold->value()));
+            sInLufs.sGain.set_threshold(dspu::db_to_gain(sInLufs.pThreshold->value()));
+            sOutLufs.sGain.set_threshold(dspu::db_to_gain(sOutLufs.pThreshold->value()));
 
             // Configure split frequencies
             const size_t num_splits = (pExtraBandOn->value() >= 0.5f) ? meta::mb_clipper::BANDS_MAX-1 : meta::mb_clipper::BANDS_MAX-2;
@@ -1018,7 +1028,7 @@ namespace lsp
                 p->fMakeup              = dspu::db_to_gain(p->pMakeup->value());
 
                 p->nFlags               = lsp_setflag(p->nFlags, PF_LUFS_ENABLED, p->sLufs.pOn->value() >= 0.5f);
-                p->sLufs.sGain.set_threshold(dspu::lufs_to_gain(p->sLufs.pThreshold->value()));
+                p->sLufs.sGain.set_threshold(dspu::db_to_gain(p->sLufs.pThreshold->value()));
 
                 if ((p->pSolo->value() >= 0.5f) && (j <= num_splits))
                     has_solo                = true;
@@ -1045,7 +1055,7 @@ namespace lsp
                 if (enXOverMode == XOVER_IIR)
                 {
                     dspu::Crossover *xc     = &c->sIIRXOver;
-                    const size_t iir_slope  = filter_slope(pXOverSlope->value() + 1);
+                    const size_t iir_slope  = crossover_slope(pXOverSlope->value());
                     const size_t hpf_slope  = filter_slope(pHpfSlope->value());
                     const size_t lpf_slope  = filter_slope(pLpfSlope->value());
 
@@ -1098,7 +1108,7 @@ namespace lsp
                 else // (enXOverMode == XOVER_FFT)
                 {
                     dspu::FFTCrossover *xf  = &c->sFFTXOver;
-                    const float fft_slope   = fft_filter_slope(pXOverSlope->value() + 1);
+                    const float fft_slope   = fft_crossover_slope(pXOverSlope->value());
                     const float hpf_slope   = fft_filter_slope(pHpfSlope->value());
                     const float lpf_slope   = fft_filter_slope(pLpfSlope->value());
 
@@ -2093,7 +2103,8 @@ namespace lsp
             }
 
             // Perform FFT analysis
-            sAnalyzer.process(bufs, samples);
+            if (sAnalyzer.activity())
+                sAnalyzer.process(bufs, samples);
         }
 
         void mb_clipper::output_meters()

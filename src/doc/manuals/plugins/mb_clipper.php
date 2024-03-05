@@ -18,6 +18,9 @@
 	<b>Input and output loudness measurments</b> allow to control loudness level of the signal in LUFS.
 </p>
 
+<p>The simlified schema of the device is shown on the figure below.</p>
+<?php out_image('graph/clipper-scheme', 'Simplified scheme of the audio processing') ?>
+
 <p><b>Controls:</b></p>
 <ul>
 	<li>
@@ -59,8 +62,8 @@
 <ul>
 	<li><b>Reactivity</b> - the reactivity (smoothness) of the spectral analysis.</li>
 	<li><b>Shift</b> - allows to adjust the overall gain of the analysis.</li>
-	<li><b>FFT<?= $sm ?> In</b> - enables FFT curve graph of input signal on the spectrum graph.</li>
-	<li><b>FFT<?= $sm ?> Out</b> - enables FFT curve graph of output signal on the spectrum graph.</li>
+	<li><b>FFT In</b> - enables FFT curve graph of input signal on the spectrum graph.</li>
+	<li><b>FFT Out</b> - enables FFT curve graph of output signal on the spectrum graph.</li>
 	<li><b>Filters</b> - enables drawing tranfer function of each sidechain filter on the spectrum graph.</li>
 	<li><b>Surge</b> - enables surge protection mechanism.</li>
 </ul>

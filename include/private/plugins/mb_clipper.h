@@ -343,6 +343,8 @@ namespace lsp
                 static void             process_band(void *object, void *subject, size_t band, const float *data, size_t sample, size_t count);
                 static inline size_t    filter_slope(size_t slope);
                 static inline float     fft_filter_slope(size_t slope);
+                static inline size_t    crossover_slope(size_t slope);
+                static inline float     fft_crossover_slope(size_t slope);
 
                 static bool             update_odp_params(odp_params_t *params);
                 static bool             update_clip_params(clip_params_t *params);
