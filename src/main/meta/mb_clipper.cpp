@@ -25,7 +25,7 @@
 
 #define LSP_PLUGINS_MB_CLIPPER_VERSION_MAJOR       1
 #define LSP_PLUGINS_MB_CLIPPER_VERSION_MINOR       0
-#define LSP_PLUGINS_MB_CLIPPER_VERSION_MICRO       3
+#define LSP_PLUGINS_MB_CLIPPER_VERSION_MICRO       4
 
 #define LSP_PLUGINS_MB_CLIPPER_VERSION  \
     LSP_MODULE_VERSION( \
@@ -288,14 +288,17 @@ namespace lsp
             "MBCL1M",
             &developers::v_sadovnikov,
             "mb_clipper_mono",
-            LSP_LV2_URI("mb_clipper_mono"),
-            LSP_LV2UI_URI("mb_clipper_mono"),
-            "CL1M",
-            LSP_VST3_UID("mbcl1m  CL1M"),
-            LSP_VST3UI_UID("mbcl1m  CL1M"),
-            LSP_LADSPA_MB_CLIPPER_BASE + 0,
-            LSP_LADSPA_URI("mb_clipper_mono"),
-            LSP_CLAP_URI("mb_clipper_mono"),
+            {
+                LSP_LV2_URI("mb_clipper_mono"),
+                LSP_LV2UI_URI("mb_clipper_mono"),
+                "CL1M",
+                LSP_VST3_UID("mbcl1m  CL1M"),
+                LSP_VST3UI_UID("mbcl1m  CL1M"),
+                LSP_LADSPA_MB_CLIPPER_BASE + 0,
+                LSP_LADSPA_URI("mb_clipper_mono"),
+                LSP_CLAP_URI("mb_clipper_mono"),
+                LSP_GST_UID("mb_clipper_mono"),
+            },
             LSP_PLUGINS_MB_CLIPPER_VERSION,
             plugin_classes,
             clap_features_mono,
@@ -315,14 +318,17 @@ namespace lsp
             "MBCL1S",
             &developers::v_sadovnikov,
             "mb_clipper_stereo",
-            LSP_LV2_URI("mb_clipper_stereo"),
-            LSP_LV2UI_URI("mb_clipper_stereo"),
-            "CL1S",
-            LSP_VST3_UID("mbcl1s  CL1S"),
-            LSP_VST3UI_UID("mbcl1s  CL1S"),
-            LSP_LADSPA_MB_CLIPPER_BASE + 1,
-            LSP_LADSPA_URI("mb_clipper_stereo"),
-            LSP_CLAP_URI("mb_clipper_stereo"),
+            {
+                LSP_LV2_URI("mb_clipper_stereo"),
+                LSP_LV2UI_URI("mb_clipper_stereo"),
+                "CL1S",
+                LSP_VST3_UID("mbcl1s  CL1S"),
+                LSP_VST3UI_UID("mbcl1s  CL1S"),
+                LSP_LADSPA_MB_CLIPPER_BASE + 1,
+                LSP_LADSPA_URI("mb_clipper_stereo"),
+                LSP_CLAP_URI("mb_clipper_stereo"),
+                LSP_GST_UID("mb_clipper_stereo"),
+            },
             LSP_PLUGINS_MB_CLIPPER_VERSION,
             plugin_classes,
             clap_features_stereo,
