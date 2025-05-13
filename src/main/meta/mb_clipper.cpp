@@ -119,7 +119,7 @@ namespace lsp
         COMBO("mode", "Crossover operating mode", "Mode", 1, clipper_xover_modes), \
         COMBO("slope", "Crossover filter slope", "Slope", 1, clipper_xover_slopes), \
         LOG_CONTROL("react", "FFT reactivity", "Reactivity", U_MSEC, mb_clipper::REACT_TIME), \
-        AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
+        AMP_GAIN("shift", "Shift gain", "Shift", 1.0f, 100.0f), \
         LOG_CONTROL("zoom", "Graph zoom", "Zoom", U_GAIN_AMP, mb_clipper::ZOOM), \
         COMBO("hpf_m", "High-pass pre-filter mode", "HPF mode", 0, clipper_prefilter_slopes), \
         LOG_CONTROL("hpf_f", "High-pass pre-filter frequency", "HPF freq", U_HZ, mb_clipper::HPF_FREQ), \
