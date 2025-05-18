@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-mb-clipper
  * Created on: 11 ноя 2023 г.
@@ -25,7 +25,7 @@
 
 #define LSP_PLUGINS_MB_CLIPPER_VERSION_MAJOR       1
 #define LSP_PLUGINS_MB_CLIPPER_VERSION_MINOR       0
-#define LSP_PLUGINS_MB_CLIPPER_VERSION_MICRO       8
+#define LSP_PLUGINS_MB_CLIPPER_VERSION_MICRO       9
 
 #define LSP_PLUGINS_MB_CLIPPER_VERSION  \
     LSP_MODULE_VERSION( \
@@ -109,70 +109,70 @@ namespace lsp
         BYPASS, \
         IN_GAIN, \
         OUT_GAIN, \
-        SWITCH("lufs_on", "Enable input LUFS limitation", 1.0f), \
-        CONTROL("lufs_th", "Input LUFS limiter threshold", U_LUFS, mb_clipper::LUFS_THRESH), \
+        SWITCH("lufs_on", "Enable input LUFS limitation", "LUFS limit", 1.0f), \
+        CONTROL("lufs_th", "Input LUFS limiter threshold", "LUFS thresh", U_LUFS, mb_clipper::LUFS_THRESH), \
         LUFS_METER("lufs_il", "Input LUFS value", 24.0f), \
         METER_OUT_GAIN("lufs_gr", "Input LUFS gain reduction", GAIN_AMP_0_DB), \
         LUFS_METER("lufs_ol", "Output LUFS value", 24.0f), \
-        CONTROL("thresh", "Clipping threshold", U_DB, mb_clipper::THRESHOLD), \
-        SWITCH("boost", "Boosting mode", 1.0f), \
-        COMBO("mode", "Crossover operating mode", 1, clipper_xover_modes), \
-        COMBO("slope", "Crossover filter slope", 1, clipper_xover_slopes), \
-        LOG_CONTROL("react", "FFT reactivity", U_MSEC, mb_clipper::REACT_TIME), \
-        AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
-        LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, mb_clipper::ZOOM), \
-        COMBO("hpf_m", "High-pass pre-filter mode", 0, clipper_prefilter_slopes), \
-        LOG_CONTROL("hpf_f", "High-pass pre-filter frequency", U_HZ, mb_clipper::HPF_FREQ), \
-        LOG_CONTROL("xf_1", "Split frequency 1", U_HZ, mb_clipper::SPLIT1), \
-        LOG_CONTROL("ol_1", "Overdrive protection link 1", U_GAIN_AMP, mb_clipper::ODP_LINK), \
-        LOG_CONTROL("xf_2", "Split frequency 2", U_HZ, mb_clipper::SPLIT2), \
-        LOG_CONTROL("ol_2", "Overdrive protection link 2", U_GAIN_AMP, mb_clipper::ODP_LINK), \
-        LOG_CONTROL("xf_3", "Split frequency 3", U_HZ, mb_clipper::SPLIT3), \
-        LOG_CONTROL("ol_3", "Overdrive protection link 3", U_GAIN_AMP, mb_clipper::ODP_LINK), \
-        COMBO("lpf_m", "Low-pass pre-filter mode", 0, clipper_prefilter_slopes), \
-        LOG_CONTROL("lpf_f", "Low-pass pre-filter frequency", U_HZ, mb_clipper::LPF_FREQ), \
-        SWITCH("ebe", "Enable extra band", 0), \
-        SWITCH("oclip", "Enable output clipper", 1), \
-        COMBO("tsel", "Tab selector", 4, clipper_tab_selectors), \
-        SWITCH("flt", "Band filter curves", 1.0f), \
-        COMBO("dither", "Dithering mode", 0, clipper_dither_modes), \
-        SWITCH("clog", "Clipper logarithmic display", 1.0f)
+        CONTROL("thresh", "Clipping threshold", "Clip thresh", U_DB, mb_clipper::THRESHOLD), \
+        SWITCH("boost", "Boosting mode", "Boost", 1.0f), \
+        COMBO("mode", "Crossover operating mode", "Mode", 1, clipper_xover_modes), \
+        COMBO("slope", "Crossover filter slope", "Slope", 1, clipper_xover_slopes), \
+        LOG_CONTROL("react", "FFT reactivity", "Reactivity", U_MSEC, mb_clipper::REACT_TIME), \
+        AMP_GAIN("shift", "Shift gain", "Shift", 1.0f, 100.0f), \
+        LOG_CONTROL("zoom", "Graph zoom", "Zoom", U_GAIN_AMP, mb_clipper::ZOOM), \
+        COMBO("hpf_m", "High-pass pre-filter mode", "HPF mode", 0, clipper_prefilter_slopes), \
+        LOG_CONTROL("hpf_f", "High-pass pre-filter frequency", "HPF freq", U_HZ, mb_clipper::HPF_FREQ), \
+        LOG_CONTROL("xf_1", "Split frequency 1", "Split freq 1",U_HZ, mb_clipper::SPLIT1), \
+        LOG_CONTROL("ol_1", "Overdrive protection link 1", "ODP link 1", U_GAIN_AMP, mb_clipper::ODP_LINK), \
+        LOG_CONTROL("xf_2", "Split frequency 2", "Split freq 2", U_HZ, mb_clipper::SPLIT2), \
+        LOG_CONTROL("ol_2", "Overdrive protection link 2", "ODP link 2", U_GAIN_AMP, mb_clipper::ODP_LINK), \
+        LOG_CONTROL("xf_3", "Split frequency 3", "Split freq 3", U_HZ, mb_clipper::SPLIT3), \
+        LOG_CONTROL("ol_3", "Overdrive protection link 3", "ODP link 3", U_GAIN_AMP, mb_clipper::ODP_LINK), \
+        COMBO("lpf_m", "Low-pass pre-filter mode", "LPF mode", 0, clipper_prefilter_slopes), \
+        LOG_CONTROL("lpf_f", "Low-pass pre-filter frequency", "LPF freq",U_HZ, mb_clipper::LPF_FREQ), \
+        SWITCH("ebe", "Enable extra band", "Extra band", 0), \
+        SWITCH("oclip", "Enable output clipper", "Out clipper", 1), \
+        COMBO("tsel", "Tab selector", "Tab selector", 4, clipper_tab_selectors), \
+        SWITCH("flt", "Band filter curves", "Show filters", 1.0f), \
+        COMBO("dither", "Dithering mode", "Dithering", 0, clipper_dither_modes), \
+        SWITCH("clog", "Clipper logarithmic display", "Log display", 1.0f)
 
-    #define CLIPPER_BAND(id, label, resonance) \
-        SWITCH("bs" id, "Solo band" label, 0.0f), \
-        SWITCH("bm" id, "Mute band" label, 0.0f), \
-        CONTROL("pa" id, "Band preamp gain" label, U_DB, mb_clipper::PREAMP), \
-        SWITCH("lo" id, "Enable input LUFS limitation" label, 1.0f), \
-        CONTROL("lt" id, "Input LUFS limiter threshold" label, U_LUFS, mb_clipper::LUFS_THRESH), \
+    #define CLIPPER_BAND(id, label, alias, resonance) \
+        SWITCH("bs" id, "Solo band" label, "Solo" alias, 0.0f), \
+        SWITCH("bm" id, "Mute band" label, "Mute" alias, 0.0f), \
+        CONTROL("pa" id, "Band preamp gain" label, "Preamp" alias, U_DB, mb_clipper::PREAMP), \
+        SWITCH("lo" id, "Enable input LUFS limitation" label, "LUFS limit" alias, 1.0f), \
+        CONTROL("lt" id, "Input LUFS limiter threshold" label, "LUFS thresh" alias, U_LUFS, mb_clipper::LUFS_THRESH), \
         LUFS_METER("li" id, "Input LUFS value" label, 24.0f), \
         METER_OUT_GAIN("lg" id, "Input LUFS gain reduction" label, GAIN_AMP_0_DB), \
-        SWITCH("op" id, "Overdrive protection" label, 1.0f), \
-        CONTROL("th" id, "Overdrive protection threshold" label, U_DB, mb_clipper::ODP_THRESHOLD), \
-        CONTROL("kn" id, "Overdrive protection knee" label, U_DB, mb_clipper::ODP_KNEE), \
-        LOG_CONTROL("rs" id, "Overdrive protection resonance" label, U_HZ, mb_clipper::resonance), \
+        SWITCH("op" id, "Overdrive protection" label, "ODP on" alias, 1.0f), \
+        CONTROL("th" id, "Overdrive protection threshold" label, "ODP thresh" alias, U_DB, mb_clipper::ODP_THRESHOLD), \
+        CONTROL("kn" id, "Overdrive protection knee" label, "ODP knee" alias, U_DB, mb_clipper::ODP_KNEE), \
+        LOG_CONTROL("rs" id, "Overdrive protection resonance" label, "ODP res" alias, U_HZ, mb_clipper::resonance), \
         MESH("opc" id, "Overdrive protection chart" label, 2, mb_clipper::CURVE_MESH_POINTS), \
-        SWITCH("ce" id, "Clipper enable" label, 1.0f), \
-        COMBO("cf" id, "Clipper sigmoid function" label, 2.0f, sigmoid_functions), \
-        LOG_CONTROL("ct" id, "Clipper sigmoid threshold" label, U_GAIN_AMP, mb_clipper::CLIP_THRESHOLD), \
-        CONTROL("cp" id, "Clipper sigmoid pumping" label, U_DB, mb_clipper::CLIP_PUMPING), \
+        SWITCH("ce" id, "Clipper enable" label, "On" alias, 1.0f), \
+        COMBO("cf" id, "Clipper sigmoid function" label, "Function" alias, 2.0f, sigmoid_functions), \
+        LOG_CONTROL("ct" id, "Clipper sigmoid threshold" label, "Clip thresh" alias, U_GAIN_AMP, mb_clipper::CLIP_THRESHOLD), \
+        CONTROL("cp" id, "Clipper sigmoid pumping" label, "Pumping" alias, U_DB, mb_clipper::CLIP_PUMPING), \
         MESH("cfc" id, "Clipper sigmoid function chart" label, 4, mb_clipper::CURVE_MESH_POINTS), \
         MESH("bfc" id, "Band frequency chart" label, 2, mb_clipper::FFT_MESH_POINTS + 2), \
-        CONTROL("mk" id, "Band makeup gain" label, U_DB, mb_clipper::MAKEUP)
+        CONTROL("mk" id, "Band makeup gain" label, "Makeup" alias, U_DB, mb_clipper::MAKEUP)
 
     #define OUTPUT_CLIPPER \
-        SWITCH("lo", "Enable output clipper LUFS limitation", 1.0f), \
-        CONTROL("lt", "Output clipper LUFS limiter threshold", U_LUFS, mb_clipper::LUFS_THRESH), \
+        SWITCH("lo", "Enable output clipper LUFS limitation", "Out LUFS limit", 1.0f), \
+        CONTROL("lt", "Output clipper LUFS limiter threshold", "Out LUFS thresh", U_LUFS, mb_clipper::LUFS_THRESH), \
         LUFS_METER("li", "Output clipper LUFS value", 24.0f), \
         METER_OUT_GAIN("lg", "Output clipper LUFS gain reduction", GAIN_AMP_0_DB), \
-        SWITCH("op", "Output overdrive protection", 1.0f), \
-        CONTROL("th", "Output overdrive protection threshold", U_DB, mb_clipper::ODP_THRESHOLD), \
-        CONTROL("kn", "Output overdrive protection knee", U_DB, mb_clipper::ODP_KNEE), \
-        LOG_CONTROL("or", "Output overdrive protection reactivity", U_MSEC, mb_clipper::ODP_REACT), \
+        SWITCH("op", "Output overdrive protection", "Out ODP on", 1.0f), \
+        CONTROL("th", "Output overdrive protection threshold", "Out ODP thresh", U_DB, mb_clipper::ODP_THRESHOLD), \
+        CONTROL("kn", "Output overdrive protection knee", "Out ODP knee", U_DB, mb_clipper::ODP_KNEE), \
+        LOG_CONTROL("or", "Output overdrive protection reactivity", "ODP react out", U_MSEC, mb_clipper::ODP_REACT), \
         MESH("opc", "Output overdrive protection chart", 2, mb_clipper::CURVE_MESH_POINTS), \
-        SWITCH("ce", "Output clipper enable", 1.0f), \
-        COMBO("cf", "Output clipper sigmoid function", 2.0f, sigmoid_functions), \
-        LOG_CONTROL("ct", "Output clipper sigmoid threshold", U_GAIN_AMP, mb_clipper::CLIP_THRESHOLD), \
-        CONTROL("cp", "Output clipper sigmoid pumping", U_DB, mb_clipper::CLIP_PUMPING), \
+        SWITCH("ce", "Output clipper enable", "Out on", 1.0f), \
+        COMBO("cf", "Output clipper sigmoid function", "Out function", 2.0f, sigmoid_functions), \
+        LOG_CONTROL("ct", "Output clipper sigmoid threshold", "Clip thresh out", U_GAIN_AMP, mb_clipper::CLIP_THRESHOLD), \
+        CONTROL("cp", "Output clipper sigmoid pumping", "Out pumping", U_DB, mb_clipper::CLIP_PUMPING), \
         MESH("cfc", "Output clipper sigmoid function chart", 4, mb_clipper::CURVE_MESH_POINTS)
 
     #define CLIPPER_METERS(id, label) \
@@ -187,24 +187,24 @@ namespace lsp
         METER_GAIN_DFL("cfr" id, "Clipping function reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB), \
         MESH("ctg" id, "Clipper time graph" label, 4, mb_clipper::TIME_MESH_POINTS + 4)
 
-    #define CLIPPER_STEREO_BAND(id, label, resonance, link) \
-        CONTROL_DFL("bl" id, "Band stereo link" label, U_PERCENT, mb_clipper::STEREO_LINK, link), \
-        CLIPPER_BAND(id, label, resonance)
+    #define CLIPPER_STEREO_BAND(id, label, alias, resonance, link) \
+        CONTROL_DFL("bl" id, "Band stereo link" label, "Slink" alias, U_PERCENT, mb_clipper::STEREO_LINK, link), \
+        CLIPPER_BAND(id, label, alias, resonance)
 
     #define OUTPUT_STEREO_CLIPPER \
-        CONTROL_DFL("slink", "Stereo link", U_PERCENT, mb_clipper::STEREO_LINK, 50.0f), \
+        CONTROL_DFL("slink", "Stereo link", "Out slink", U_PERCENT, mb_clipper::STEREO_LINK, 50.0f), \
         OUTPUT_CLIPPER
 
-    #define OSCILLOSCOPE_SWITCHES(id, label) \
-        SWITCH("ilg" id, "Input level graph enable" label, 1.0f), \
-        SWITCH("olg" id, "Output level graph enable" label, 1.0f), \
-        SWITCH("grg" id, "Gain reduction graph enable" label, 1.0f)
+    #define OSCILLOSCOPE_SWITCHES(id, label, alias) \
+        SWITCH("ilg" id, "Input level graph enable" label, "Show In" alias, 1.0f), \
+        SWITCH("olg" id, "Output level graph enable" label, "Show Out" alias, 1.0f), \
+        SWITCH("grg" id, "Gain reduction graph enable" label, "Show Gain" alias, 1.0f)
 
-    #define CLIPPER_ANALYSIS(id, label) \
+    #define CLIPPER_ANALYSIS(id, label, alias) \
         METER_OUT_GAIN("ism" id, "Input signal meter" label, GAIN_AMP_P_36_DB), \
         METER_OUT_GAIN("osm" id, "Output signal meter" label, GAIN_AMP_P_36_DB), \
-        SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
-        SWITCH("ofe" id, "Output FFT graph enable" label, 1.0f), \
+        SWITCH("ife" id, "Input FFT graph enable" label, "FFT In" alias, 1.0f), \
+        SWITCH("ofe" id, "Output FFT graph enable" label, "FFT Out" alias, 1.0f), \
         MESH("ifg" id, "Input FFT graph" label, 2, mb_clipper::FFT_MESH_POINTS + 2), \
         MESH("ofg" id, "Output FFT graph" label, 2, mb_clipper::FFT_MESH_POINTS), \
         MESH("grc" id, "Crossover gain reduction chart" label, 2, mb_clipper::FFT_MESH_POINTS)
@@ -217,15 +217,15 @@ namespace lsp
             PORTS_MONO_PLUGIN,
             CLIPPER_COMMON,
 
-            CLIPPER_BAND("_1", " Band 1", ODP_REACT1),
-            CLIPPER_BAND("_2", " Band 2", ODP_REACT2),
-            CLIPPER_BAND("_3", " Band 3", ODP_REACT3),
-            CLIPPER_BAND("_4", " Band 4", ODP_REACT4),
+            CLIPPER_BAND("_1", " Band 1", " 1", ODP_REACT1),
+            CLIPPER_BAND("_2", " Band 2", " 2", ODP_REACT2),
+            CLIPPER_BAND("_3", " Band 3", " 3", ODP_REACT3),
+            CLIPPER_BAND("_4", " Band 4", " 4", ODP_REACT4),
             OUTPUT_CLIPPER,
 
-            OSCILLOSCOPE_SWITCHES("", ""),
+            OSCILLOSCOPE_SWITCHES("", "", ""),
 
-            CLIPPER_ANALYSIS("", ""),
+            CLIPPER_ANALYSIS("", "", ""),
 
             CLIPPER_METERS("_1", " Band 1"),
             CLIPPER_METERS("_2", " Band 2"),
@@ -241,17 +241,17 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
             CLIPPER_COMMON,
 
-            CLIPPER_STEREO_BAND("_1", " Band 1", ODP_REACT1, 100.0f),
-            CLIPPER_STEREO_BAND("_2", " Band 2", ODP_REACT2, 50.0f),
-            CLIPPER_STEREO_BAND("_3", " Band 3", ODP_REACT3, 25.0f),
-            CLIPPER_STEREO_BAND("_4", " Band 4", ODP_REACT4, 0.0f),
+            CLIPPER_STEREO_BAND("_1", " Band 1", " 1", ODP_REACT1, 100.0f),
+            CLIPPER_STEREO_BAND("_2", " Band 2", " 2", ODP_REACT2, 50.0f),
+            CLIPPER_STEREO_BAND("_3", " Band 3", " 3", ODP_REACT3, 25.0f),
+            CLIPPER_STEREO_BAND("_4", " Band 4", " 4", ODP_REACT4, 0.0f),
             OUTPUT_STEREO_CLIPPER,
 
-            OSCILLOSCOPE_SWITCHES("_l", " Left"),
-            OSCILLOSCOPE_SWITCHES("_r", " Right"),
+            OSCILLOSCOPE_SWITCHES("_l", " Left", " L"),
+            OSCILLOSCOPE_SWITCHES("_r", " Right", " R"),
 
-            CLIPPER_ANALYSIS("_l", " Left"),
-            CLIPPER_ANALYSIS("_r", " Right"),
+            CLIPPER_ANALYSIS("_l", " Left", " L"),
+            CLIPPER_ANALYSIS("_r", " Right", " R"),
 
             CLIPPER_METERS("_1l", " Band 1 Left"),
             CLIPPER_METERS("_2l", " Band 2 Left"),
