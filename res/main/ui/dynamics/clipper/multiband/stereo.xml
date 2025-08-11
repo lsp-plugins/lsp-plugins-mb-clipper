@@ -446,7 +446,7 @@
 					<cell rows="3">
 						<vsep pad.h="2" bg.color="bg" hreduce="true"/>
 					</cell>
-					<!-- buutons line -->
+					<!-- buttons line -->
 					<cell cols="3">
 						<ui:with bg.bright="(!${act_band}) ? :const_bg_darken : 1.0" bright="(!${act_band}) ? 0.75 : 1.0">
 							<hbox pad.v="4" pad.h="6">
@@ -461,10 +461,12 @@
 									<void hexpand="true"/>
 									<button id="op_${i}" ui:inject="Button_green" text="labels.odp" visibility="${act_band}"/>
 									<button id="ce_${i}" text="labels.signal.clipping" pad.l="8" visibility="${act_band}"/>
+									<button id="dcc_${i}" text="labels.signal.dc_compensate" ui:inject="Button_cyan" visibility="${act_band}"/>
 									<button id="clog" text="labels.log_scale" ui:inject="Button_yellow" visibility="${act_band}"/>
 
 									<button id="op_${i}" ui:inject="Button_inactive" text="labels.odp" visibility="!${act_band}"/>
 									<button id="ce_${i}" text="labels.signal.clipping" ui:inject="Button_inactive" pad.l="8" visibility="!${act_band}"/>
+									<button id="dcc_${i}" text="labels.signal.dc_compensate" ui:inject="Button_inactive" visibility="!${act_band}"/>
 									<button id="clog" text="labels.log_scale" ui:inject="Button_inactive" visibility="!${act_band}"/>
 
 									<label text="labels.function" pad.l="8"/>
@@ -904,12 +906,21 @@
 						<ui:with bg.bright="(!${act_band}) or !:ce_${i} ? :const_bg_darken : 1.0" bright="(!${act_band}) or !:ce_${i} ? 0.75 : 1.0">
 							<hbox pad.v="4">
 								<void hexpand="true" hfill="true"/>
-								<!-- thres -->
+								<!-- thresh -->
 								<hbox fill="false" pad.l="6" pad.r="10">
 									<knob id="ct_${i}" scolor=":ce_${i} and ${act_band} and (:cf_${i} ine 0) ? 'threshold' : 'cycle_inactive'"/>
 									<vbox vfill="false" width="50" pad.l="4">
 										<label text="labels.thresh_old" halign="0"/>
 										<value id="ct_${i}" sline="true" halign="0"/>
+									</vbox>
+								</hbox>
+								
+								<!-- DC offset -->
+								<hbox fill="false" pad.r="6">
+									<knob id="dco_${i}" scolor=":ce_${i} and ${act_band} ? 'kscale' : 'cycle_inactive'"/>
+									<vbox vfill="false" width="50" pad.l="4">
+										<label text="labels.signal.dc_offset" halign="-1"/>
+										<value id="dco_${i}" sline="true" halign="0"/>
 									</vbox>
 								</hbox>
 
@@ -1193,10 +1204,12 @@
 								<void hexpand="true"/>
 								<button id="op" ui:inject="Button_green" text="labels.odp" visibility=":oclip"/>
 								<button id="ce" text="labels.signal.clipping" pad.l="8" visibility=":oclip"/>
+								<button id="dcomp" text="labels.signal.dc_compensate" ui:inject="Button_cyan" visibility=":oclip"/>
 								<button id="clog" text="labels.log_scale" ui:inject="Button_yellow" visibility=":oclip"/>
 
 								<button id="op" ui:inject="Button_inactive" text="labels.odp" visibility="!(:oclip)"/>
 								<button id="ce" text="labels.signal.clipping" ui:inject="Button_inactive" pad.l="8" visibility="!(:oclip)"/>
+								<button id="dcomp" text="labels.signal.dc_compensate" ui:inject="Button_inactive" visibility="!(:oclip)"/>
 								<button id="clog" text="labels.log_scale" ui:inject="Button_inactive" visibility="!(:oclip)"/>
 
 								<label text="labels.function" pad.l="8"/>
@@ -1625,12 +1638,21 @@
 					<ui:with bg.bright="!(:oclip) or !:ce ? :const_bg_darken : 1.0" bright="!(:oclip) or !:ce ? 0.75 : 1.0">
 						<hbox pad.v="4">
 							<void hexpand="true" hfill="true"/>
-							<!-- thres -->
+							<!-- thresh -->
 							<hbox fill="false" pad.l="6" pad.r="10">
 								<knob id="ct" scolor=":ce and :oclip and :cf ine 0 ? 'threshold' : 'cycle_inactive'"/>
 								<vbox vfill="false" width="50" pad.l="4">
 									<label text="labels.thresh_old" halign="0"/>
 									<value id="ct" sline="true" halign="0"/>
+								</vbox>
+							</hbox>
+							
+							<!-- DC offset -->
+							<hbox fill="false" pad.r="6">
+								<knob id="dcoff" scolor=":ce and :oclip ? 'kscale' : 'cycle_inactive'"/>
+								<vbox vfill="false" width="50" pad.l="4">
+									<label text="labels.signal.dc_offset" halign="-1"/>
+									<value id="dcoff" sline="true" halign="0"/>
 								</vbox>
 							</hbox>
 

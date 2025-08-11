@@ -928,15 +928,18 @@ namespace lsp
         {
             dspu::sigmoid::function_t func = vSigmoidFunctions[size_t(params->pFunction->value())];
             const float threshold   = lsp_min(params->pThreshold->value(), 0.99f);
+            const float dc_off      = params->pDCOffset->value() * 0.01f;
             const float pumping     = dspu::db_to_gain(params->pPumping->value());
 
             if ((func == params->pFunc) &&
                 (threshold == params->fThreshold) &&
+                (dc_off == params->fDCOffset) &&
                 (pumping == params->fPumping))
                 return false;
 
             params->pFunc           = func;
             params->fThreshold      = threshold;
+            params->fDCOffset       = dc_off;
             params->fPumping        = pumping;
             params->fKnee           = 1.0f - threshold;
             params->fScaling        = 1.0f / params->fKnee;
@@ -1240,6 +1243,7 @@ namespace lsp
                     p->nFlags              |= PF_SYNC_ODP;
                 }
                 p->nFlags               = lsp_setflag(p->nFlags, PF_CLIP_ENABLED, p->sClip.pOn->value() >= 0.5f);
+                p->nFlags               = lsp_setflag(p->nFlags, PF_DC_COMPENSATE, p->sClip.pDCCompensate->value() >= 0.5f);
                 if (update_clip_params(&p->sClip))
                     p->nFlags              |= PF_SYNC_CLIP;
             }
@@ -1253,6 +1257,7 @@ namespace lsp
                 nFlags                 |= GF_SYNC_ODP;
             }
             nFlags                  = lsp_setflag(nFlags, GF_CLIP_ENABLED, sClip.pOn->value() >= 0.5f);
+            nFlags                  = lsp_setflag(nFlags, GF_DC_COMPENSATE, sClip.pDCCompensate->value() >= 0.5f);
             if (update_clip_params(&sClip))
                 nFlags                 |= GF_SYNC_CLIP;
 
@@ -1562,6 +1567,142 @@ namespace lsp
             }
         }
 
+        void mb_clipper::process_clip_band(band_t *b, processor_t *p, size_t samples)
+        {
+            // Clipping
+            if (!(p->nFlags & PF_CLIP_ENABLED))
+            {
+                b->fClipIn[0]           = GAIN_AMP_M_INF_DB;
+                b->fClipOut[0]          = GAIN_AMP_M_INF_DB;
+                b->fClipIn[1]           = GAIN_AMP_M_INF_DB;
+                b->fClipOut[1]          = GAIN_AMP_M_INF_DB;
+                b->fClipRed             = GAIN_AMP_0_DB;
+                return;
+            }
+
+            // Do clipping
+            const float dc      = p->sClip.fDCOffset;
+            size_t clip_idx[2];
+            float clip_in[2], clip_out[2];
+
+            if (dc != 0.0f)
+            {
+                // Apply DC offset
+                dsp::add_k2(b->vData, dc, samples);
+
+                // Perform clipping
+                dsp::minmax_index(b->vData, samples, &clip_idx[0], &clip_idx[1]);
+                clip_in[0]          = fabsf(b->vData[clip_idx[0]]);
+                clip_in[1]          = fabsf(b->vData[clip_idx[1]]);
+
+                clip_curve(b->vData, b->vData, &p->sClip, samples);
+
+                clip_out[0]         = fabsf(b->vData[clip_idx[0]]);
+                clip_out[1]         = fabsf(b->vData[clip_idx[1]]);
+
+                // Compensate DC offset if needed
+                if (p->nFlags & PF_DC_COMPENSATE)
+                    dsp::sub_k2(b->vData, dc, samples);
+            }
+            else
+            {
+                clip_idx[0]         = dsp::abs_max_index(b->vData, samples);
+                clip_idx[1]         = clip_idx[0];
+                clip_in[0]          = fabsf(b->vData[clip_idx[0]]);
+                clip_in[1]          = clip_in[0];
+
+                clip_curve(b->vData, b->vData, &p->sClip, samples);
+
+                clip_out[0]         = fabsf(b->vData[clip_idx[0]]);
+                clip_out[1]         = clip_out[0];
+            }
+
+            // Measure input and output level
+            if (clip_in[0] > b->fClipIn[0])
+            {
+                b->fClipIn[0]           = clip_in[0];
+                b->fClipOut[0]          = clip_out[0];
+            }
+            if (clip_in[1] > b->fClipIn[1])
+            {
+                b->fClipIn[1]           = clip_in[1];
+                b->fClipOut[1]          = clip_out[1];
+            }
+
+            // Compute gain reduction
+            const size_t imax       = (clip_in[0] >= clip_in[1]) ? 0 : 1;
+            const float clip_red    = (clip_in[imax] >= GAIN_AMP_M_120_DB) ? clip_out[imax] / clip_in[imax] : GAIN_AMP_0_DB;
+            b->fClipRed             = lsp_min(b->fClipRed, clip_red);
+        }
+
+        void mb_clipper::process_clip_channel(channel_t *c, size_t samples)
+        {
+            // Clipping
+            if ((nFlags & (GF_CLIP_ENABLED | GF_OUT_CLIP)) != (GF_CLIP_ENABLED | GF_OUT_CLIP))
+            {
+                c->fClipIn[0]           = GAIN_AMP_M_INF_DB;
+                c->fClipOut[0]          = GAIN_AMP_M_INF_DB;
+                c->fClipIn[1]           = GAIN_AMP_M_INF_DB;
+                c->fClipOut[1]          = GAIN_AMP_M_INF_DB;
+                c->fClipRed             = GAIN_AMP_0_DB;
+                return;
+            }
+
+            // Do clipping
+            const float dc      = sClip.fDCOffset;
+            size_t clip_idx[2];
+            float clip_in[2], clip_out[2];
+
+            if (dc != 0.0f)
+            {
+                // Apply DC offset
+                dsp::add_k2(c->vData, dc, samples);
+
+                // Perform clipping
+                dsp::minmax_index(c->vData, samples, &clip_idx[0], &clip_idx[1]);
+                clip_in[0]          = fabsf(c->vData[clip_idx[0]]);
+                clip_in[1]          = fabsf(c->vData[clip_idx[1]]);
+
+                clip_curve(c->vData, c->vData, &sClip, samples);
+
+                clip_out[0]         = fabsf(c->vData[clip_idx[0]]);
+                clip_out[1]         = fabsf(c->vData[clip_idx[1]]);
+
+                // Compensate DC offset if needed
+                if (nFlags & GF_DC_COMPENSATE)
+                    dsp::sub_k2(c->vData, dc, samples);
+            }
+            else
+            {
+                clip_idx[0]         = dsp::abs_max_index(c->vData, samples);
+                clip_idx[1]         = clip_idx[0];
+                clip_in[0]          = fabsf(c->vData[clip_idx[0]]);
+                clip_in[1]          = clip_in[0];
+
+                clip_curve(c->vData, c->vData, &sClip, samples);
+
+                clip_out[0]         = fabsf(c->vData[clip_idx[0]]);
+                clip_out[1]         = clip_out[0];
+            }
+
+            // Measure input and output level
+            if (clip_in[0] > c->fClipIn[0])
+            {
+                c->fClipIn[0]           = clip_in[0];
+                c->fClipOut[0]          = clip_out[0];
+            }
+            if (clip_in[1] > c->fClipIn[1])
+            {
+                c->fClipIn[1]           = clip_in[1];
+                c->fClipOut[1]          = clip_out[1];
+            }
+
+            // Compute gain reduction
+            const size_t imax       = (clip_in[0] >= clip_in[1]) ? 0 : 1;
+            const float clip_red    = (clip_in[imax] >= GAIN_AMP_M_120_DB) ? clip_out[imax] / clip_in[imax] : GAIN_AMP_0_DB;
+            c->fClipRed             = lsp_min(c->fClipRed, clip_red);
+        }
+
         void mb_clipper::process_bands(size_t samples)
         {
             if (nChannels > 1)
@@ -1690,51 +1831,9 @@ namespace lsp
                         rb->fOdpRed             = GAIN_AMP_0_DB;
                     }
 
-                    // Clipping
-                    if (p->nFlags & PF_CLIP_ENABLED)
-                    {
-                        // Mesure input
-                        const size_t clip_idx_l = dsp::abs_max_index(lb->vData, samples);
-                        const size_t clip_idx_r = dsp::abs_max_index(rb->vData, samples);
-                        const float clip_in_l   = fabsf(lb->vData[clip_idx_l]);
-                        const float clip_in_r   = fabsf(rb->vData[clip_idx_r]);
-
-                        // Do clipping
-                        clip_curve(lb->vData, lb->vData, &p->sClip, samples);
-                        clip_curve(rb->vData, rb->vData, &p->sClip, samples);
-
-                        // Measure output
-                        const float clip_out_l  = fabsf(lb->vData[clip_idx_l]);
-                        const float clip_out_r  = fabsf(rb->vData[clip_idx_r]);
-                        const float clip_red_l  = (clip_in_l >= GAIN_AMP_M_120_DB) ? clip_out_l / clip_in_l : GAIN_AMP_0_DB;
-                        const float clip_red_r  = (clip_in_r >= GAIN_AMP_M_120_DB) ? clip_out_r / clip_in_r : GAIN_AMP_0_DB;
-
-                        lb->fClipIn[0]          = lsp_max(lb->fClipIn[0], clip_in_l);
-                        lb->fClipOut[0]         = lsp_max(lb->fClipOut[0], clip_out_l);
-                        lb->fClipIn[1]          = lsp_max(lb->fClipIn[1], clip_in_l);
-                        lb->fClipOut[1]         = lsp_max(lb->fClipOut[1], clip_out_l);
-                        lb->fClipRed            = lsp_min(lb->fClipRed, clip_red_l);
-
-                        rb->fClipIn[0]          = lsp_max(rb->fClipIn[0], clip_in_r);
-                        rb->fClipOut[0]         = lsp_max(rb->fClipOut[0], clip_out_r);
-                        rb->fClipIn[1]          = lsp_max(rb->fClipIn[1], clip_in_r);
-                        rb->fClipOut[1]         = lsp_max(rb->fClipOut[1], clip_out_r);
-                        rb->fClipRed            = lsp_min(rb->fClipRed, clip_red_r);
-                    }
-                    else
-                    {
-                        lb->fClipIn[0]          = GAIN_AMP_M_INF_DB;
-                        lb->fClipOut[0]         = GAIN_AMP_M_INF_DB;
-                        lb->fClipIn[1]          = GAIN_AMP_M_INF_DB;
-                        lb->fClipOut[1]         = GAIN_AMP_M_INF_DB;
-                        lb->fClipRed            = GAIN_AMP_0_DB;
-
-                        rb->fClipIn[0]          = GAIN_AMP_M_INF_DB;
-                        rb->fClipOut[0]         = GAIN_AMP_M_INF_DB;
-                        rb->fClipIn[1]          = GAIN_AMP_M_INF_DB;
-                        rb->fClipOut[1]         = GAIN_AMP_M_INF_DB;
-                        rb->fClipRed            = GAIN_AMP_0_DB;
-                    }
+                    // Apply clipping
+                    process_clip_band(lb, p, samples);
+                    process_clip_band(rb, p, samples);
 
                     // Perform output metering
                     const float out_l       = fabsf(lb->vData[idx_in_l]) * p->fMakeup;
@@ -1833,34 +1932,8 @@ namespace lsp
                         b->fOdpRed              = GAIN_AMP_0_DB;
                     }
 
-                    // Clipping
-                    if (p->nFlags & PF_CLIP_ENABLED)
-                    {
-                        // Mesure input
-                        const size_t clip_idx   = dsp::abs_max_index(b->vData, samples);
-                        const float clip_in     = fabsf(b->vData[clip_idx]);
-
-                        // Do clipping
-                        clip_curve(b->vData, b->vData, &p->sClip, samples);
-
-                        // Measure output
-                        const float clip_out    = fabsf(b->vData[clip_idx]);
-                        const float clip_red    = (clip_in >= GAIN_AMP_M_120_DB) ? clip_out / clip_in : GAIN_AMP_0_DB;
-
-                        b->fClipIn[0]           = lsp_max(b->fClipIn[0], clip_in);
-                        b->fClipOut[0]          = lsp_max(b->fClipOut[0], clip_out);
-                        b->fClipIn[1]           = lsp_max(b->fClipIn[1], clip_in);
-                        b->fClipOut[1]          = lsp_max(b->fClipOut[1], clip_out);
-                        b->fClipRed             = lsp_min(b->fClipRed, clip_red);
-                    }
-                    else
-                    {
-                        b->fClipIn[0]           = GAIN_AMP_M_INF_DB;
-                        b->fClipOut[0]          = GAIN_AMP_M_INF_DB;
-                        b->fClipIn[1]           = GAIN_AMP_M_INF_DB;
-                        b->fClipOut[1]          = GAIN_AMP_M_INF_DB;
-                        b->fClipRed             = GAIN_AMP_0_DB;
-                    }
+                    // Apply clipping
+                    process_clip_band(b, p, samples);
 
                     // Perform output metering
                     const float out         = fabsf(b->vData[idx_in]) * p->fMakeup;
@@ -1979,51 +2052,9 @@ namespace lsp
                     r->fOdpRed              = GAIN_AMP_0_DB;
                 }
 
-                // Clipping
-                if ((nFlags & (GF_CLIP_ENABLED | GF_OUT_CLIP)) == (GF_CLIP_ENABLED | GF_OUT_CLIP))
-                {
-                    // Mesure input
-                    const size_t clip_idx_l = dsp::abs_max_index(l->vData, samples);
-                    const size_t clip_idx_r = dsp::abs_max_index(r->vData, samples);
-                    const float clip_in_l   = fabsf(l->vData[clip_idx_l]);
-                    const float clip_in_r   = fabsf(r->vData[clip_idx_r]);
-
-                    // Do clipping
-                    clip_curve(l->vData, l->vData, &sClip, samples);
-                    clip_curve(r->vData, r->vData, &sClip, samples);
-
-                    // Measure output
-                    const float clip_out_l  = fabsf(l->vData[clip_idx_l]);
-                    const float clip_out_r  = fabsf(r->vData[clip_idx_r]);
-                    const float clip_red_l  = (clip_in_l >= GAIN_AMP_M_120_DB) ? clip_out_l / clip_in_l : GAIN_AMP_0_DB;
-                    const float clip_red_r  = (clip_in_r >= GAIN_AMP_M_120_DB) ? clip_out_r / clip_in_r : GAIN_AMP_0_DB;
-
-                    l->fClipIn[0]           = lsp_max(l->fClipIn[0], clip_in_l);
-                    l->fClipOut[0]          = lsp_max(l->fClipOut[0], clip_out_l);
-                    l->fClipIn[1]           = lsp_max(l->fClipIn[1], clip_in_l);
-                    l->fClipOut[1]          = lsp_max(l->fClipOut[1], clip_out_l);
-                    l->fClipRed             = lsp_min(l->fClipRed, clip_red_l);
-
-                    r->fClipIn[0]           = lsp_max(r->fClipIn[0], clip_in_r);
-                    r->fClipOut[0]          = lsp_max(r->fClipOut[0], clip_out_r);
-                    r->fClipIn[1]           = lsp_max(r->fClipIn[1], clip_in_r);
-                    r->fClipOut[1]          = lsp_max(r->fClipOut[1], clip_out_r);
-                    r->fClipRed             = lsp_min(r->fClipRed, clip_red_r);
-                }
-                else
-                {
-                    l->fClipIn[0]           = GAIN_AMP_M_INF_DB;
-                    l->fClipOut[0]          = GAIN_AMP_M_INF_DB;
-                    l->fClipIn[1]           = GAIN_AMP_M_INF_DB;
-                    l->fClipOut[1]          = GAIN_AMP_M_INF_DB;
-                    l->fClipRed             = GAIN_AMP_0_DB;
-
-                    r->fClipIn[0]           = GAIN_AMP_M_INF_DB;
-                    r->fClipOut[0]          = GAIN_AMP_M_INF_DB;
-                    r->fClipIn[1]           = GAIN_AMP_M_INF_DB;
-                    r->fClipOut[1]          = GAIN_AMP_M_INF_DB;
-                    r->fClipRed             = GAIN_AMP_0_DB;
-                }
+                // Apply clipping
+                process_clip_channel(l, samples);
+                process_clip_channel(r, samples);
 
                 // Perform output metering
                 const float out_l       = fabsf(l->vData[idx_in_l]);
@@ -2111,34 +2142,8 @@ namespace lsp
                     c->fOdpRed              = GAIN_AMP_0_DB;
                 }
 
-                // Clipping
-                if ((nFlags & (GF_CLIP_ENABLED | GF_OUT_CLIP)) == (GF_CLIP_ENABLED | GF_OUT_CLIP))
-                {
-                    // Mesure input
-                    const size_t clip_idx   = dsp::abs_max_index(c->vData, samples);
-                    const float clip_in     = fabsf(c->vData[clip_idx]);
-
-                    // Do clipping
-                    clip_curve(c->vData, c->vData, &sClip, samples);
-
-                    // Measure output
-                    const float clip_out    = fabsf(c->vData[clip_idx]);
-                    const float clip_red    = (clip_in >= GAIN_AMP_M_120_DB) ? clip_out / clip_in : GAIN_AMP_0_DB;
-
-                    c->fClipIn[0]           = lsp_max(c->fClipIn[0], clip_in);
-                    c->fClipOut[0]          = lsp_max(c->fClipOut[0], clip_out);
-                    c->fClipIn[1]           = lsp_max(c->fClipIn[1], clip_in);
-                    c->fClipOut[1]          = lsp_max(c->fClipOut[1], clip_out);
-                    c->fClipRed             = lsp_min(c->fClipRed, clip_red);
-                }
-                else
-                {
-                    c->fClipIn[0]           = GAIN_AMP_M_INF_DB;
-                    c->fClipOut[0]          = GAIN_AMP_M_INF_DB;
-                    c->fClipIn[1]           = GAIN_AMP_M_INF_DB;
-                    c->fClipOut[1]          = GAIN_AMP_M_INF_DB;
-                    c->fClipRed             = GAIN_AMP_0_DB;
-                }
+                // Apply clipping
+                process_clip_channel(c, samples);
 
                 // Perform output metering
                 const float out         = fabsf(c->vData[idx_in]);

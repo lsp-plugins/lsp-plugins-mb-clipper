@@ -390,6 +390,8 @@ namespace lsp
                 void                    bind_input_buffers();
                 void                    limit_input_loudness(size_t samples);
                 void                    split_bands(size_t samples);
+                void                    process_clip_channel(channel_t *c, size_t samples);
+                void                    process_clip_band(band_t *b, processor_t *p, size_t samples);
                 void                    process_bands(size_t samples);
                 void                    process_output_clipper(size_t samples);
                 void                    perform_analysis(size_t samples);

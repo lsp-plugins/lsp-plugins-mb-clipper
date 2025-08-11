@@ -163,8 +163,8 @@ namespace lsp
         SWITCH("ce" id, "Clipper enable" label, "On" alias, 1.0f), \
         COMBO("cf" id, "Clipper sigmoid function" label, "Function" alias, 2.0f, sigmoid_functions), \
         LOG_CONTROL("ct" id, "Clipper sigmoid threshold" label, "Clip thresh" alias, U_GAIN_AMP, mb_clipper::CLIP_THRESHOLD), \
-        CONTROL("dcoff", "Clipper DC offset", "DC offset", U_PERCENT, mb_clipper::DCOFF), \
-        SWITCH("dcomp", "Clipper DC compensate", "DC compensate", 1.0f), \
+        CONTROL("dco" id, "Clipper DC offset" label, "DC off" alias, U_PERCENT, mb_clipper::DCOFF), \
+        SWITCH("dcc" id, "Clipper DC compensate" label, "DC comp" alias, 1.0f), \
         CONTROL("cp" id, "Clipper sigmoid pumping" label, "Pumping" alias, U_DB, mb_clipper::CLIP_PUMPING), \
         MESH("cfc" id, "Clipper sigmoid function chart" label, 4, mb_clipper::CURVE_MESH_POINTS), \
         MESH("bfc" id, "Band frequency chart" label, 2, mb_clipper::FFT_MESH_POINTS + 2), \
