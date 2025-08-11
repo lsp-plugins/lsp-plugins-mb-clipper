@@ -696,8 +696,10 @@
 
 											<!-- Meshes -->
 											<mesh id="cfc_${i}" x.index="0" y.index="1" width="3" color=":ce_${i} and ${act_band}? 'graph_mesh': 'graph_prim'" smooth="true"/>
-											<dot x.id="cfx_${i}l" y.id="cfy_${i}l" color="left" bcolor="left" visibility=":ce_${i} and ${act_band}"/>
-											<dot x.id="cfx_${i}r" y.id="cfy_${i}r" color="right" bcolor="right" visibility=":ce_${i} and ${act_band}"/>
+											<dot x.id="cfx1_${i}l" y.id="cfy1_${i}l" color="left" bcolor="left" visibility=":ce_${i} and ${act_band}"/>
+											<dot x.id="cfx1_${i}r" y.id="cfy1_${i}r" color="right" bcolor="right" visibility=":ce_${i} and ${act_band}"/>
+											<dot x.id="cfx2_${i}l" y.id="cfy2_${i}l" color="left" bcolor="left" visibility=":ce_${i} and ${act_band}"/>
+											<dot x.id="cfx2_${i}r" y.id="cfy2_${i}r" color="right" bcolor="right" visibility=":ce_${i} and ${act_band}"/>
 
 											<!-- Markers -->
 											<marker
@@ -788,8 +790,10 @@
 
 											<!-- Meshes -->
 											<mesh id="cfc_${i}" x.index="2" y.index="3" width="3" color=":ce_${i} and ${act_band}? 'graph_mesh': 'graph_prim'" smooth="true"/>
-											<dot x.id="cfx_${i}l" y.id="cfy_${i}l" color="left" bcolor="left" visibility=":ce_${i} and ${act_band}"/>
-											<dot x.id="cfx_${i}r" y.id="cfy_${i}r" color="right" bcolor="right" visibility=":ce_${i} and ${act_band}"/>
+											<dot x.id="cfx1_${i}l" y.id="cfy1_${i}l" color="left" bcolor="left" visibility=":ce_${i} and ${act_band}"/>
+											<dot x.id="cfx1_${i}r" y.id="cfy1_${i}r" color="right" bcolor="right" visibility=":ce_${i} and ${act_band}"/>
+											<dot x.id="cfx2_${i}l" y.id="cfy2_${i}l" color="left" bcolor="left" visibility=":ce_${i} and ${act_band}"/>
+											<dot x.id="cfx2_${i}r" y.id="cfy2_${i}r" color="right" bcolor="right" visibility=":ce_${i} and ${act_band}"/>
 
 											<!-- Markers -->
 											<marker
@@ -987,12 +991,12 @@
 											</ui:with>
 
 											<!-- Meshes -->
-											<mesh id="ctg_${i}l" width="0" x.index="0" y.index="1" color="left_in" fcolor="left_in" fcolor.a="0.8" fill="true" visibility=":ilg_l"/>
-											<mesh id="ctg_${i}r" width="0" x.index="0" y.index="1" color="right_in" fcolor="right_in" fcolor.a="0.8" fill="true" visibility=":ilg_r"/>
-											<mesh id="ctg_${i}l" width="2" x.index="0" y.index="2" color="left" visibility=":olg_l"/>
-											<mesh id="ctg_${i}r" width="2" x.index="0" y.index="2" color="right" visibility=":olg_r"/>
-											<mesh id="ctg_${i}l" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":grg_l"/>
-											<mesh id="ctg_${i}r" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":grg_r"/>
+											<mesh id="ctg_${i}" width="0" x.index="0" y.index="1" color="left_in" fcolor="left_in" fcolor.a="0.8" fill="true" visibility=":ilg_l"/>
+											<mesh id="ctg_${i}" width="0" x.index="0" y.index="4" color="right_in" fcolor="right_in" fcolor.a="0.8" fill="true" visibility=":ilg_r"/>
+											<mesh id="ctg_${i}" width="2" x.index="0" y.index="2" color="left" visibility=":olg_l"/>
+											<mesh id="ctg_${i}" width="2" x.index="0" y.index="5" color="right" visibility=":olg_r"/>
+											<mesh id="ctg_${i}" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":grg_l"/>
+											<mesh id="ctg_${i}" width="2" x.index="0" y.index="6" color="bright_blue" visibility=":grg_r"/>
 
 											<!-- Boundaries -->
 											<marker v="24 db" ox="1" oy="0" color="graph_prim" visibility="false"/>
@@ -1413,8 +1417,10 @@
 
 										<!-- Meshes -->
 										<mesh id="cfc" x.index="0" y.index="1" width="3" color=":ce and :oclip? 'graph_mesh': 'graph_prim'" smooth="true"/>
-										<dot x.id="cfx_l" y.id="cfy_l" color="left" bcolor="left" visibility=":ce and :oclip"/>
-										<dot x.id="cfx_r" y.id="cfy_r" color="right" bcolor="right" visibility=":ce and :oclip"/>
+										<dot x.id="cfx1_l" y.id="cfy1_l" color="left" bcolor="left" visibility=":ce and :oclip"/>
+										<dot x.id="cfx1_r" y.id="cfy1_r" color="right" bcolor="right" visibility=":ce and :oclip"/>
+										<dot x.id="cfx2_l" y.id="cfy2_l" color="left" bcolor="left" visibility=":ce and :oclip"/>
+										<dot x.id="cfx2_r" y.id="cfy2_r" color="right" bcolor="right" visibility=":ce and :oclip"/>
 
 										<!-- Markers -->
 										<marker
@@ -1505,8 +1511,10 @@
 
 										<!-- Meshes -->
 										<mesh id="cfc" x.index="2" y.index="3" width="3" color=":ce and :oclip? 'graph_mesh': 'graph_prim'" smooth="true"/>
-										<dot x.id="cfx_l" y.id="cfy_l" color="left" bcolor="left" visibility=":ce and :oclip"/>
-										<dot x.id="cfx_r" y.id="cfy_r" color="right" bcolor="right" visibility=":ce and :oclip"/>
+										<dot x.id="cfx1_l" y.id="cfy1_l" color="left" bcolor="left" visibility=":ce and :oclip"/>
+										<dot x.id="cfx1_r" y.id="cfy1_r" color="right" bcolor="right" visibility=":ce and :oclip"/>
+										<dot x.id="cfx2_l" y.id="cfy2_l" color="left" bcolor="left" visibility=":ce and :oclip"/>
+										<dot x.id="cfx2_r" y.id="cfy2_r" color="right" bcolor="right" visibility=":ce and :oclip"/>
 
 										<!-- Markers -->
 										<marker
@@ -1698,12 +1706,12 @@
 										</ui:with>
 
 										<!-- Meshes -->
-										<mesh id="ctg_l" width="0" x.index="0" y.index="1" color="left_in" fcolor="left_in" fcolor.a="0.8" fill="true" visibility=":ilg_l"/>
-										<mesh id="ctg_r" width="0" x.index="0" y.index="1" color="right_in" fcolor="right_in" fcolor.a="0.8" fill="true" visibility=":ilg_r"/>
-										<mesh id="ctg_l" width="2" x.index="0" y.index="2" color="left" visibility=":olg_l"/>
-										<mesh id="ctg_r" width="2" x.index="0" y.index="2" color="right" visibility=":olg_r"/>
-										<mesh id="ctg_l" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":grg_l"/>
-										<mesh id="ctg_r" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":grg_r"/>
+										<mesh id="ctg" width="0" x.index="0" y.index="1" color="left_in" fcolor="left_in" fcolor.a="0.8" fill="true" visibility=":ilg_l"/>
+										<mesh id="ctg" width="0" x.index="0" y.index="4" color="right_in" fcolor="right_in" fcolor.a="0.8" fill="true" visibility=":ilg_r"/>
+										<mesh id="ctg" width="2" x.index="0" y.index="2" color="left" visibility=":olg_l"/>
+										<mesh id="ctg" width="2" x.index="0" y.index="5" color="right" visibility=":olg_r"/>
+										<mesh id="ctg" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":grg_l"/>
+										<mesh id="ctg" width="2" x.index="0" y.index="6" color="bright_blue" visibility=":grg_r"/>
 
 										<!-- Boundaries -->
 										<marker v="24 db" ox="1" oy="0" color="graph_prim" visibility="false"/>

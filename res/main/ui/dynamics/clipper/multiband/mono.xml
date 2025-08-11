@@ -673,7 +673,8 @@
 
 											<!-- Meshes -->
 											<mesh id="cfc_${i}" x.index="0" y.index="1" width="3" color=":ce_${i} and ${act_band}? 'graph_mesh': 'graph_prim'" smooth="true"/>
-											<dot x.id="cfx_${i}" y.id="cfy_${i}" color="dot" bcolor="dot" visibility=":ce_${i} and ${act_band}"/>
+											<dot x.id="cfx1_${i}" y.id="cfy1_${i}" color="dot" bcolor="dot" visibility=":ce_${i} and ${act_band}"/>
+											<dot x.id="cfx2_${i}" y.id="cfy2_${i}" color="dot" bcolor="dot" visibility=":ce_${i} and ${act_band}"/>
 
 											<!-- Markers -->
 											<marker
@@ -764,7 +765,8 @@
 
 											<!-- Meshes -->
 											<mesh id="cfc_${i}" x.index="2" y.index="3" width="3" color=":ce_${i} and ${act_band}? 'graph_mesh': 'graph_prim'" smooth="true"/>
-											<dot x.id="cfx_${i}" y.id="cfy_${i}" color="dot" bcolor="dot" visibility=":ce_${i} and ${act_band}"/>
+											<dot x.id="cfx1_${i}" y.id="cfy1_${i}" color="dot" bcolor="dot" visibility=":ce_${i} and ${act_band}"/>
+											<dot x.id="cfx2_${i}" y.id="cfy2_${i}" color="dot" bcolor="dot" visibility=":ce_${i} and ${act_band}"/>
 
 											<!-- Markers -->
 											<marker
@@ -946,9 +948,7 @@
 
 											<!-- Meshes -->
 											<mesh id="ctg_${i}" width="0" x.index="0" y.index="1" color="mono_in" fcolor="mono_in" fcolor.a="0.8" fill="true" visibility=":ilg"/>
-
 											<mesh id="ctg_${i}" width="2" x.index="0" y.index="2" color="mono" visibility=":olg"/>
-
 											<mesh id="ctg_${i}" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":grg"/>
 
 											<!-- Boundaries -->
@@ -1316,7 +1316,8 @@
 
 										<!-- Meshes -->
 										<mesh id="cfc" x.index="0" y.index="1" width="3" color=":ce and :oclip? 'graph_mesh': 'graph_prim'" smooth="true"/>
-										<dot x.id="cfx" y.id="cfy" color="dot" bcolor="dot" visibility=":ce and :oclip"/>
+										<dot x.id="cfx1" y.id="cfy1" color="dot" bcolor="dot" visibility=":ce and :oclip"/>
+										<dot x.id="cfx2" y.id="cfy2" color="dot" bcolor="dot" visibility=":ce and :oclip"/>
 
 										<!-- Markers -->
 										<marker
@@ -1407,7 +1408,9 @@
 
 										<!-- Meshes -->
 										<mesh id="cfc" x.index="2" y.index="3" width="3" color=":ce and :oclip? 'graph_mesh': 'graph_prim'" smooth="true"/>
-										<dot x.id="cfx" y.id="cfy" color="dot" bcolor="dot" visibility=":ce and :oclip"/>
+										<dot x.id="cfx1" y.id="cfy1" color="dot" bcolor="dot" visibility=":ce and :oclip"/>
+										<dot x.id="cfx2" y.id="cfy2" color="dot" bcolor="dot" visibility=":ce and :oclip"/>
+										
 										<!-- Markers -->
 										<marker
 											id="ct"
