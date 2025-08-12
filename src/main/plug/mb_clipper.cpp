@@ -2094,7 +2094,7 @@ namespace lsp
                 c->sScDelay.process(c->vData, c->vData, samples);
 
                 // Remember input data for metering
-                dsp::copy(c->vInData, c->vData, samples);
+                dsp::abs2(c->vInData, c->vData, samples);
 
                 // Measure input loudness
                 sOutLufs.sMeter.bind(0, NULL, c->vData);
@@ -2475,6 +2475,11 @@ namespace lsp
                         mesh->data(2, 0);
                 }
             }
+        }
+
+        void mb_clipper::output_mesh_graphs(size_t samples)
+        {
+            plug::mesh_t *mesh  = NULL;
 
             // Output oscilloscope graphs for output clipper
             mesh    = (sGraph.pTimeMesh != NULL) ? sGraph.pTimeMesh->buffer<plug::mesh_t>() : NULL;
@@ -2530,6 +2535,48 @@ namespace lsp
                 }
                 else
                     mesh->data(1 + 3 * nChannels, 0);
+            }
+
+            // Output waveform graphs for output clipper
+            mesh    = (sGraph.pWaveformMesh != NULL) ? sGraph.pWaveformMesh->buffer<plug::mesh_t>() : NULL;
+            if ((mesh != NULL) && (mesh->isEmpty()))
+            {
+                if (nFlags & GF_OUT_CLIP)
+                {
+                    size_t index    = 0;
+
+                    // Fill time values
+                    float *t        = mesh->pvData[index++];
+                    dsp::copy(&t[2], vWaveformTime, meta::mb_clipper::TIME_MESH_POINTS);
+                    t[0]            = t[2] + meta::mb_clipper::TIME_HISTORY_GAP;
+                    t[1]            = t[0];
+                    t              += meta::mb_clipper::TIME_MESH_POINTS + 2;
+                    t[0]            = t[-1] - meta::mb_clipper::TIME_HISTORY_GAP;
+                    t[1]            = t[0];
+
+                    for (size_t i=0; i<nChannels; ++i)
+                    {
+                        channel_t *c    = &vChannels[i];
+
+                        float *osc      = mesh->pvData[index++];
+
+                        dsp::copy(&osc[2], c->sWaveformGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
+
+                        // Generate extra points
+                        osc[0]          = 0.0f;
+                        osc[1]          = osc[2];
+
+                        osc            += meta::mb_clipper::TIME_MESH_POINTS + 2;
+
+                        osc[0]          = osc[-1];
+                        osc[1]          = 0.0f;
+                    }
+
+                    // Notify mesh contains data
+                    mesh->data(index, meta::mb_clipper::TIME_MESH_POINTS + 4);
+                }
+                else
+                    mesh->data(1 + nChannels, 0);
             }
 
             // Output oscilloscope graphs for band
@@ -2594,6 +2641,48 @@ namespace lsp
                     else
                         mesh->data(1 + 3*nChannels, 0);
                 }
+
+                // Output waveform mesh data
+                mesh    = (g->pWaveformMesh != NULL) ? g->pWaveformMesh->buffer<plug::mesh_t>() : NULL;
+                if ((mesh != NULL) && (mesh->isEmpty()))
+                {
+                    if (nFlags & PF_ENABLED)
+                    {
+                        size_t index    = 0;
+
+                        // Fill time values
+                        float *t        = mesh->pvData[index++];
+                        dsp::copy(&t[2], vWaveformTime, meta::mb_clipper::TIME_MESH_POINTS);
+                        t[0]            = t[2] + meta::mb_clipper::TIME_HISTORY_GAP;
+                        t[1]            = t[0];
+                        t              += meta::mb_clipper::TIME_MESH_POINTS + 2;
+                        t[0]            = t[-1] - meta::mb_clipper::TIME_HISTORY_GAP;
+                        t[1]            = t[0];
+
+                        for (size_t i=0; i<nChannels; ++i)
+                        {
+                            band_t *b       = &vChannels[i].vBands[j];
+
+                            float *osc      = mesh->pvData[index++];
+
+                            dsp::copy(&osc[2], b->sWaveformGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
+
+                            // Generate extra points
+                            osc[0]          = 0.0f;
+                            osc[1]          = osc[2];
+
+                            osc            += meta::mb_clipper::TIME_MESH_POINTS + 2;
+
+                            osc[0]          = osc[-1];
+                            osc[1]          = 0.0f;
+                        }
+
+                        // Notify mesh contains data
+                        mesh->data(index, meta::mb_clipper::TIME_MESH_POINTS + 4);
+                    }
+                    else
+                        mesh->data(1 + nChannels, 0);
+                }
             }
         }
 
@@ -2642,6 +2731,7 @@ namespace lsp
 
             output_meters();
             output_mesh_curves(samples);
+            output_mesh_graphs(samples);
 
             // Request for redraw
             if ((pWrapper != NULL) && (sCounter.fired()))

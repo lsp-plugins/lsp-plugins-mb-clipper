@@ -403,6 +403,7 @@ namespace lsp
                 void                    merge_bands(size_t samples);
                 void                    output_meters();
                 void                    output_mesh_curves(size_t samples);
+                void                    output_mesh_graphs(size_t samples);
 
             public:
                 explicit mb_clipper(const meta::plugin_t *meta);
