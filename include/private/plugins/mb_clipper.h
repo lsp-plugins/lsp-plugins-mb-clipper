@@ -139,8 +139,8 @@ namespace lsp
                     dspu::Delay         sPostDelay;         // Signal post-delay
                     dspu::MeterGraph    sInGraph;           // Input meter graph
                     dspu::MeterGraph    sOutGraph;          // Output meter graph
-                    dspu::MeterGraph    sRedGraph;          // Gain reduction graph
                     dspu::MeterGraph    sWaveformGraph;     // Waveform graph
+                    dspu::MeterGraph    sRedGraph;          // Gain reduction graph
 
                     float              *vInData;            // Input data buffer
                     float              *vData;              // Data buffer
@@ -253,6 +253,7 @@ namespace lsp
                     // Buffers
                     float              *vIn;                // Input buffer
                     float              *vOut;               // Output buffer
+                    float              *vInData;            // Input data buffer for metering
                     float              *vData;              // Data buffer
                     float              *vSc;                // Sidechain buffer
                     float              *vTr;                // Transfer function
@@ -394,6 +395,8 @@ namespace lsp
                 void                    process_clip_band(band_t *b, processor_t *p, size_t samples);
                 void                    process_bands(size_t samples);
                 void                    process_output_clipper(size_t samples);
+                void                    meter_band(band_t *b, size_t samples);
+                void                    meter_channel(channel_t *c, size_t samples);
                 void                    perform_analysis(size_t samples);
                 void                    output_signal(size_t samples);
                 void                    advance_buffers(size_t samples);

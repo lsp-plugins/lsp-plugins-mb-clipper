@@ -285,6 +285,7 @@ namespace lsp
                 ) +
                 nChannels * (
                     szof_buffer +       // vData
+                    szof_buffer +       // vInData
                     szof_buffer +       // vSc
                     szof_fft_buffer +   // vTr
                     szof_buffer +       // vInAnalyze
@@ -384,13 +385,13 @@ namespace lsp
 
                 c->sInGraph.construct();
                 c->sOutGraph.construct();
-                c->sRedGraph.construct();
                 c->sWaveformGraph.construct();
+                c->sRedGraph.construct();
 
                 c->sInGraph.set_method(dspu::MM_ABS_MAXIMUM);
                 c->sOutGraph.set_method(dspu::MM_ABS_MAXIMUM);
-                c->sRedGraph.set_method(dspu::MM_ABS_MINIMUM);
                 c->sWaveformGraph.set_method(dspu::MM_PEAK);
+                c->sRedGraph.set_method(dspu::MM_ABS_MINIMUM);
 
                 c->sDither.init();
 
@@ -406,13 +407,13 @@ namespace lsp
                     b->sPostDelay.construct();
                     b->sInGraph.construct();
                     b->sOutGraph.construct();
-                    b->sRedGraph.construct();
                     b->sWaveformGraph.construct();
+                    b->sRedGraph.construct();
 
                     b->sInGraph.set_method(dspu::MM_ABS_MAXIMUM);
                     b->sOutGraph.set_method(dspu::MM_ABS_MAXIMUM);
-                    b->sRedGraph.set_method(dspu::MM_ABS_MINIMUM);
                     b->sWaveformGraph.set_method(dspu::MM_PEAK);
+                    b->sRedGraph.set_method(dspu::MM_ABS_MINIMUM);
 
                     // Bind handler to crossover
                     c->sIIRXOver.set_handler(j, process_band, this, c);
@@ -473,6 +474,7 @@ namespace lsp
 
                 c->vIn                  = NULL;
                 c->vOut                 = NULL;
+                c->vInData              = advance_ptr_bytes<float>(ptr, szof_buffer);
                 c->vData                = advance_ptr_bytes<float>(ptr, szof_buffer);
                 c->vSc                  = advance_ptr_bytes<float>(ptr, szof_buffer);
                 c->vTr                  = advance_ptr_bytes<float>(ptr, szof_fft_buffer);
@@ -751,8 +753,8 @@ namespace lsp
                     c->sDither.destroy();
                     c->sInGraph.destroy();
                     c->sOutGraph.destroy();
-                    c->sRedGraph.destroy();
                     c->sWaveformGraph.destroy();
+                    c->sRedGraph.destroy();
 
                     for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
                     {
@@ -765,8 +767,8 @@ namespace lsp
                         b->sPostDelay.destroy();
                         b->sInGraph.destroy();
                         b->sOutGraph.destroy();
-                        b->sRedGraph.destroy();
                         b->sWaveformGraph.destroy();
+                        b->sRedGraph.destroy();
                     }
                 }
                 vChannels   = NULL;
@@ -846,8 +848,8 @@ namespace lsp
                 c->sFFTXOver.set_sample_rate(sr);
                 c->sInGraph.init(meta::mb_clipper::TIME_MESH_POINTS, samples_per_dot);
                 c->sOutGraph.init(meta::mb_clipper::TIME_MESH_POINTS, samples_per_dot);
-                c->sRedGraph.init(meta::mb_clipper::TIME_MESH_POINTS, samples_per_dot);
                 c->sWaveformGraph.init(meta::mb_clipper::TIME_MESH_POINTS, wf_samples_per_dot);
+                c->sRedGraph.init(meta::mb_clipper::TIME_MESH_POINTS, samples_per_dot);
 
                 for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
                 {
@@ -861,8 +863,8 @@ namespace lsp
                     b->sPostDelay.init(max_odp_delay);
                     b->sInGraph.init(meta::mb_clipper::TIME_MESH_POINTS, samples_per_dot);
                     b->sOutGraph.init(meta::mb_clipper::TIME_MESH_POINTS, samples_per_dot);
-                    b->sRedGraph.init(meta::mb_clipper::TIME_MESH_POINTS, samples_per_dot);
                     b->sWaveformGraph.init(meta::mb_clipper::TIME_MESH_POINTS, wf_samples_per_dot);
+                    b->sRedGraph.init(meta::mb_clipper::TIME_MESH_POINTS, samples_per_dot);
                 }
             }
 
@@ -1703,6 +1705,53 @@ namespace lsp
             c->fClipRed             = lsp_min(c->fClipRed, clip_red);
         }
 
+        void mb_clipper::meter_band(band_t *b, size_t samples)
+        {
+            // Compute reduction buffer
+            for (size_t i=0; i<samples; ++i)
+            {
+                const float ain         = fabsf(b->vInData[i]);
+                vBuffer[i]              = (ain >= GAIN_AMP_M_120_DB) ? fabsf(b->vData[i]) / ain : GAIN_AMP_0_DB;
+            }
+
+            // Update graphs
+            b->sInGraph.process(b->vInData, samples);
+            b->sOutGraph.process(b->vData, samples);
+            b->sWaveformGraph.process(b->vData, samples);
+            b->sRedGraph.process(vBuffer, samples);
+
+            // Update momentary values
+            const float in          = dsp::max(b->vInData, samples);
+            const float out         = dsp::abs_max(b->vData, samples);
+            const float red         = dsp::min(vBuffer, samples);
+
+            b->fIn                  = lsp_max(b->fIn, in);
+            b->fOut                 = lsp_max(b->fOut, out);
+            b->fRed                 = lsp_min(b->fRed, red);
+        }
+
+        void mb_clipper::meter_channel(channel_t *c, size_t samples)
+        {
+            // Compute reduction buffer
+            for (size_t i=0; i<samples; ++i)
+                vBuffer[i]              = (c->vInData[i] >= GAIN_AMP_M_120_DB) ? fabsf(c->vData[i]) / c->vInData[i] : GAIN_AMP_0_DB;
+
+            // Update graphs
+            c->sInGraph.process(c->vInData, samples);
+            c->sOutGraph.process(c->vData, samples);
+            c->sWaveformGraph.process(c->vData, samples);
+            c->sRedGraph.process(vBuffer, samples);
+
+            // Update momentary values
+            const float in          = dsp::max(c->vInData, samples);
+            const float out         = dsp::abs_max(c->vData, samples);
+            const float red         = dsp::min(vBuffer, samples);
+
+            c->fIn                  = lsp_max(c->fIn, in);
+            c->fOut                 = lsp_max(c->fOut, out);
+            c->fRed                 = lsp_min(c->fRed, red);
+        }
+
         void mb_clipper::process_bands(size_t samples)
         {
             if (nChannels > 1)
@@ -1724,14 +1773,6 @@ namespace lsp
                     // Remember input data for analysis
                     lb->sInDelay.process(lb->vInData, lb->vData, samples);
                     rb->sInDelay.process(rb->vInData, rb->vData, samples);
-
-                    // Measure signal at the input of the band
-                    const size_t idx_in_l   = dsp::abs_max_index(lb->vInData, samples);
-                    const size_t idx_in_r   = dsp::abs_max_index(rb->vInData, samples);
-                    const float in_l        = fabsf(lb->vInData[idx_in_l]);
-                    const float in_r        = fabsf(rb->vInData[idx_in_r]);
-                    lb->sInGraph.process(lb->vInData, samples);
-                    rb->sInGraph.process(rb->vInData, samples);
 
                     // Measure input LUFS loudness
                     p->sLufs.sMeter.bind(0, NULL, lb->vData);
@@ -1836,20 +1877,8 @@ namespace lsp
                     process_clip_band(rb, p, samples);
 
                     // Perform output metering
-                    const float out_l       = fabsf(lb->vData[idx_in_l]) * p->fMakeup;
-                    const float out_r       = fabsf(rb->vData[idx_in_r]) * p->fMakeup;
-                    const float red_l       = (in_l >= GAIN_AMP_M_120_DB) ? out_l / in_l : GAIN_AMP_0_DB;
-                    const float red_r       = (in_r >= GAIN_AMP_M_120_DB) ? out_r / in_r : GAIN_AMP_0_DB;
-                    lb->sOutGraph.process(lb->vData, p->fMakeup, samples);
-                    rb->sOutGraph.process(rb->vData, p->fMakeup, samples);
-
-                    lb->fIn                 = lsp_max(lb->fIn, in_l);
-                    lb->fOut                = lsp_max(lb->fOut, out_l);
-                    lb->fRed                = lsp_min(lb->fRed, red_l);
-
-                    rb->fIn                 = lsp_max(rb->fIn, in_r);
-                    rb->fOut                = lsp_max(rb->fOut, out_r);
-                    rb->fRed                = lsp_min(rb->fRed, red_r);
+                    meter_band(lb, samples);
+                    meter_band(rb, samples);
                 }
             }
             else
@@ -1867,11 +1896,6 @@ namespace lsp
 
                     // Remember input data for analysis
                     b->sInDelay.process(b->vInData, b->vData, samples);
-
-                    // Measure signal at the input of the band
-                    const size_t idx_in     = dsp::abs_max_index(b->vInData, samples);
-                    const float in          = fabsf(b->vInData[idx_in]);
-                    b->sInGraph.process(b->vInData, samples);
 
                     // Measure input LUFS loudness
                     p->sLufs.sMeter.bind(0, NULL, b->vData);
@@ -1936,13 +1960,7 @@ namespace lsp
                     process_clip_band(b, p, samples);
 
                     // Perform output metering
-                    const float out         = fabsf(b->vData[idx_in]) * p->fMakeup;
-                    const float red         = (in >= GAIN_AMP_M_120_DB) ? out / in : GAIN_AMP_0_DB;
-                    b->sOutGraph.process(b->vData, p->fMakeup, samples);
-
-                    b->fIn                  = lsp_max(b->fIn, in);
-                    b->fOut                 = lsp_max(b->fOut, out);
-                    b->fRed                 = lsp_min(b->fRed, red);
+                    meter_band(b, samples);
                 }
             }
         }
@@ -1981,13 +1999,9 @@ namespace lsp
                 l->sScDelay.process(l->vData, l->vData, samples);
                 r->sScDelay.process(r->vData, r->vData, samples);
 
-                // Measure signal at the input of the band
-                const size_t idx_in_l   = dsp::abs_max_index(l->vData, samples);
-                const size_t idx_in_r   = dsp::abs_max_index(r->vData, samples);
-                const float in_l        = fabsf(l->vData[idx_in_l]);
-                const float in_r        = fabsf(r->vData[idx_in_r]);
-                l->sInGraph.process(l->vData, samples);
-                r->sInGraph.process(r->vData, samples);
+                // Remember input data for metering
+                dsp::abs2(l->vInData, l->vData, samples);
+                dsp::abs2(r->vInData, r->vData, samples);
 
                 // Measure input loudness
                 sOutLufs.sMeter.bind(0, NULL, l->vData);
@@ -2057,20 +2071,8 @@ namespace lsp
                 process_clip_channel(r, samples);
 
                 // Perform output metering
-                const float out_l       = fabsf(l->vData[idx_in_l]);
-                const float out_r       = fabsf(r->vData[idx_in_r]);
-                const float red_l       = (in_l >= GAIN_AMP_M_120_DB) ? out_l / in_l : GAIN_AMP_0_DB;
-                const float red_r       = (in_r >= GAIN_AMP_M_120_DB) ? out_r / in_r : GAIN_AMP_0_DB;
-                l->sOutGraph.process(l->vData, samples);
-                r->sOutGraph.process(r->vData, samples);
-
-                l->fIn                  = lsp_max(l->fIn, in_l);
-                l->fOut                 = lsp_max(l->fOut, out_l);
-                l->fRed                 = lsp_min(l->fRed, red_l);
-
-                r->fIn                  = lsp_max(r->fIn, in_r);
-                r->fOut                 = lsp_max(r->fOut, out_r);
-                r->fRed                 = lsp_min(r->fRed, red_r);
+                meter_channel(l, samples);
+                meter_channel(r, samples);
 
                 // Apply gain boosting compensation
                 if (!(nFlags & GF_BOOSTING))
@@ -2091,10 +2093,8 @@ namespace lsp
                 }
                 c->sScDelay.process(c->vData, c->vData, samples);
 
-                // Measure signal at the input of the band
-                const size_t idx_in     = dsp::abs_max_index(c->vData, samples);
-                const float in          = fabsf(c->vData[idx_in]);
-                c->sInGraph.process(c->vData, samples);
+                // Remember input data for metering
+                dsp::copy(c->vInData, c->vData, samples);
 
                 // Measure input loudness
                 sOutLufs.sMeter.bind(0, NULL, c->vData);
@@ -2146,13 +2146,7 @@ namespace lsp
                 process_clip_channel(c, samples);
 
                 // Perform output metering
-                const float out         = fabsf(c->vData[idx_in]);
-                const float red         = (in >= GAIN_AMP_M_120_DB) ? out / in : GAIN_AMP_0_DB;
-                c->sOutGraph.process(c->vData, samples);
-
-                c->fIn                  = lsp_max(c->fIn, in);
-                c->fOut                 = lsp_max(c->fOut, out);
-                c->fRed                 = lsp_min(c->fRed, red);
+                meter_channel(c, samples);
 
                 // Apply gain boosting compensation
                 if (!(nFlags & GF_BOOSTING))
@@ -2509,9 +2503,7 @@ namespace lsp
 
                         dsp::copy(&in[2], c->sInGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
                         dsp::copy(&out[2], c->sOutGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
-
-                        for (size_t k=2; k<meta::mb_clipper::TIME_MESH_POINTS + 2; ++k)
-                            red[k]      = lsp_max(out[k], GAIN_AMP_M_120_DB) / lsp_max(in[k], GAIN_AMP_M_120_DB);
+                        dsp::copy(&red[2], c->sRedGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
 
                         // Generate extra points
                         in[0]           = 0.0f;
@@ -2574,9 +2566,7 @@ namespace lsp
 
                             dsp::copy(&in[2], b->sInGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
                             dsp::copy(&out[2], b->sOutGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
-
-                            for (size_t k=2; k<meta::mb_clipper::TIME_MESH_POINTS + 2; ++k)
-                                red[k]      = lsp_max(out[k], GAIN_AMP_M_120_DB) / lsp_max(in[k], GAIN_AMP_M_120_DB);
+                            dsp::copy(&red[2], b->sRedGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
 
                             // Generate extra points
                             in[0]           = 0.0f;
@@ -2791,8 +2781,8 @@ namespace lsp
                 v->write_object("sDither", &c->sDither);
                 v->write_object("sInGraph", &c->sInGraph);
                 v->write_object("sOutGraph", &c->sOutGraph);
-                v->write_object("sRedGraph", &c->sRedGraph);
                 v->write_object("sWaveformGraph", &c->sWaveformGraph);
+                v->write_object("sRedGraph", &c->sRedGraph);
 
                 v->begin_array("vBands", c->vBands, meta::mb_clipper::BANDS_MAX);
                 for (size_t i=0; i<meta::mb_clipper::BANDS_MAX; ++i)
@@ -2817,6 +2807,7 @@ namespace lsp
 
                 v->write("vIn", c->vIn);
                 v->write("vOut", c->vOut);
+                v->write("vInData", c->vInData);
                 v->write("vData", c->vData);
                 v->write("vSc", c->vSc);
                 v->write("vTr", c->vTr);
