@@ -665,9 +665,9 @@
 									<vbox>
 										<!-- Clipper function graph linear -->
 										<graph width.min="265" height.min="215" expand="true" fill="true" visibility="!:clog">
-											<origin hpos="-0.8" vpos="-2.0/3.0" visible="false"/>
+											<origin hpos="-1" vpos="-1" visible="false"/>
 											<origin hpos="-1" vpos="0" visible="false"/>
-
+			
 											<ui:with ox="0" oy="1">
 												<marker v="0.25" color="graph_alt_1"/>
 												<marker v="0.75" color="graph_alt_1"/>
@@ -678,7 +678,7 @@
 												<marker v="0.25" color="graph_alt_1"/>
 												<marker v="0.75" color="graph_alt_1"/>
 											</ui:with>
-
+			
 											<ui:with ox="0" oy="1">
 												<marker v="0.5" color="graph_sec"/>
 												<marker v="1" color="graph_sec"/>
@@ -689,20 +689,20 @@
 												<marker v="0.5" color="graph_sec"/>
 												<marker v="1" color="graph_sec"/>
 											</ui:with>
-
+			
 											<!-- Axes and boundaries -->
-											<marker v="1" ox="1" oy="0" dv="1" dx=":_a_width * 0.6" dy=":_a_height" color="graph_alt_1" width="2" smooth="true"/>
-											<axis min="-0.25" max="2.25" color="graph_prim" angle="0.0" width="2"/>
-											<axis min="-0.25" max="1.25" color="graph_prim" angle="0.5" width="2"/>
-											<axis o="1" min="-0.25" max="2.25" color="graph_prim" angle="0.0" zero="-0.25" visibility="false"/>
-
+											<marker v="1" ox="1" oy="0" dv="1" dx=":_a_width / 2.25" dy=":_a_height / 1.25" color="graph_alt_1" width="2" smooth="true"/>
+											<axis min="0" max="2.25" color="graph_prim" angle="0.0" width="2"/>
+											<axis min="0" max="1.25" color="graph_prim" angle="0.5" width="2"/>
+											<axis o="1" min="0" max="2.25" color="graph_prim" angle="0.0" zero="0" visibility="false"/>
+			
 											<!-- Meshes -->
 											<mesh id="cfc_${i}" x.index="0" y.index="1" width="3" color=":ce_${i} and ${act_band}? 'graph_mesh': 'graph_prim'" smooth="true"/>
 											<dot x.id="cfx1_${i}l" y.id="cfy1_${i}l" color="left" bcolor="left" visibility=":ce_${i} and ${act_band}"/>
 											<dot x.id="cfx1_${i}r" y.id="cfy1_${i}r" color="right" bcolor="right" visibility=":ce_${i} and ${act_band}"/>
 											<dot x.id="cfx2_${i}l" y.id="cfy2_${i}l" color="left" bcolor="left" visibility=":ce_${i} and ${act_band}"/>
 											<dot x.id="cfx2_${i}r" y.id="cfy2_${i}r" color="right" bcolor="right" visibility=":ce_${i} and ${act_band}"/>
-
+			
 											<!-- Markers -->
 											<marker
 												id="ct_${i}"
@@ -746,14 +746,14 @@
 												hlcolor="graph_prim"
 												rcolor="graph_prim"
 												hrcolor="graph_prim"/>
-
+			
 											<!-- Text -->
-											<ui:with x="0" halign="-1" valign="-1">
+											<ui:with x="0" halign="1" valign="-1">
 												<text y="0.5" text="0.5"/>
 												<text y="1" text="1"/>
 												<text y="1.25" text="graph.axis.out" valign="-1"/>
 											</ui:with>
-											<ui:with y="0" halign="1" valign="-1">
+											<ui:with y="0" halign="1" valign="1">
 												<text x="0" text="0"/>
 												<text x="0.5" text="0.5"/>
 												<text x="1.0" text="1"/>
@@ -761,10 +761,9 @@
 												<text x="2.0" text="2"/>
 												<text x="2.25" text="graph.axis.in" halign="-1"/>
 											</ui:with>
-											<text x=":ct_${i}" y="1.25" text="graph.values.x::f" text:value=":ct_${i}" text.eval="true" color=":ce_${i} and ${act_band} and (:cf_${i} ine 0)? 'threshold' : 'graph_prim'" halign="1" valign="-1"/>
-											<text x=":ct_${i}" y="-0.25" text="graph.values.x:db:f" text:value="20 * lg :ct_${i}" text.eval="true" color=":ce_${i} and ${act_band} and (:cf_${i} ine 0)? 'threshold' : 'graph_prim'" halign="1" valign="1"/>
+											<text x=":ct" y="1.25" text="graph.values.x:db:f;x::f" text:value=":ct" text:db="20 * lg :ct" text.eval="true" color=":ce_${i} and ${act_band} and (:cf_${i} ine 0) ? 'threshold' : 'graph_prim'" halign="1" valign="-1" text.halign="-1"/>
 										</graph>
-
+							
 										<!-- Clipper function graph logarithmic -->
 										<graph width.min="265" height.min="215" expand="true" fill="true" visibility=":clog">
 											<origin hpos="-1" vpos="-1" visible="false"/>
@@ -1577,9 +1576,9 @@
 								<vbox>
 									<!-- Clipper function graph linear -->
 									<graph width.min="265" height.min="215" expand="true" fill="true" visibility="!:clog">
-										<origin hpos="-0.8" vpos="-2.0/3.0" visible="false"/>
+										<origin hpos="-1" vpos="-1" visible="false"/>
 										<origin hpos="-1" vpos="0" visible="false"/>
-
+		
 										<ui:with ox="0" oy="1">
 											<marker v="0.25" color="graph_alt_1"/>
 											<marker v="0.75" color="graph_alt_1"/>
@@ -1590,7 +1589,7 @@
 											<marker v="0.25" color="graph_alt_1"/>
 											<marker v="0.75" color="graph_alt_1"/>
 										</ui:with>
-
+		
 										<ui:with ox="0" oy="1">
 											<marker v="0.5" color="graph_sec"/>
 											<marker v="1" color="graph_sec"/>
@@ -1601,13 +1600,13 @@
 											<marker v="0.5" color="graph_sec"/>
 											<marker v="1" color="graph_sec"/>
 										</ui:with>
-
+		
 										<!-- Axes and boundaries -->
-										<marker v="1" ox="1" oy="0" dv="1" dx=":_a_width * 0.6" dy=":_a_height" color="graph_alt_1" width="2" smooth="true"/>
-										<axis min="-0.25" max="2.25" color="graph_prim" angle="0.0" width="2"/>
-										<axis min="-0.25" max="1.25" color="graph_prim" angle="0.5" width="2"/>
-										<axis o="1" min="-0.25" max="2.25" color="graph_prim" angle="0.0" zero="-0.25" visibility="false"/>
-
+										<marker v="1" ox="1" oy="0" dv="1" dx=":_a_width / 2.25" dy=":_a_height / 1.25" color="graph_alt_1" width="2" smooth="true"/>
+										<axis min="0" max="2.25" color="graph_prim" angle="0.0" width="2"/>
+										<axis min="0" max="1.25" color="graph_prim" angle="0.5" width="2"/>
+										<axis o="1" min="0" max="2.25" color="graph_prim" angle="0.0" zero="0" visibility="false"/>
+		
 										<!-- Meshes -->
 										<mesh id="cfc" x.index="0" y.index="1" width="3" color=":ce and :oclip? 'graph_mesh': 'graph_prim'" smooth="true"/>
 										<dot x.id="cfx1_l" y.id="cfy1_l" color="left" bcolor="left" visibility=":ce and :oclip"/>
@@ -1658,14 +1657,14 @@
 											hlcolor="graph_prim"
 											rcolor="graph_prim"
 											hrcolor="graph_prim"/>
-
+		
 										<!-- Text -->
-										<ui:with x="0" halign="-1" valign="-1">
+										<ui:with x="0" halign="1" valign="-1">
 											<text y="0.5" text="0.5"/>
 											<text y="1" text="1"/>
 											<text y="1.25" text="graph.axis.out" valign="-1"/>
 										</ui:with>
-										<ui:with y="0" halign="1" valign="-1">
+										<ui:with y="0" halign="1" valign="1">
 											<text x="0" text="0"/>
 											<text x="0.5" text="0.5"/>
 											<text x="1.0" text="1"/>
@@ -1673,10 +1672,9 @@
 											<text x="2.0" text="2"/>
 											<text x="2.25" text="graph.axis.in" halign="-1"/>
 										</ui:with>
-										<text x=":ct" y="1.25" text="graph.values.x::f" text:value=":ct" text.eval="true" color=":ce and :oclip and :cf ine 0? 'threshold' : 'graph_prim'" halign="1" valign="-1"/>
-										<text x=":ct" y="-0.25" text="graph.values.x:db:f" text:value="20 * lg :ct" text.eval="true" color=":ce and :oclip and :cf ine 0? 'threshold' : 'graph_prim'" halign="1" valign="1"/>
+										<text x=":ct" y="1.25" text="graph.values.x:db:f;x::f" text:value=":ct" text:db="20 * lg :ct" text.eval="true" color=":ce and :oclip and :cf ine 0 ? 'threshold' : 'graph_prim'" halign="1" valign="-1" text.halign="-1"/>
 									</graph>
-
+										
 									<!-- Clipper function graph logarithmic -->
 									<graph width.min="265" height.min="215" expand="true" fill="true" visibility=":clog">
 										<origin hpos="-1" vpos="-1" visible="false"/>
