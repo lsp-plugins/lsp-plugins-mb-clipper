@@ -10,6 +10,11 @@
 			"full": "{@frequency} Hz\n{@note}{@octave}{@cents}",			
 			"unknown": "{@frequency} Hz"
 		},
-		"output_clipper": "Output Clipper"
+		"output_clipper": "Output Clipper",
+		"view": {		
+			"combined": "Combined",
+			"dynamics": "Dynamics",
+			"waveform": "Waveform"
+		}
 	}
 }

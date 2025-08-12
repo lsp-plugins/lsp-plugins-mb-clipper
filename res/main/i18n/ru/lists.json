@@ -10,6 +10,11 @@
 			"full": "{@frequency} Гц\n{@note}{@octave}{@cents}",			
 			"unknown": "{@frequency} Гц"
 		},
-		"output_clipper": "Выходной Клиппер"
+		"output_clipper": "Выходной Клиппер",
+		"view": {
+			"combined": "Совмещенный",
+			"dynamics": "Динамика",
+			"waveform": "Форма волны"
+		}
 	}
 }
