@@ -25,7 +25,7 @@
 
 #define LSP_PLUGINS_MB_CLIPPER_VERSION_MAJOR       1
 #define LSP_PLUGINS_MB_CLIPPER_VERSION_MINOR       0
-#define LSP_PLUGINS_MB_CLIPPER_VERSION_MICRO       9
+#define LSP_PLUGINS_MB_CLIPPER_VERSION_MICRO       10
 
 #define LSP_PLUGINS_MB_CLIPPER_VERSION  \
     LSP_MODULE_VERSION( \
@@ -105,6 +105,14 @@ namespace lsp
             { NULL, NULL }
         };
 
+        static port_item_t clipper_views[] =
+        {
+            { "Combined",           "mb_clipper.view.combined"              },
+            { "Dynamics",           "mb_clipper.view.dynamics"              },
+            { "Waveform",           "mb_clipper.view.waveform"              },
+            { NULL, NULL }
+        };
+
     #define CLIPPER_COMMON \
         BYPASS, \
         IN_GAIN, \
@@ -136,7 +144,8 @@ namespace lsp
         COMBO("tsel", "Tab selector", "Tab selector", 4, clipper_tab_selectors), \
         SWITCH("flt", "Band filter curves", "Show filters", 1.0f), \
         COMBO("dither", "Dithering mode", "Dithering", 0, clipper_dither_modes), \
-        SWITCH("clog", "Clipper logarithmic display", "Log display", 1.0f)
+        SWITCH("clog", "Clipper logarithmic display", "Log display", 1.0f), \
+        COMBO("gview", "Clipper graph view", "Graph view", 0, clipper_views)
 
     #define CLIPPER_BAND(id, label, alias, resonance) \
         SWITCH("bs" id, "Solo band" label, "Solo" alias, 0.0f), \
@@ -154,6 +163,8 @@ namespace lsp
         SWITCH("ce" id, "Clipper enable" label, "On" alias, 1.0f), \
         COMBO("cf" id, "Clipper sigmoid function" label, "Function" alias, 2.0f, sigmoid_functions), \
         LOG_CONTROL("ct" id, "Clipper sigmoid threshold" label, "Clip thresh" alias, U_GAIN_AMP, mb_clipper::CLIP_THRESHOLD), \
+        CONTROL("dco" id, "Clipper DC offset" label, "DC off" alias, U_PERCENT, mb_clipper::DCOFF), \
+        SWITCH("dcc" id, "Clipper DC compensate" label, "DC comp" alias, 1.0f), \
         CONTROL("cp" id, "Clipper sigmoid pumping" label, "Pumping" alias, U_DB, mb_clipper::CLIP_PUMPING), \
         MESH("cfc" id, "Clipper sigmoid function chart" label, 4, mb_clipper::CURVE_MESH_POINTS), \
         MESH("bfc" id, "Band frequency chart" label, 2, mb_clipper::FFT_MESH_POINTS + 2), \
@@ -172,6 +183,8 @@ namespace lsp
         SWITCH("ce", "Output clipper enable", "Out on", 1.0f), \
         COMBO("cf", "Output clipper sigmoid function", "Out function", 2.0f, sigmoid_functions), \
         LOG_CONTROL("ct", "Output clipper sigmoid threshold", "Clip thresh out", U_GAIN_AMP, mb_clipper::CLIP_THRESHOLD), \
+        CONTROL("dcoff", "Output clipper DC offset", "Out DC off", U_PERCENT, mb_clipper::DCOFF), \
+        SWITCH("dcomp", "Output clipper DC compensate", "Out DC comp", 1.0f), \
         CONTROL("cp", "Output clipper sigmoid pumping", "Out pumping", U_DB, mb_clipper::CLIP_PUMPING), \
         MESH("cfc", "Output clipper sigmoid function chart", 4, mb_clipper::CURVE_MESH_POINTS)
 
@@ -182,10 +195,25 @@ namespace lsp
         METER_OUT_GAIN("odx" id, "Overdrive protection input meter" label, GAIN_AMP_P_36_DB), \
         METER_OUT_GAIN("ody" id, "Overdrive protection output meter" label, GAIN_AMP_P_36_DB), \
         METER_GAIN_DFL("odr" id, "Overdrive protection reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB), \
-        METER_OUT_GAIN("cfx" id, "Clipping function input meter" label, GAIN_AMP_P_36_DB), \
-        METER_OUT_GAIN("cfy" id, "Clipping function output meter" label, GAIN_AMP_P_36_DB), \
-        METER_GAIN_DFL("cfr" id, "Clipping function reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB), \
-        MESH("ctg" id, "Clipper time graph" label, 4, mb_clipper::TIME_MESH_POINTS + 4)
+        METER_OUT_GAIN("cfx1" id, "Clipping function input meter 1" label, GAIN_AMP_P_36_DB), \
+        METER_OUT_GAIN("cfy1" id, "Clipping function output meter 1" label, GAIN_AMP_P_36_DB), \
+        METER_OUT_GAIN("cfx2" id, "Clipping function input meter 2" label, GAIN_AMP_P_36_DB), \
+        METER_OUT_GAIN("cfy2" id, "Clipping function output meter 2" label, GAIN_AMP_P_36_DB), \
+        METER_GAIN_DFL("cfr" id, "Clipping function reduction level meter" label, GAIN_AMP_P_72_DB, GAIN_AMP_0_DB)
+
+    #define CLIPPER_METERS_MONO(id, label) \
+        CLIPPER_METERS(id, label)
+
+    #define CLIPPER_METERS_STEREO(id, label) \
+        CLIPPER_METERS(id "l", label " Left"), \
+        CLIPPER_METERS(id "r", label " Right")
+
+    #define CLIPPER_GRAPHS(id, channels, label) \
+        MESH("ctg" id, "Clipper time graph" label, 1 + 3*channels, mb_clipper::TIME_MESH_POINTS + 4), \
+        MESH("wfg" id, "Clipper waveform graph", 1 + channels, mb_clipper::TIME_MESH_POINTS + 4)
+
+    #define CLIPPER_GRAPHS_MONO(id, label)      CLIPPER_GRAPHS(id, 1, label)
+    #define CLIPPER_GRAPHS_STEREO(id, label)    CLIPPER_GRAPHS(id, 2, label)
 
     #define CLIPPER_STEREO_BAND(id, label, alias, resonance, link) \
         CONTROL_DFL("bl" id, "Band stereo link" label, "Slink" alias, U_PERCENT, mb_clipper::STEREO_LINK, link), \
@@ -227,11 +255,17 @@ namespace lsp
 
             CLIPPER_ANALYSIS("", "", ""),
 
-            CLIPPER_METERS("_1", " Band 1"),
-            CLIPPER_METERS("_2", " Band 2"),
-            CLIPPER_METERS("_3", " Band 3"),
-            CLIPPER_METERS("_4", " Band 4"),
-            CLIPPER_METERS("", " Output"),
+            CLIPPER_METERS_MONO("_1", " Band 1"),
+            CLIPPER_METERS_MONO("_2", " Band 2"),
+            CLIPPER_METERS_MONO("_3", " Band 3"),
+            CLIPPER_METERS_MONO("_4", " Band 4"),
+            CLIPPER_METERS_MONO("", " Output"),
+
+            CLIPPER_GRAPHS_MONO("_1", "Band 1"),
+            CLIPPER_GRAPHS_MONO("_2", "Band 2"),
+            CLIPPER_GRAPHS_MONO("_3", "Band 3"),
+            CLIPPER_GRAPHS_MONO("_4", "Band 4"),
+            CLIPPER_GRAPHS_MONO("", "Output"),
 
             PORTS_END
         };
@@ -253,16 +287,17 @@ namespace lsp
             CLIPPER_ANALYSIS("_l", " Left", " L"),
             CLIPPER_ANALYSIS("_r", " Right", " R"),
 
-            CLIPPER_METERS("_1l", " Band 1 Left"),
-            CLIPPER_METERS("_2l", " Band 2 Left"),
-            CLIPPER_METERS("_3l", " Band 3 Left"),
-            CLIPPER_METERS("_4l", " Band 4 Left"),
-            CLIPPER_METERS("_1r", " Right"),
-            CLIPPER_METERS("_2r", " Right"),
-            CLIPPER_METERS("_3r", " Right"),
-            CLIPPER_METERS("_4r", " Right"),
-            CLIPPER_METERS("_l", " Output Left"),
-            CLIPPER_METERS("_r", " Output Right"),
+            CLIPPER_METERS_STEREO("_1", " Band 1"),
+            CLIPPER_METERS_STEREO("_2", " Band 2"),
+            CLIPPER_METERS_STEREO("_3", " Band 3"),
+            CLIPPER_METERS_STEREO("_4", " Band 4"),
+            CLIPPER_METERS_STEREO("_", " Output"),
+
+            CLIPPER_GRAPHS_STEREO("_1", "Band 1"),
+            CLIPPER_GRAPHS_STEREO("_2", "Band 2"),
+            CLIPPER_GRAPHS_STEREO("_3", "Band 3"),
+            CLIPPER_GRAPHS_STEREO("_4", "Band 4"),
+            CLIPPER_GRAPHS_STEREO("", "Output"),
 
             PORTS_END
         };

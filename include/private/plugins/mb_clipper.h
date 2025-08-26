@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2023 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2023 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-mb-clipper
  * Created on: 11 ноя 2023 г.
@@ -62,10 +62,11 @@ namespace lsp
                     PF_ODP_ENABLED      = 1 << 1,           // Overdrive protection enabled
                     PF_LUFS_ENABLED     = 1 << 2,           // Enable input LUFS limiter
                     PF_CLIP_ENABLED     = 1 << 3,           // Clipping enabled
-                    PF_DIRTY_BAND       = 1 << 4,           // Update band filter curve
-                    PF_SYNC_BAND        = 1 << 5,           // Sync band filter curve
-                    PF_SYNC_ODP         = 1 << 6,           // Sync overdrive protection curve
-                    PF_SYNC_CLIP        = 1 << 7,           // Sync sigmoid clipping curve
+                    PF_DC_COMPENSATE    = 1 << 4,           // DC compensate
+                    PF_DIRTY_BAND       = 1 << 5,           // Update band filter curve
+                    PF_SYNC_BAND        = 1 << 6,           // Sync band filter curve
+                    PF_SYNC_ODP         = 1 << 7,           // Sync overdrive protection curve
+                    PF_SYNC_CLIP        = 1 << 8,           // Sync sigmoid clipping curve
 
                     PF_SYNC_ALL         = PF_SYNC_BAND | PF_SYNC_ODP | PF_SYNC_CLIP
                 };
@@ -84,8 +85,9 @@ namespace lsp
                     GF_OUT_CLIP         = 1 << 3,           // Output clipper enabled
                     GF_ODP_ENABLED      = 1 << 4,           // Overdrive protection enabled
                     GF_CLIP_ENABLED     = 1 << 5,           // Clipping enabled
-                    GF_SYNC_ODP         = 1 << 6,           // Sync overdrive protection curve
-                    GF_SYNC_CLIP        = 1 << 7,           // Sync sigmoid clipping curve
+                    GF_DC_COMPENSATE    = 1 << 6,           // DC compensate
+                    GF_SYNC_ODP         = 1 << 7,           // Sync overdrive protection curve
+                    GF_SYNC_CLIP        = 1 << 8,           // Sync sigmoid clipping curve
 
                     GF_SYNC_ALL         = GF_SYNC_ODP | GF_SYNC_CLIP
                 };
@@ -114,6 +116,7 @@ namespace lsp
                 {
                     dspu::sigmoid::function_t   pFunc;      // Sigmoid function
                     float               fThreshold;         // Threshold
+                    float               fDCOffset;          // DC offset
                     float               fPumping;           // Pumping
                     float               fScaling;           // Sigmoid scaling
                     float               fKnee;              // Knee
@@ -121,6 +124,8 @@ namespace lsp
                     plug::IPort        *pOn;                // Enable sigmoid function
                     plug::IPort        *pFunction;          // Sigmoid function
                     plug::IPort        *pThreshold;         // Sigmoid threshold
+                    plug::IPort        *pDCOffset;          // DC offset
+                    plug::IPort        *pDCCompensate;      // DC compensate
                     plug::IPort        *pPumping;           // Sigmoid pumping
                     plug::IPort        *pCurveMesh;         // Curve chart mesh
                 } clip_params_t;
@@ -134,6 +139,8 @@ namespace lsp
                     dspu::Delay         sPostDelay;         // Signal post-delay
                     dspu::MeterGraph    sInGraph;           // Input meter graph
                     dspu::MeterGraph    sOutGraph;          // Output meter graph
+                    dspu::MeterGraph    sWaveformGraph;     // Waveform graph
+                    dspu::MeterGraph    sRedGraph;          // Gain reduction graph
 
                     float              *vInData;            // Input data buffer
                     float              *vData;              // Data buffer
@@ -146,8 +153,8 @@ namespace lsp
                     float               fOdpOut;            // Overdrive protection out level
                     float               fOdpRed;            // Overdrive protection reduction level
 
-                    float               fClipIn;            // Clipping input level measured
-                    float               fClipOut;           // Clipping output level measured
+                    float               fClipIn[2];         // Clipping input level measured
+                    float               fClipOut[2];        // Clipping output level measured
                     float               fClipRed;           // Clipping reduction level measured
 
                     plug::IPort        *pIn;                // Input level meter
@@ -158,11 +165,9 @@ namespace lsp
                     plug::IPort        *pOdpOut;            // ODP output level meter
                     plug::IPort        *pOdpRed;            // ODP reduction level meter
 
-                    plug::IPort        *pClipIn;            // Clipping input level meter
-                    plug::IPort        *pClipOut;           // Clipping output level meter
+                    plug::IPort        *pClipIn[2];         // Clipping input level meter
+                    plug::IPort        *pClipOut[2];        // Clipping output level meter
                     plug::IPort        *pClipRed;           // Clipping reduction level meter
-
-                    plug::IPort        *pTimeMesh;          // Input, output and gain reduction graph mesh
                 } band_t;
 
                 typedef struct lufs_limiter_t
@@ -221,6 +226,8 @@ namespace lsp
                     dspu::Dither        sDither;            // Dither
                     dspu::MeterGraph    sInGraph;           // Input meter graph
                     dspu::MeterGraph    sOutGraph;          // Output meter graph
+                    dspu::MeterGraph    sRedGraph;          // Gain reduction graph
+                    dspu::MeterGraph    sWaveformGraph;     // Waveform graph
                     band_t              vBands[meta::mb_clipper::BANDS_MAX];   // Bands for processing
 
                     uint32_t            nAnInChannel;       // Analyzer input channel
@@ -239,13 +246,14 @@ namespace lsp
                     float               fOdpOut;            // Overdrive protection out level
                     float               fOdpRed;            // Overdrive protection reduction level
 
-                    float               fClipIn;            // Clipping input level measured
-                    float               fClipOut;           // Clipping output level measured
+                    float               fClipIn[2];         // Clipping input level measured
+                    float               fClipOut[2];        // Clipping output level measured
                     float               fClipRed;           // Clipping reduction level measured
 
                     // Buffers
                     float              *vIn;                // Input buffer
                     float              *vOut;               // Output buffer
+                    float              *vInData;            // Input data buffer for metering
                     float              *vData;              // Data buffer
                     float              *vSc;                // Sidechain buffer
                     float              *vTr;                // Transfer function
@@ -272,24 +280,30 @@ namespace lsp
                     plug::IPort        *pOdpOut;            // ODP output level meter
                     plug::IPort        *pOdpRed;            // ODP reduction level meter
 
-                    plug::IPort        *pClipIn;            // Clipping input level meter
-                    plug::IPort        *pClipOut;           // Clipping output level meter
+                    plug::IPort        *pClipIn[2];         // Clipping input level meter
+                    plug::IPort        *pClipOut[2];        // Clipping output level meter
                     plug::IPort        *pClipRed;           // Clipping reduction level meter
-
-                    plug::IPort        *pTimeMesh;          // Input, output and gain reduction graph mesh
                 } channel_t;
+
+                typedef struct graph_t
+                {
+                    plug::IPort        *pTimeMesh;          // Input, output and gain reduction graph mesh
+                    plug::IPort        *pWaveformMesh;      // Oscillogram mesh
+                } graph_t;
 
                 static dspu::sigmoid::function_t    vSigmoidFunctions[];
 
             protected:
                 size_t              nChannels;          // Number of channels
-                channel_t          *vChannels;          // Delay channels
+                channel_t          *vChannels;          // Processing channels
 
                 dspu::Analyzer      sAnalyzer;          // FFT analyzer
                 dspu::Counter       sCounter;           // Counter
                 dspu::LoudnessMeter sOutMeter;          // Output LUFS meter
                 split_t             vSplits[meta::mb_clipper::BANDS_MAX-1];
-                processor_t         vProc[meta::mb_clipper::BANDS_MAX];      // Processor
+                processor_t         vProc[meta::mb_clipper::BANDS_MAX];         // Processor
+                graph_t             vBGraph[meta::mb_clipper::BANDS_MAX];       // Band Graphs
+                graph_t             sGraph;             // Output graphs
                 compressor_t        sComp;              // Simple compressor
                 odp_params_t        sOdp;               // Overdrive protection params
                 clip_params_t       sClip;              // Clipping parameters
@@ -313,6 +327,7 @@ namespace lsp
                 float              *vLinSigmoid;        // Linear scale for sigmoid
                 float              *vLogSigmoid;        // Logarithmic scale for sigmoid
                 float              *vTime;              // Time graph
+                float              *vWaveformTime;      // Waveform time graph
                 core::IDBuffer     *pIDisplay;          // Inline display buffer
 
                 plug::IPort        *pBypass;            // Bypass
@@ -369,20 +384,26 @@ namespace lsp
                 static void             dump(dspu::IStateDumper *v, const char *name, const odp_params_t *p);
                 static void             dump(dspu::IStateDumper *v, const char *name, const clip_params_t *p);
                 static void             dump(dspu::IStateDumper *v, const char *name, const lufs_limiter_t *l);
+                static void             dump(dspu::IStateDumper *v, const char *name, const graph_t *g);
 
             protected:
                 void                    do_destroy();
                 void                    bind_input_buffers();
                 void                    limit_input_loudness(size_t samples);
                 void                    split_bands(size_t samples);
+                void                    process_clip_channel(channel_t *c, size_t samples);
+                void                    process_clip_band(band_t *b, processor_t *p, size_t samples);
                 void                    process_bands(size_t samples);
                 void                    process_output_clipper(size_t samples);
+                void                    meter_band(band_t *b, size_t samples);
+                void                    meter_channel(channel_t *c, size_t samples);
                 void                    perform_analysis(size_t samples);
                 void                    output_signal(size_t samples);
                 void                    advance_buffers(size_t samples);
                 void                    merge_bands(size_t samples);
                 void                    output_meters();
                 void                    output_mesh_curves(size_t samples);
+                void                    output_mesh_graphs(size_t samples);
 
             public:
                 explicit mb_clipper(const meta::plugin_t *meta);
