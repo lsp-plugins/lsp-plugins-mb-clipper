@@ -327,6 +327,7 @@ namespace lsp
                 float              *vLinSigmoid;        // Linear scale for sigmoid
                 float              *vLogSigmoid;        // Logarithmic scale for sigmoid
                 float              *vTime;              // Time graph
+                float              *vIDisplay;          // Inline display buffer
                 float              *vWaveformTime;      // Waveform time graph
                 core::IDBuffer     *pIDisplay;          // Inline display buffer
 
