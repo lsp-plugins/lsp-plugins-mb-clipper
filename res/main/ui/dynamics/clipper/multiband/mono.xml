@@ -38,6 +38,18 @@
 						<marker value="-48 db" ox="1" oy="0"/>
 					</ui:with>
 
+					<!-- Piano keys -->
+					<embed oy="4" start.x="midi_freq_start(12, 127)" start.y="20" end.x="midi_freq_end(12, 127)" end.y="44" valign="1" alpha="0" visibility=":_ui_graph_piano_layout">
+						<piano natural="false" note.min="12" note.max="127" height="24" editable="false" selectable="false" border="0"/>
+					</embed>
+
+					<!-- Octave text -->
+					<ui:with ox="0" oy="4" y="44" halign="1" valign="1" pgroup="0" priority="10" visibility=":_ui_graph_piano_layout" pad.b="2">
+						<ui:for id="octave" first="0" last="9">
+							<text x="midi_freq(12 * ${:octave + 1})" text="lists.notes.fmt.c" text:octave="${octave}" valign="1" halign="0"/>
+						</ui:for>
+					</ui:with>
+
 					<!-- Band split markers -->
 					<ui:with
 						width="2"
@@ -97,6 +109,7 @@
 					<axis min="-72 db / (:zoom ** 3)" max="24 db * :zoom" color="graph_prim" angle="0.5" log="true"/>
 					<axis min="-1" max="1" visibility="false" angle="0.5"/>
 					<axis min="-72 db" max="24 db" color="graph_prim" angle="0.5" log="true" visibility="false"/>
+					<axis min="0" max=":_a_scaled_height" visibility="false" angle="0.5"/>
 
 					<!-- Text -->
 					<ui:with ox="0" oy="2" y="0" halign="1" valign="1">
@@ -644,7 +657,7 @@
 										<graph width.min="265" height.min="215" expand="true" fill="true" visibility="!:clog">
 											<origin hpos="-1" vpos="-1" visible="false"/>
 											<origin hpos="-1" vpos="0" visible="false"/>
-			
+
 											<ui:with ox="0" oy="1">
 												<marker v="0.25" color="graph_alt_1"/>
 												<marker v="0.75" color="graph_alt_1"/>
@@ -655,7 +668,7 @@
 												<marker v="0.25" color="graph_alt_1"/>
 												<marker v="0.75" color="graph_alt_1"/>
 											</ui:with>
-			
+
 											<ui:with ox="0" oy="1">
 												<marker v="0.5" color="graph_sec"/>
 												<marker v="1" color="graph_sec"/>
@@ -666,13 +679,13 @@
 												<marker v="0.5" color="graph_sec"/>
 												<marker v="1" color="graph_sec"/>
 											</ui:with>
-			
+
 											<!-- Axes and boundaries -->
 											<marker v="1" ox="1" oy="0" dv="1" dx=":_a_width / 2.25" dy=":_a_height / 1.25" color="graph_alt_1" width="2" smooth="true"/>
 											<axis min="0" max="2.25" color="graph_prim" angle="0.0" width="2"/>
 											<axis min="0" max="1.25" color="graph_prim" angle="0.5" width="2"/>
 											<axis o="1" min="0" max="2.25" color="graph_prim" angle="0.0" zero="0" visibility="false"/>
-			
+
 											<!-- Meshes -->
 											<mesh id="cfc_${i}" x.index="0" y.index="1" width="3" color=":ce_${i} and ${act_band}? 'graph_mesh': 'graph_prim'" smooth="true"/>
 											<dot x.id="cfx1_${i}" y.id="cfy1_${i}" color="dot" bcolor="dot" visibility=":ce_${i} and ${act_band}"/>
@@ -721,7 +734,7 @@
 												hlcolor="graph_prim"
 												rcolor="graph_prim"
 												hrcolor="graph_prim"/>
-			
+
 											<!-- Text -->
 											<ui:with x="0" halign="1" valign="-1">
 												<text y="0.5" text="0.5"/>
@@ -875,7 +888,7 @@
 										<value id="ct_${i}" sline="true" halign="0"/>
 									</vbox>
 								</hbox>
-								
+
 								<!-- DC offset -->
 								<hbox fill="false" pad.r="6">
 									<knob id="dco_${i}" scolor=":ce_${i} and ${act_band} ? 'kscale' : 'cycle_inactive'"/>
@@ -933,7 +946,7 @@
 											<!-- Oscillogram graph combined-->
 											<graph width.min="312" height.min="95" hexpand="true" hfill="true" >
 												<origin hpos="1" vpos="-1" visible="false"/>
-					
+
 												<!-- Gray grid -->
 												<ui:with ox="0" oy="1">
 													<marker v="0.5" color="graph_alt_1"/>
@@ -942,7 +955,7 @@
 													<marker v="3.5" color="graph_alt_1"/>
 													<marker v="4.5" color="graph_alt_1"/>
 												</ui:with>
-					
+
 												<!-- Yellow grid -->
 												<ui:with ox="0" oy="1">
 													<marker v="1" color="graph_sec"/>
@@ -955,16 +968,16 @@
 														<marker v="${v} db"/>
 													</ui:for>
 												</ui:with>
-					
+
 												<!-- Meshes -->
 												<mesh id="ctg_${i}" width="0" x.index="0" y.index="1" color="mono_in" fcolor="mono_in" fcolor.a="0.8" fill="true" visibility=":ilg_l"/>
 												<mesh id="ctg_${i}" width="2" x.index="0" y.index="2" color="mono" visibility=":olg"/>
 												<mesh id="ctg_${i}" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":grg"/>
-					
+
 												<!-- Axis -->
 												<axis min="0" max="5" angle="1.0" log="false" color="graph_prim" visibility="false"/>
 												<axis min="-24 db" max="12 db" angle="0.5" log="true" color="graph_prim" visibility="false"/>
-					
+
 												<!-- Text -->
 												<text x="5" y="-72 db" text="graph.units.s" halign="1" valign="1" color="graph_prim"/>
 												<ui:with y="-24 db" halign="1" valign="1" color="graph_prim">
@@ -982,11 +995,11 @@
 													</ui:for>
 												</ui:with>
 											</graph>
-					
+
 											<!-- Waveform graph combined-->
 											<graph width.min="312" height.min="95" hexpand="true" hfill="true">
 												<origin hpos="1" vpos="0" visible="false"/>
-					
+
 												<!-- Gray grid -->
 												<ui:with ox="0" oy="1">
 													<marker v="0.1" color="graph_alt_1"/>
@@ -995,7 +1008,7 @@
 													<marker v="0.7" color="graph_alt_1"/>
 													<marker v="0.9" color="graph_alt_1"/>
 												</ui:with>
-					
+
 												<!-- Yellow grid -->
 												<ui:with ox="0" oy="1">
 													<marker v="0.2" color="graph_sec"/>
@@ -1003,25 +1016,25 @@
 													<marker v="0.6" color="graph_sec"/>
 													<marker v="0.8" color="graph_sec"/>
 												</ui:with>
-					
+
 												<ui:with ox="1" oy="0" color="graph_sec">
 													<marker v="-0.5" />
 													<marker v="0.5" />
 												</ui:with>
-					
+
 												<!-- Meshes -->
 												<mesh id="wfg_${i}" width="2" x.index="0" y.index="1" color="mono" fcolor="mono" fcolor.a="0.8" fill="true" visibility=":olg"/>
-					
+
 												<ui:with ox="1" oy="0" width="2" color="graph_prim">
 													<marker v="1" />
 													<marker v="0" />
 													<marker v="-1" />
 												</ui:with>
-					
+
 												<!-- Axis -->
 												<axis min="0" max="1" angle="1.0" log="false" color="graph_prim" visibility="false"/>
 												<axis min="-1.5" max="1.5" angle="0.5" log="false" color="graph_prim" visibility="false"/>
-					
+
 												<!-- Text -->
 												<ui:with y="-1.5" halign="1" valign="1" color="graph_prim">
 													<text x="0" text="0" halign="-1"/>
@@ -1098,11 +1111,11 @@
 												</ui:for>
 											</ui:with>
 										</graph>
-										
+
 										<!-- Waveform graph -->
 										<graph width.min="312" height.min="192" hexpand="true" hfill="true">
 											<origin hpos="1" vpos="0" visible="false"/>
-					
+
 											<!-- Gray grid -->
 											<ui:with ox="0" oy="1">
 												<marker v="0.1" color="graph_alt_1"/>
@@ -1111,7 +1124,7 @@
 												<marker v="0.7" color="graph_alt_1"/>
 												<marker v="0.9" color="graph_alt_1"/>
 											</ui:with>
-					
+
 											<!-- Yellow grid -->
 											<ui:with ox="0" oy="1">
 												<marker v="0.2" color="graph_sec"/>
@@ -1127,10 +1140,10 @@
 												<marker v="0.5" />
 												<marker v="0.75" />
 											</ui:with>
-					
+
 											<!-- Meshes -->
 											<mesh id="wfg_${i}" width="2" x.index="0" y.index="1" color="mono" fcolor="mono" fcolor.a="0.8" fill="true" visibility=":olg"/>
-					
+
 											<ui:with ox="1" oy="0" width="2" color="graph_prim">
 												<marker v="1" />
 												<marker v="0" />
@@ -1139,7 +1152,7 @@
 											<!-- Axis -->
 											<axis min="0" max="1" angle="1.0" log="false" color="graph_prim" visibility="false"/>
 											<axis min="-1.25" max="1.25" angle="0.5" log="false" color="graph_prim" visibility="false"/>
-					
+
 											<!-- Text -->
 											<ui:with y="-1.25" halign="1" valign="1" color="graph_prim">
 												<text x="0" text="0" halign="-1"/>
@@ -1472,7 +1485,7 @@
 									<graph width.min="265" height.min="215" expand="true" fill="true" visibility="!:clog">
 										<origin hpos="-1" vpos="-1" visible="false"/>
 										<origin hpos="-1" vpos="0" visible="false"/>
-		
+
 										<ui:with ox="0" oy="1">
 											<marker v="0.25" color="graph_alt_1"/>
 											<marker v="0.75" color="graph_alt_1"/>
@@ -1483,7 +1496,7 @@
 											<marker v="0.25" color="graph_alt_1"/>
 											<marker v="0.75" color="graph_alt_1"/>
 										</ui:with>
-		
+
 										<ui:with ox="0" oy="1">
 											<marker v="0.5" color="graph_sec"/>
 											<marker v="1" color="graph_sec"/>
@@ -1494,13 +1507,13 @@
 											<marker v="0.5" color="graph_sec"/>
 											<marker v="1" color="graph_sec"/>
 										</ui:with>
-		
+
 										<!-- Axes and boundaries -->
 										<marker v="1" ox="1" oy="0" dv="1" dx=":_a_width / 2.25" dy=":_a_height / 1.25" color="graph_alt_1" width="2" smooth="true"/>
 										<axis min="0" max="2.25" color="graph_prim" angle="0.0" width="2"/>
 										<axis min="0" max="1.25" color="graph_prim" angle="0.5" width="2"/>
 										<axis o="1" min="0" max="2.25" color="graph_prim" angle="0.0" zero="0" visibility="false"/>
-		
+
 										<!-- Meshes -->
 										<mesh id="cfc" x.index="0" y.index="1" width="3" color=":ce and :oclip? 'graph_mesh': 'graph_prim'" smooth="true"/>
 										<dot x.id="cfx1" y.id="cfy1" color="dot" bcolor="dot" visibility=":ce and :oclip"/>
@@ -1549,7 +1562,7 @@
 											hlcolor="graph_prim"
 											rcolor="graph_prim"
 											hrcolor="graph_prim"/>
-		
+
 										<!-- Text -->
 										<ui:with x="0" halign="1" valign="-1">
 											<text y="0.5" text="0.5"/>
@@ -1596,7 +1609,7 @@
 										<mesh id="cfc" x.index="2" y.index="3" width="3" color=":ce and :oclip? 'graph_mesh': 'graph_prim'" smooth="true"/>
 										<dot x.id="cfx1" y.id="cfy1" color="dot" bcolor="dot" visibility=":ce and :oclip"/>
 										<dot x.id="cfx2" y.id="cfy2" color="dot" bcolor="dot" visibility=":ce and :oclip"/>
-										
+
 										<!-- Markers -->
 										<marker
 											id="ct"
@@ -1703,7 +1716,7 @@
 									<value id="ct" sline="true" halign="0"/>
 								</vbox>
 							</hbox>
-							
+
 							<!-- DC offset -->
 							<hbox fill="false" pad.r="6">
 								<knob id="dcoff" scolor=":ce and :oclip ? 'kscale' : 'cycle_inactive'"/>
@@ -1754,7 +1767,7 @@
 										<!-- Oscillogram graph combined-->
 										<graph width.min="312" height.min="95" hexpand="true" hfill="true" >
 											<origin hpos="1" vpos="-1" visible="false"/>
-				
+
 											<!-- Gray grid -->
 											<ui:with ox="0" oy="1">
 												<marker v="0.5" color="graph_alt_1"/>
@@ -1763,7 +1776,7 @@
 												<marker v="3.5" color="graph_alt_1"/>
 												<marker v="4.5" color="graph_alt_1"/>
 											</ui:with>
-				
+
 											<!-- Yellow grid -->
 											<ui:with ox="0" oy="1">
 												<marker v="1" color="graph_sec"/>
@@ -1776,16 +1789,16 @@
 													<marker v="${v} db"/>
 												</ui:for>
 											</ui:with>
-				
+
 											<!-- Meshes -->
 											<mesh id="ctg" width="0" x.index="0" y.index="1" color="mono_in" fcolor="mono_in" fcolor.a="0.8" fill="true" visibility=":ilg"/>
 											<mesh id="ctg" width="2" x.index="0" y.index="2" color="mono" visibility=":olg"/>
 											<mesh id="ctg" width="2" x.index="0" y.index="3" color="bright_blue" visibility=":grg"/>
-				
+
 											<!-- Axis -->
 											<axis min="0" max="5" angle="1.0" log="false" color="graph_prim" visibility="false"/>
 											<axis min="-24 db" max="12 db" angle="0.5" log="true" color="graph_prim" visibility="false"/>
-				
+
 											<!-- Text -->
 											<text x="5" y="-72 db" text="graph.units.s" halign="1" valign="1" color="graph_prim"/>
 											<ui:with y="-24 db" halign="1" valign="1" color="graph_prim">
@@ -1803,11 +1816,11 @@
 												</ui:for>
 											</ui:with>
 										</graph>
-				
+
 										<!-- Waveform graph combined-->
 										<graph width.min="312" height.min="95" hexpand="true" hfill="true">
 											<origin hpos="1" vpos="0" visible="false"/>
-				
+
 											<!-- Gray grid -->
 											<ui:with ox="0" oy="1">
 												<marker v="0.1" color="graph_alt_1"/>
@@ -1816,7 +1829,7 @@
 												<marker v="0.7" color="graph_alt_1"/>
 												<marker v="0.9" color="graph_alt_1"/>
 											</ui:with>
-				
+
 											<!-- Yellow grid -->
 											<ui:with ox="0" oy="1">
 												<marker v="0.2" color="graph_sec"/>
@@ -1824,25 +1837,25 @@
 												<marker v="0.6" color="graph_sec"/>
 												<marker v="0.8" color="graph_sec"/>
 											</ui:with>
-				
+
 											<ui:with ox="1" oy="0" color="graph_sec">
 												<marker v="-0.5" />
 												<marker v="0.5" />
 											</ui:with>
-				
+
 											<!-- Meshes -->
 											<mesh id="wfg" width="2" x.index="0" y.index="1" color="mono" fcolor="mono" fcolor.a="0.8" fill="true" visibility=":olg"/>
-				
+
 											<ui:with ox="1" oy="0" width="2" color="graph_prim">
 												<marker v="1" />
 												<marker v="0" />
 												<marker v="-1" />
 											</ui:with>
-				
+
 											<!-- Axis -->
 											<axis min="0" max="1" angle="1.0" log="false" color="graph_prim" visibility="false"/>
 											<axis min="-1.5" max="1.5" angle="0.5" log="false" color="graph_prim" visibility="false"/>
-				
+
 											<!-- Text -->
 											<ui:with y="-1.5" halign="1" valign="1" color="graph_prim">
 												<text x="0" text="0" halign="-1"/>
@@ -1919,11 +1932,11 @@
 											</ui:for>
 										</ui:with>
 									</graph>
-									
+
 									<!-- Waveform graph -->
 									<graph width.min="312" height.min="192" hexpand="true" hfill="true">
 										<origin hpos="1" vpos="0" visible="false"/>
-				
+
 										<!-- Gray grid -->
 										<ui:with ox="0" oy="1">
 											<marker v="0.1" color="graph_alt_1"/>
@@ -1932,7 +1945,7 @@
 											<marker v="0.7" color="graph_alt_1"/>
 											<marker v="0.9" color="graph_alt_1"/>
 										</ui:with>
-				
+
 										<!-- Yellow grid -->
 										<ui:with ox="0" oy="1">
 											<marker v="0.2" color="graph_sec"/>
@@ -1948,10 +1961,10 @@
 											<marker v="0.5" />
 											<marker v="0.75" />
 										</ui:with>
-				
+
 										<!-- Meshes -->
 										<mesh id="wfg" width="2" x.index="0" y.index="1" color="mono" fcolor="mono" fcolor.a="0.8" fill="true" visibility=":olg"/>
-				
+
 										<ui:with ox="1" oy="0" width="2" color="graph_prim">
 											<marker v="1" />
 											<marker v="0" />
@@ -1960,7 +1973,7 @@
 										<!-- Axis -->
 										<axis min="0" max="1" angle="1.0" log="false" color="graph_prim" visibility="false"/>
 										<axis min="-1.25" max="1.25" angle="0.5" log="false" color="graph_prim" visibility="false"/>
-				
+
 										<!-- Text -->
 										<ui:with y="-1.25" halign="1" valign="1" color="graph_prim">
 											<text x="0" text="0" halign="-1"/>
