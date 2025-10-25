@@ -225,6 +225,7 @@ namespace lsp
             vLinSigmoid             = NULL;
             vLogSigmoid             = NULL;
             vTime                   = NULL;
+            vIDisplay               = NULL;
             vWaveformTime           = NULL;
             pIDisplay               = NULL;
 
@@ -279,6 +280,7 @@ namespace lsp
                 szof_curve_buffer +     // vLinSigmoid
                 szof_curve_buffer +     // vLogSigmoid
                 szof_time_buffer +      // vTime
+                szof_time_buffer +      // vIDisplay
                 szof_time_buffer +      // vWaveformTime
                 meta::mb_clipper::BANDS_MAX * (
                     szof_fft_buffer     // vTr
@@ -359,6 +361,7 @@ namespace lsp
             vLinSigmoid             = advance_ptr_bytes<float>(ptr, szof_curve_buffer);
             vLogSigmoid             = advance_ptr_bytes<float>(ptr, szof_curve_buffer);
             vTime                   = advance_ptr_bytes<float>(ptr, szof_time_buffer);
+            vIDisplay               = advance_ptr_bytes<float>(ptr, szof_time_buffer);
             vWaveformTime           = advance_ptr_bytes<float>(ptr, szof_time_buffer);
 
             for (size_t i=0; i < nChannels; ++i)
@@ -2506,9 +2509,9 @@ namespace lsp
                         float *out      = mesh->pvData[index++];
                         float *red      = mesh->pvData[index++];
 
-                        dsp::copy(&in[2], c->sInGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
-                        dsp::copy(&out[2], c->sOutGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
-                        dsp::copy(&red[2], c->sRedGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
+                        c->sInGraph.read(&in[2], meta::mb_clipper::TIME_MESH_POINTS);
+                        c->sOutGraph.read(&out[2], meta::mb_clipper::TIME_MESH_POINTS);
+                        c->sRedGraph.read(&red[2], meta::mb_clipper::TIME_MESH_POINTS);
 
                         // Generate extra points
                         in[0]           = 0.0f;
@@ -2560,7 +2563,7 @@ namespace lsp
 
                         float *osc      = mesh->pvData[index++];
 
-                        dsp::copy(&osc[2], c->sWaveformGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
+                        c->sWaveformGraph.read(&osc[2], meta::mb_clipper::TIME_MESH_POINTS);
 
                         // Generate extra points
                         osc[0]          = 0.0f;
@@ -2611,9 +2614,9 @@ namespace lsp
                             float *out      = mesh->pvData[index++];
                             float *red      = mesh->pvData[index++];
 
-                            dsp::copy(&in[2], b->sInGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
-                            dsp::copy(&out[2], b->sOutGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
-                            dsp::copy(&red[2], b->sRedGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
+                            b->sInGraph.read(&in[2], meta::mb_clipper::TIME_MESH_POINTS);
+                            b->sOutGraph.read(&out[2], meta::mb_clipper::TIME_MESH_POINTS);
+                            b->sRedGraph.read(&red[2], meta::mb_clipper::TIME_MESH_POINTS);
 
                             // Generate extra points
                             in[0]           = 0.0f;
@@ -2665,7 +2668,7 @@ namespace lsp
 
                             float *osc      = mesh->pvData[index++];
 
-                            dsp::copy(&osc[2], b->sWaveformGraph.data(), meta::mb_clipper::TIME_MESH_POINTS);
+                            b->sWaveformGraph.read(&osc[2], meta::mb_clipper::TIME_MESH_POINTS);
 
                             // Generate extra points
                             osc[0]          = 0.0f;
@@ -3129,6 +3132,8 @@ namespace lsp
             v->write("vLinSigmoid", vLinSigmoid);
             v->write("vLogSigmoid", vLogSigmoid);
             v->write("vTime", vTime);
+            v->write("vIDisplay", vIDisplay);
+            v->write("vWaveformTime", vWaveformTime);
             v->write("pIDisplay", pIDisplay);
 
             v->write("pBypass", pBypass);
