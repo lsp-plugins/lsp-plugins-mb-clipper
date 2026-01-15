@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2023 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2023 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-mb-clipper
  * Created on: 11 ноя 2023 г.
@@ -177,7 +177,7 @@ namespace lsp
                 expr::Parameters params;
                 tk::prop::String lc_string;
                 LSPString text;
-                lc_string.bind(s->wNote->style(), pDisplay->dictionary());
+                lc_string.bind(s->wNote->style(), display()->dictionary());
                 SET_LOCALE_SCOPED(LC_NUMERIC, "C");
 
                 // Frequency
