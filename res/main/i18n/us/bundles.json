@@ -1,7 +1,11 @@
 {
 	"mb_clipper": {
-		"name": "Multiband Clipper",
-		"description": "Advanced multiband peak clipping tool for maximization of output loudness"
+		"description": "Advanced multiband peak clipping tool for maximization of output loudness",
+		"name": "Multiband Clipper"
+	},
+	"launcher": {
+		"mb_clipper_mono": "Mono",
+		"mb_clipper_stereo": "Stereo"
 	}
 }
 
