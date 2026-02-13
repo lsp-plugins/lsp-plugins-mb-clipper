@@ -340,7 +340,7 @@ namespace lsp
             clap_features_mono,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             clipper_mono_ports,
-            "dynamics/clipper/multiband/mono.xml",
+            "plugins/dynamics/clipper/multiband/mono.xml",
             NULL,
             mono_plugin_port_groups,
             &mb_clipper_bundle
@@ -371,7 +371,7 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE | E_INLINE_DISPLAY,
             clipper_stereo_ports,
-            "dynamics/clipper/multiband/stereo.xml",
+            "plugins/dynamics/clipper/multiband/stereo.xml",
             NULL,
             stereo_plugin_port_groups,
             &mb_clipper_bundle
