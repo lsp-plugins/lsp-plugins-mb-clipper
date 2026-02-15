@@ -1070,8 +1070,8 @@
 												</ui:with>
 
 												<!-- Meshes -->
-												<mesh id="wfg_${i}" width="2" x.index="0" y.index="1" color="left" fcolor="left" fcolor.a="0.8" fill="true" visibility=":olg_l"/>
-												<mesh id="wfg_${i}" width="2" x.index="0" y.index="2" color="right" fcolor="right" fcolor.a="0.8" fill="true" visibility=":olg_r"/>
+												<mesh id="wfg_${i}" width="2" x.index="0" y.index="1" color="left" fcolor="left" fcolor.a="0.8" fill="true" visibility=":olg_l and ${act_band}"/>
+												<mesh id="wfg_${i}" width="2" x.index="0" y.index="2" color="right" fcolor="right" fcolor.a="0.8" fill="true" visibility=":olg_r and ${act_band}"/>
 
 												<ui:with ox="1" oy="0" width="2" color="graph_prim">
 													<marker v="1" />
@@ -1193,8 +1193,8 @@
 											</ui:with>
 
 											<!-- Meshes -->
-											<mesh id="wfg_${i}" width="2" x.index="0" y.index="1" color="left" fcolor="left" fcolor.a="0.8" fill="true" visibility=":olg_l"/>
-											<mesh id="wfg_${i}" width="2" x.index="0" y.index="2" color="right" fcolor="right" fcolor.a="0.8" fill="true" visibility=":olg_r"/>
+											<mesh id="wfg_${i}" width="2" x.index="0" y.index="1" color="left" fcolor="left" fcolor.a="0.8" fill="true" visibility=":olg_l and ${act_band}"/>
+											<mesh id="wfg_${i}" width="2" x.index="0" y.index="2" color="right" fcolor="right" fcolor.a="0.8" fill="true" visibility=":olg_r and ${act_band}"/>
 
 											<ui:with ox="1" oy="0" width="2" color="graph_prim">
 												<marker v="1" />
