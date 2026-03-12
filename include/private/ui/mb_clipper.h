@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2023 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2023 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-mb-clipper
  * Created on: 6 дек. 2023 г.
@@ -67,7 +67,12 @@ namespace lsp
 
             public:
                 explicit mb_clipper_ui(const meta::plugin_t *meta);
+                mb_clipper_ui(const mb_clipper_ui &) = delete;
+                mb_clipper_ui(mb_clipper_ui &&) = delete;
                 virtual ~mb_clipper_ui() override;
+
+                mb_clipper_ui & operator = (const mb_clipper_ui &) = delete;
+                mb_clipper_ui & operator = (mb_clipper_ui &&) = delete;
 
                 virtual status_t    post_init() override;
 

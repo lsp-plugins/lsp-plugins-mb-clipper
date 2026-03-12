@@ -1023,7 +1023,7 @@
 												</ui:with>
 
 												<!-- Meshes -->
-												<mesh id="wfg_${i}" width="2" x.index="0" y.index="1" color="mono" fcolor="mono" fcolor.a="0.8" fill="true" visibility=":olg"/>
+												<mesh id="wfg_${i}" width="2" x.index="0" y.index="1" color="mono" fcolor="mono" fcolor.a="0.8" fill="true" visibility=":olg and ${act_band}"/>
 
 												<ui:with ox="1" oy="0" width="2" color="graph_prim">
 													<marker v="1" />
@@ -1142,7 +1142,7 @@
 											</ui:with>
 
 											<!-- Meshes -->
-											<mesh id="wfg_${i}" width="2" x.index="0" y.index="1" color="mono" fcolor="mono" fcolor.a="0.8" fill="true" visibility=":olg"/>
+											<mesh id="wfg_${i}" width="2" x.index="0" y.index="1" color="mono" fcolor="mono" fcolor.a="0.8" fill="true" visibility=":olg and ${act_band}"/>
 
 											<ui:with ox="1" oy="0" width="2" color="graph_prim">
 												<marker v="1" />

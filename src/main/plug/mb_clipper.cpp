@@ -2649,7 +2649,7 @@ namespace lsp
                 mesh    = (g->pWaveformMesh != NULL) ? g->pWaveformMesh->buffer<plug::mesh_t>() : NULL;
                 if ((mesh != NULL) && (mesh->isEmpty()))
                 {
-                    if (nFlags & PF_ENABLED)
+                    if (p->nFlags & PF_ENABLED)
                     {
                         size_t index    = 0;
 
