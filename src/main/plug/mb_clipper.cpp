@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-mb-clipper
  * Created on: 11 ноя 2023 г.
@@ -1064,7 +1064,6 @@ namespace lsp
         {
             bool bypass             = pBypass->value() >= 0.5f;
             fThresh                 = dspu::db_to_gain(-pThresh->value());
-            size_t active_channels  = 0;
             bool sync_band_curves   = false;
             const size_t dither_bits= decode_dithering(pDithering->value());
 
@@ -1333,12 +1332,8 @@ namespace lsp
 
                 sAnalyzer.enable_channel(c->nAnInChannel, c->nFlags & CF_IN_FFT);
                 sAnalyzer.enable_channel(c->nAnOutChannel, c->nFlags & CF_OUT_FFT);
-                if (c->nFlags & (CF_IN_FFT | CF_OUT_FFT))
-                    ++active_channels;
-
                 sAnalyzer.set_channel_delay(c->nAnInChannel, latency);
             }
-            sAnalyzer.set_activity(active_channels > 0);
 
             if (sAnalyzer.needs_reconfiguration())
             {
@@ -2745,6 +2740,8 @@ namespace lsp
 
         void mb_clipper::ui_activated()
         {
+            sAnalyzer.set_activity(true);
+
             // Force meshes to become synchronized with UI
             for (size_t j=0; j<meta::mb_clipper::BANDS_MAX; ++j)
             {
@@ -2752,6 +2749,11 @@ namespace lsp
                 p->nFlags          |= PF_SYNC_ALL;
             }
             nFlags             |= GF_SYNC_ALL;
+        }
+
+        void mb_clipper::ui_deactivated()
+        {
+            sAnalyzer.set_activity(false);
         }
 
         bool mb_clipper::inline_display(plug::ICanvas *cv, size_t width, size_t height)

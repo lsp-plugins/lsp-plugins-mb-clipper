@@ -3,7 +3,7 @@
 *******************************************************************************
 
 === 1.0.20 ===
-
+* Optimized CPU consumption: FFT analysis is not performed when UI is not active.
 
 === 1.0.19 ===
 * Updated build scripts and dependencies.
