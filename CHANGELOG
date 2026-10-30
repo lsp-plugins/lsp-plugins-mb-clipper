@@ -2,6 +2,9 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.21 ===
+
+
 === 1.0.20 ===
 * Optimized CPU consumption: FFT analysis is not performed when UI is not active.
 * Fixed bug in DSP code that could cause a crash of the plugin on processors
