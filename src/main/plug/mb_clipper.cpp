@@ -1037,8 +1037,28 @@ namespace lsp
 
         void mb_clipper::clip_curve(float *dst, const float *x, const clip_params_t *p, size_t count)
         {
+            const float pumping     = p->fPumping;
+            const float threshold   = p->fThreshold;
+            const float scaling     = p->fScaling;
+            const float knee        = p->fKnee;
+            const dspu::sigmoid::function_t func = p->pFunc;
+
             for (size_t i=0; i<count; ++i)
-                dst[i]      = clip_curve(p, x[i]);
+            {
+                float s             = x[i] * pumping;
+                if (s > threshold)
+                {
+                    s               = (s - threshold) * scaling;
+                    dst[i]          = func(s) * knee + threshold;
+                }
+                else if (s < -threshold)
+                {
+                    s               = (s + threshold) * scaling;
+                    dst[i]          = func(s) * knee - threshold;
+                }
+                else
+                    dst[i]          = s;
+            }
         }
 
         size_t mb_clipper::decode_dithering(size_t mode)
